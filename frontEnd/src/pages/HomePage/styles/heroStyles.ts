@@ -1,0 +1,75 @@
+import { SxProps, Theme } from '@mui/material'
+
+export const heroStyles: Record<string, SxProps<Theme>> = {
+  container: {
+    minHeight: '100vh',
+    backgroundImage: 'linear-gradient(rgba(212, 175, 140, 0.6), rgba(139, 111, 71, 0.7)), url(https://picsum.photos/1920/1080?random=1)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    pt: { xs: 12, md: 14 },
+    pb: { xs: 8, md: 12 },
+    overflow: 'hidden',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%)',
+      zIndex: 0,
+    },
+  },
+  content: {
+    textAlign: 'center',
+    color: 'white',
+    maxWidth: '900px',
+    mx: 'auto',
+    position: 'relative',
+    zIndex: 1,
+    px: 3,
+    animation: 'fadeInUp 1s ease-out',
+    '@keyframes fadeInUp': {
+      from: {
+        opacity: 0,
+        transform: 'translateY(30px)',
+      },
+      to: {
+        opacity: 1,
+        transform: 'translateY(0)',
+      },
+    },
+  },
+  title: {
+    fontSize: { xs: '2.5rem', sm: '3.5rem', md: '5rem', lg: '6rem' },
+    fontWeight: 300,
+    mb: { xs: 3, md: 4 },
+    letterSpacing: { xs: '1px', md: '3px' },
+    lineHeight: 1.1,
+    textShadow: '0 2px 20px rgba(0, 0, 0, 0.3)',
+    fontFamily: '"Playfair Display", serif',
+  },
+  description: {
+    fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
+    lineHeight: { xs: 1.7, md: 1.8 },
+    opacity: 0.95,
+    maxWidth: '700px',
+    mx: 'auto',
+    textShadow: '0 1px 10px rgba(0, 0, 0, 0.2)',
+    mb: { xs: 4, md: 5 },
+  },
+  buttonContainer: {
+    display: 'flex',
+    gap: 2,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    mt: { xs: 3, md: 4 },
+  },
+}
+
