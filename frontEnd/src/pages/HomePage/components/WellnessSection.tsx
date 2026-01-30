@@ -1,5 +1,5 @@
-import { Box, Container, Typography, Button, Grid } from '@mui/material'
-import { wellnessStyles } from '../styles'
+import { Box, Container, Typography, Button, Grid } from "@mui/material";
+import { wellnessStyles } from "../styles";
 
 const WellnessSection = () => {
   return (
@@ -14,12 +14,12 @@ const WellnessSection = () => {
               Wellness & Spa
             </Typography>
             <Typography variant="body1" sx={wellnessStyles.description}>
-              Vix te soleat eirmod civibus. Ius ad autem dicam exerci, sed et erremasc simul phaedrum, ex latine minimum deleniti has. No mei case assenna. Mea nobis putent discere no. Duo ea homero senserit, fugit quando intellegat dicam no his ullum.
+              Nơi vẻ đẹp và sự thư giãn hòa làm một. Chúng tôi mang đến những
+              liệu trình chăm sóc tinh tế, giúp bạn tái tạo năng lượng, cân bằng
+              cơ thể và nuôi dưỡng cảm giác an yên từ bên trong. Mỗi khoảnh khắc
+              tại đây là một trải nghiệm nhẹ nhàng, riêng tư và đáng nhớ.
             </Typography>
-            <Button
-              variant="contained"
-              sx={wellnessStyles.button}
-            >
+            <Button variant="contained" sx={wellnessStyles.button}>
               BOOK NOW
             </Button>
           </Grid>
@@ -37,8 +37,7 @@ const WellnessSection = () => {
         </Grid>
       </Container>
     </Box>
-  )
-}
+  );
+};
 
-export default WellnessSection
-
+export default WellnessSection;

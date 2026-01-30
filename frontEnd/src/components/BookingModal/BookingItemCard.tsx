@@ -8,28 +8,34 @@ import {
   MenuItem,
   Button,
   Chip,
-} from '@mui/material'
-import { ExpandMore, CalendarToday, AccessTime, Person } from '@mui/icons-material'
-import { useState, useMemo } from 'react'
-import { staffMembers, getAvailableStaffForService } from '../../data/staff'
-import { formatPrice } from '../../utils'
-import TimeSlotPicker from '../TimeSlotPicker'
+  CircularProgress,
+} from "@mui/material";
+import {
+  ExpandMore,
+  CalendarToday,
+  AccessTime,
+  Person,
+} from "@mui/icons-material";
+import { useState, useMemo, useEffect } from "react";
+import { useBookings } from "../../hooks";
+import { formatPrice } from "../../utils";
+import TimeSlotPicker from "../TimeSlotPicker";
 
-interface BookingItem {
-  guestNumber: number
-  service: string
-  staff: string
-  date: string
-  time: string
-}
+import { BookingItem } from "./types";
 
 interface BookingItemCardProps {
-  item: BookingItem
-  index: number
-  services: { id: string; name: string; category: string; price?: number; price_range?: string }[]
-  onUpdate: (index: number, field: keyof BookingItem, value: string) => void
-  errors?: Partial<Record<keyof BookingItem, string>>
-  allBookings?: BookingItem[] // Tất cả bookings để check conflict
+  item: BookingItem;
+  index: number;
+  services: {
+    id: string;
+    name: string;
+    category: string;
+    price?: number;
+    price_range?: string;
+  }[];
+  onUpdate: (index: number, field: keyof BookingItem, value: string) => void;
+  errors?: Partial<Record<keyof BookingItem, string>>;
+  allBookings?: BookingItem[]; // Tất cả bookings để check conflict
 }
 
 const BookingItemCard = ({
@@ -40,55 +46,93 @@ const BookingItemCard = ({
   errors = {},
   allBookings = [],
 }: BookingItemCardProps) => {
-  const [timeSlotPickerOpen, setTimeSlotPickerOpen] = useState(false)
+  const [timeSlotPickerOpen, setTimeSlotPickerOpen] = useState(false);
+  const [allEmployees, setAllEmployees] = useState<any[]>([]);
+  const { getActiveBookableEmployees, loading: employeesLoading } =
+    useBookings();
 
-  // Get available staff based on selected service
-  const availableStaff = useMemo(() => {
-    if (!item.service) return []
+  // Fetch all active employees on mount
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const emps = await getActiveBookableEmployees();
+      setAllEmployees(emps);
+    };
+    fetchEmployees();
+  }, [getActiveBookableEmployees]);
 
-    const serviceItem = services.find((s) => s.id === item.service)
-    if (!serviceItem) return []
+  // Filter employees by service category
+  const filteredEmployees = useMemo(() => {
+    if (!item.service || allEmployees.length === 0) return [];
 
-    return getAvailableStaffForService(serviceItem.category)
-  }, [item.service, services])
+    const serviceItem = services.find((s) => s.id === item.service);
+    if (!serviceItem) return [];
 
-  // Get selected staff object
-  const selectedStaffObject = useMemo(() => {
-    return staffMembers.find((s) => s.id === item.staff) || null
-  }, [item.staff])
+    const category = serviceItem.category.toLowerCase();
+
+    // Trong flow mới, ta cho phép chọn nhân viên 'trùng' nếu họ rảnh ở khung giờ khác
+    // Việc check trùng giờ sẽ do TimeSlotPicker đảm nhận (hoặc logic getAvailableSlots)
+    // Tuy nhiên, nếu muốn tránh chọn cùng 1 nhân viên cho 2 khách trong CÙNG 1 booking request (nếu logic business cấm),
+    // ta có thể filter ở đây. Nhưng business thường cho phép 1 nhân viên phục vụ nhiều khách nếu thời gian khác nhau.
+    // Tạm thời hiển thị hết những ai có skill.
+
+    return allEmployees.filter((emp) => {
+      if (!emp.specialization) return true;
+      const specs = emp.specialization
+        .toLowerCase()
+        .split(",")
+        .map((s: string) => s.trim());
+      return specs.some((spec: string) => category.includes(spec));
+    });
+  }, [item.service, services, allEmployees]);
 
   // Get selected service price info
   const selectedServicePriceInfo = useMemo(() => {
-    if (!item.service) return { price: 0, priceRange: undefined }
-    const service = services.find((s) => s.id === item.service)
-    if (!service) return { price: 0, priceRange: undefined }
-    
+    if (!item.service) return { price: 0, priceRange: undefined };
+    const service = services.find((s) => s.id === item.service);
+    if (!service) return { price: 0, priceRange: undefined };
+
     return {
       price: service.price || 0,
       priceRange: service.price_range,
-    }
-  }, [item.service, services])
+    };
+  }, [item.service, services]);
 
   const handleServiceChange = (serviceId: string) => {
-    onUpdate(index, 'service', serviceId)
-    onUpdate(index, 'staff', '')
-    onUpdate(index, 'date', '')
-    onUpdate(index, 'time', '')
-  }
+    onUpdate(index, "service", serviceId);
+    // Reset following fields
+    onUpdate(index, "staff", "");
+    onUpdate(index, "date", "");
+    onUpdate(index, "time", "");
+    onUpdate(index, "timeLabel", "");
+  };
 
   const handleStaffChange = (staffId: string) => {
-    onUpdate(index, 'staff', staffId)
-    onUpdate(index, 'date', '')
-    onUpdate(index, 'time', '')
-  }
+    onUpdate(index, "staff", staffId);
+    // Reset following fields
+    onUpdate(index, "date", "");
+    onUpdate(index, "time", "");
+    onUpdate(index, "timeLabel", "");
+  };
 
-  const handleTimeSlotSelect = (date: string, time: string) => {
-    onUpdate(index, 'date', date)
-    onUpdate(index, 'time', time)
-    setTimeSlotPickerOpen(false)
-  }
+  const handleDateChange = (date: string) => {
+    onUpdate(index, "date", date);
+    // Reset following fields
+    onUpdate(index, "time", "");
+    onUpdate(index, "timeLabel", "");
+  };
 
-  const isComplete = item.service && item.staff && item.date && item.time
+  const handleTimeSlotSelect = (
+    date: string,
+    timeSlotId: string,
+    timeLabel: string,
+  ) => {
+    onUpdate(index, "date", date); // Should stay same
+    onUpdate(index, "time", timeSlotId);
+    onUpdate(index, "timeLabel", timeLabel);
+    setTimeSlotPickerOpen(false);
+  };
+
+  const isComplete = item.service && item.staff && item.date && item.time;
 
   return (
     <>
@@ -96,11 +140,13 @@ const BookingItemCard = ({
         defaultExpanded={index === 0}
         sx={{
           mb: 2,
-          border: isComplete ? '2px solid' : '1px solid',
-          borderColor: isComplete ? 'primary.main' : 'rgba(0, 0, 0, 0.12)',
+          border: isComplete ? "2px solid" : "1px solid",
+          borderColor: isComplete ? "primary.main" : "rgba(0, 0, 0, 0.12)",
           borderRadius: 2,
-          '&:before': { display: 'none' },
-          boxShadow: isComplete ? '0 4px 12px rgba(212, 175, 140, 0.15)' : 'none',
+          "&:before": { display: "none" },
+          boxShadow: isComplete
+            ? "0 4px 12px rgba(212, 175, 140, 0.15)"
+            : "none",
         }}
       >
         <AccordionSummary
@@ -108,53 +154,76 @@ const BookingItemCard = ({
           sx={{
             px: 2,
             py: 1.5,
-            '& .MuiAccordionSummary-content': {
+            "& .MuiAccordionSummary-content": {
               my: 1,
             },
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              width: "100%",
+            }}
+          >
             <Box
               sx={{
                 width: 32,
                 height: 32,
-                borderRadius: '50%',
-                backgroundColor: isComplete ? 'primary.main' : 'grey.300',
-                color: isComplete ? 'white' : 'grey.600',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                borderRadius: "50%",
+                backgroundColor: isComplete ? "primary.main" : "grey.300",
+                color: isComplete ? "white" : "grey.600",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontWeight: 600,
-                fontSize: '0.875rem',
+                fontSize: "0.875rem",
               }}
             >
               {item.guestNumber}
             </Box>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 600, fontSize: "1rem" }}
+              >
                 Người {item.guestNumber}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {isComplete
-                  ? `${services.find((s) => s.id === item.service)?.name || ''} - ${item.date} ${item.time}`
-                  : 'Chưa hoàn tất thông tin đặt lịch'}
+                  ? `${services.find((s) => s.id === item.service)?.name || ""} - ${item.date} ${item.timeLabel || ""}`
+                  : "Chưa hoàn tất thông tin đặt lịch"}
               </Typography>
               {item.service && selectedServicePriceInfo.price > 0 && (
-                <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontWeight: 600, color: 'primary.main' }}>
-                  {selectedServicePriceInfo.priceRange 
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: "block",
+                    mt: 0.5,
+                    fontWeight: 600,
+                    color: "primary.main",
+                  }}
+                >
+                  {selectedServicePriceInfo.priceRange
                     ? `${selectedServicePriceInfo.priceRange} đ`
                     : formatPrice(selectedServicePriceInfo.price)}
                 </Typography>
               )}
             </Box>
             {isComplete && (
-              <Chip label="Hoàn tất" size="small" color="success" sx={{ height: 24 }} />
+              <Chip
+                label="Hoàn tất"
+                size="small"
+                color="success"
+                sx={{ height: 24 }}
+              />
             )}
           </Box>
         </AccordionSummary>
         <AccordionDetails sx={{ px: 2, pb: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {/* Service Selection */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            {/* 1. Service Selection */}
             <TextField
               select
               label="Chọn Dịch Vụ"
@@ -180,7 +249,7 @@ const BookingItemCard = ({
               ))}
             </TextField>
 
-            {/* Staff Selection */}
+            {/* 2. Staff Selection (Moved Up) */}
             <TextField
               select
               label="Chọn Nhân Viên / Chuyên Viên"
@@ -189,22 +258,31 @@ const BookingItemCard = ({
               value={item.staff}
               onChange={(e) => handleStaffChange(e.target.value)}
               error={!!errors.staff}
-              helperText={errors.staff || (item.service ? 'Chọn nhân viên phù hợp với dịch vụ' : 'Vui lòng chọn dịch vụ trước')}
+              helperText={errors.staff}
               variant="outlined"
-              disabled={!item.service || availableStaff.length === 0}
+              disabled={!item.service}
               InputProps={{
-                startAdornment: <Person sx={{ mr: 1, color: 'text.secondary', fontSize: '1.2rem' }} />,
+                startAdornment: employeesLoading ? (
+                  <CircularProgress size={20} sx={{ mr: 1 }} />
+                ) : (
+                  <Person
+                    sx={{ mr: 1, color: "text.secondary", fontSize: "1.2rem" }}
+                  />
+                ),
               }}
             >
-              {availableStaff.length > 0 ? (
-                availableStaff.map((staff) => (
+              {filteredEmployees.length > 0 ? (
+                filteredEmployees.map((staff) => (
                   <MenuItem key={staff.id} value={staff.id}>
                     <Box>
                       <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                        {staff.name}
+                        {staff.fullName}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {staff.position}
+                        {staff.role}{" "}
+                        {staff.specialization
+                          ? `(${staff.specialization})`
+                          : ""}
                       </Typography>
                     </Box>
                   </MenuItem>
@@ -212,20 +290,22 @@ const BookingItemCard = ({
               ) : (
                 <MenuItem disabled value="">
                   {item.service
-                    ? 'Không có nhân viên phù hợp'
-                    : 'Vui lòng chọn dịch vụ trước'}
+                    ? employeesLoading
+                      ? "Đang tải..."
+                      : "Không có nhân viên phù hợp"
+                    : "Vui lòng chọn dịch vụ trước"}
                 </MenuItem>
               )}
             </TextField>
 
-            {/* Date Selection */}
+            {/* 3. Date Selection */}
             <TextField
               label="Chọn Ngày"
               fullWidth
               required
               type="date"
               value={item.date}
-              onChange={(e) => onUpdate(index, 'date', e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               error={!!errors.date}
               helperText={errors.date}
               variant="outlined"
@@ -233,50 +313,74 @@ const BookingItemCard = ({
                 shrink: true,
               }}
               inputProps={{
-                min: new Date().toISOString().split('T')[0],
+                min: new Date().toISOString().split("T")[0],
               }}
               disabled={!item.staff}
               InputProps={{
-                startAdornment: <CalendarToday sx={{ mr: 1, color: 'text.secondary' }} />,
+                startAdornment: (
+                  <CalendarToday sx={{ mr: 1, color: "text.secondary" }} />
+                ),
               }}
             />
 
-            {/* Time Selection Button */}
+            {/* 4. Time Selection Button */}
             <Box>
               <Button
                 fullWidth
                 variant="outlined"
-                onClick={() => item.staff && item.date && setTimeSlotPickerOpen(true)}
-                disabled={!item.staff || !item.date}
+                onClick={() => item.date && setTimeSlotPickerOpen(true)}
+                disabled={!item.date}
                 sx={{
                   py: 1.5,
-                  borderColor: item.time ? 'primary.main' : 'rgba(0, 0, 0, 0.23)',
-                  backgroundColor: item.time ? 'primary.light' : 'transparent',
-                  '&:hover': {
-                    borderColor: 'primary.main',
-                    backgroundColor: 'primary.light',
+                  borderColor: item.time
+                    ? "primary.main"
+                    : "rgba(0, 0, 0, 0.23)",
+                  backgroundColor: item.time ? "primary.light" : "transparent",
+                  "&:hover": {
+                    borderColor: "primary.main",
+                    backgroundColor: "primary.light",
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%', justifyContent: 'center' }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    width: "100%",
+                    justifyContent: "center",
+                  }}
+                >
                   <AccessTime />
-                  <Typography variant="body1" sx={{ fontWeight: item.time ? 600 : 400 }}>
-                    {item.time ? `Giờ đã chọn: ${item.time}` : 'Chọn Giờ Đặt Lịch'}
+                  <Typography
+                    variant="body1"
+                    sx={{ fontWeight: item.time ? 600 : 400 }}
+                  >
+                    {item.timeLabel
+                      ? `Giờ đã chọn: ${item.timeLabel}`
+                      : "Chọn Giờ Đặt Lịch"}
                   </Typography>
                 </Box>
               </Button>
               {errors.time && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ mt: 0.5, display: "block" }}
+                >
                   {errors.time}
                 </Typography>
               )}
-              {item.time && !errors.time && (
+              {item.timeLabel && !errors.time && (
                 <Chip
-                  label={`${item.time}`}
+                  label={`${item.timeLabel}`}
                   size="small"
                   color="primary"
                   sx={{ mt: 1 }}
-                  onDelete={() => onUpdate(index, 'time', '')}
+                  onDelete={() => {
+                    onUpdate(index, "time", "");
+                    onUpdate(index, "timeLabel", "");
+                  }}
                 />
               )}
             </Box>
@@ -289,21 +393,20 @@ const BookingItemCard = ({
         open={timeSlotPickerOpen}
         onClose={() => setTimeSlotPickerOpen(false)}
         onSelect={handleTimeSlotSelect}
-        selectedStaff={selectedStaffObject}
         selectedDate={item.date}
+        serviceId={item.service}
+        employeeId={item.staff}
         currentGuestNumber={item.guestNumber}
         existingBookings={allBookings
-          .filter((b) => b.guestNumber !== item.guestNumber && b.staff && b.date && b.time)
+          .filter((b) => b.guestNumber !== item.guestNumber && b.date && b.time)
           .map((b) => ({
-            staff: b.staff,
             date: b.date,
             time: b.time,
             guestNumber: b.guestNumber,
           }))}
       />
     </>
-  )
-}
+  );
+};
 
-export default BookingItemCard
-
+export default BookingItemCard;

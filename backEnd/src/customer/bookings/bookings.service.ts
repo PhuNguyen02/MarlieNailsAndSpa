@@ -5,10 +5,11 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, Not, In } from 'typeorm';
+import { Repository, Between, Not, In, DataSource } from 'typeorm';
 import { Booking, BookingStatus } from '../../entities/booking.entity';
 import { Employee } from '../../entities/employee.entity';
 import { BookingEmployee } from '../../entities/booking-employee.entity';
+import { Service as ServiceEntity } from '../../entities/service.entity';
 import {
   BookingNotification,
   NotificationType,
@@ -30,8 +31,11 @@ export class BookingsService {
     private employeeRepository: Repository<Employee>,
     @InjectRepository(BookingEmployee)
     private bookingEmployeeRepository: Repository<BookingEmployee>,
+    @InjectRepository(ServiceEntity)
+    private serviceRepository: Repository<ServiceEntity>,
     private timeSlotsService: TimeSlotsService,
     private customersService: CustomersService,
+    private dataSource: DataSource,
   ) {}
 
   async create(createBookingDto: CreateBookingDto) {
@@ -45,113 +49,153 @@ export class BookingsService {
       ...rest
     } = createBookingDto;
 
-    // Check if customer exists
-    await this.customersService.findOne(customerId);
-
-    // Check time slot availability
-    const availability = await this.timeSlotsService.checkAvailability(timeSlotId, numberOfGuests);
-
-    if (!availability.available) {
-      throw new ConflictException(availability.message);
-    }
-
-    // Validate employeeIds
-    if (employeeIds && employeeIds.length > 0) {
-      // Số lượng nhân viên chọn không được vượt quá số lượng khách
-      if (employeeIds.length > numberOfGuests) {
-        throw new BadRequestException(
-          `Số lượng nhân viên (${employeeIds.length}) không được vượt quá số lượng khách (${numberOfGuests})`,
-        );
+    // Use transaction to handle race conditions
+    return this.dataSource.transaction(async (manager) => {
+      // 1. Lock employees to prevent race conditions (Pessimistic Write Lock)
+      // Any other request trying to book these employees will wait here until this transaction finishes
+      if (employeeIds && employeeIds.length > 0) {
+        await manager
+          .createQueryBuilder(Employee, 'employee')
+          .setLock('pessimistic_write')
+          .whereInIds(employeeIds)
+          .getMany();
       }
 
-      // Kiểm tra danh sách nhân viên available
-      const availableEmployeesResult = await this.getAvailableEmployees(bookingDate, timeSlotId);
-      const availableEmployeeIds = availableEmployeesResult.data.availableEmployees.map(
-        (emp: any) => emp.id,
-      );
+      // Check if customer exists
+      await this.customersService.findOne(customerId);
 
-      // Kiểm tra xem có đủ nhân viên available không
-      if (employeeIds.length > availableEmployeesResult.data.availableEmployees.length) {
+      // Check time slot availability (Capacity check)
+      const availability = await this.checkAvailability(bookingDate, timeSlotId);
+
+      if (!availability.data.isAvailable || availability.data.availableSlots < numberOfGuests) {
         throw new ConflictException(
-          `Chỉ còn ${availableEmployeesResult.data.availableEmployees.length} nhân viên trống trong khung giờ này`,
+          `Chỉ còn ${availability.data.availableSlots} chỗ trống, không đủ cho ${numberOfGuests} khách`,
         );
       }
 
-      // Kiểm tra từng nhân viên có available không
-      for (const empId of employeeIds) {
-        if (!availableEmployeeIds.includes(empId)) {
-          const employee = await this.employeeRepository.findOne({ where: { id: empId } });
-          throw new ConflictException(
-            `Nhân viên ${employee?.fullName || empId} đã có lịch hẹn trong khung giờ này`,
+      // Validate employeeIds
+      if (employeeIds && employeeIds.length > 0) {
+        // Số lượng nhân viên chọn không được vượt quá số lượng khách
+        if (employeeIds.length > numberOfGuests) {
+          throw new BadRequestException(
+            `Số lượng nhân viên (${employeeIds.length}) không được vượt quá số lượng khách (${numberOfGuests})`,
           );
+        }
+
+        // IMPORTANT: Re-check employee availability INSIDE the transaction
+        // Since we locked the employees, this check is now thread-safe
+        const start = new Date(bookingDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(bookingDate);
+        end.setHours(23, 59, 59, 999);
+
+        // Find conflicting bookings for these employees in this time slot
+        const conflictingBookings = await manager.find(BookingEmployee, {
+          where: {
+            employeeId: In(employeeIds),
+            booking: {
+              bookingDate: Between(start, end),
+              timeSlotId: timeSlotId,
+              status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]),
+            },
+          },
+          relations: ['booking', 'employee'],
+        });
+
+        if (conflictingBookings.length > 0) {
+          const busyEmployeeName = conflictingBookings[0].employee.fullName;
+          throw new ConflictException(
+            `Nhân viên ${busyEmployeeName} vừa được đặt bởi khách hàng khác. Vui lòng chọn nhân viên khác.`,
+          );
+        }
+
+        // Kiểm tra trùng lặp trong danh sách
+        const uniqueEmployeeIds = [...new Set(employeeIds)];
+        if (uniqueEmployeeIds.length !== employeeIds.length) {
+          throw new BadRequestException('Danh sách nhân viên có ID trùng lặp');
         }
       }
 
-      // Kiểm tra trùng lặp trong danh sách
-      const uniqueEmployeeIds = [...new Set(employeeIds)];
-      if (uniqueEmployeeIds.length !== employeeIds.length) {
-        throw new BadRequestException('Danh sách nhân viên có ID trùng lặp');
-      }
-    }
+      // Check for double booking (same customer, same date, same time slot)
+      const existingBooking = await manager.findOne(Booking, {
+        where: {
+          customerId,
+          bookingDate: new Date(bookingDate),
+          timeSlotId,
+          status: BookingStatus.CONFIRMED,
+        },
+      });
 
-    // Check for double booking (same customer, same date, same time slot)
-    const existingBooking = await this.bookingRepository.findOne({
-      where: {
+      if (existingBooking) {
+        throw new ConflictException('Khách hàng đã có lịch đặt trong khung giờ này');
+      }
+
+      // Create booking using Transaction Manager
+      const booking = manager.create(Booking, {
+        ...rest,
         customerId,
         bookingDate: new Date(bookingDate),
         timeSlotId,
+        numberOfGuests,
+        totalPrice,
         status: BookingStatus.CONFIRMED,
-      },
-    });
+      });
 
-    if (existingBooking) {
-      throw new ConflictException('Khách hàng đã có lịch đặt trong khung giờ này');
-    }
+      const savedBooking = await manager.save(Booking, booking);
 
-    // Create booking
-    const booking = this.bookingRepository.create({
-      ...rest,
-      customerId,
-      bookingDate: new Date(bookingDate),
-      timeSlotId,
-      numberOfGuests,
-      totalPrice,
-      status: BookingStatus.PENDING,
-    });
-
-    const savedBooking = await this.bookingRepository.save(booking);
-
-    // Tạo quan hệ booking-employee
-    if (employeeIds && employeeIds.length > 0) {
-      for (const empId of employeeIds) {
-        const bookingEmployee = this.bookingEmployeeRepository.create({
-          bookingId: savedBooking.id,
-          employeeId: empId,
-        });
-        await this.bookingEmployeeRepository.save(bookingEmployee);
+      // Tạo quan hệ booking-employee using Transaction Manager
+      if (employeeIds && employeeIds.length > 0) {
+        for (const empId of employeeIds) {
+          const bookingEmployee = manager.create(BookingEmployee, {
+            bookingId: savedBooking.id,
+            employeeId: empId,
+          });
+          await manager.save(BookingEmployee, bookingEmployee);
+        }
       }
-    }
 
-    // Increment time slot bookings
-    await this.timeSlotsService.incrementBookings(timeSlotId, numberOfGuests);
+      // Create notification
+      // Note: We can keep notification creation outside or inside. Inside is better for consistency.
+      const customer = await this.customersService.findOne(customerId);
+      const notification = manager.create(BookingNotification, {
+        bookingId: savedBooking.id,
+        type: NotificationType.BOOKING_CREATED,
+        title: 'Đặt lịch thành công',
+        message: `Bạn đã đặt lịch thành công cho ${numberOfGuests} người vào ngày ${bookingDate}`,
+        recipientEmail: customer.email,
+        status: NotificationStatus.PENDING,
+      });
+      await manager.save(BookingNotification, notification);
 
-    // Create notification
-    await this.createNotification(
-      savedBooking.id,
-      NotificationType.BOOKING_CREATED,
-      'Đặt lịch thành công',
-      `Bạn đã đặt lịch thành công cho ${numberOfGuests} người vào ngày ${bookingDate}`,
-    );
+      const result = await manager.findOne(Booking, {
+        where: { id: savedBooking.id },
+        relations: [
+          'customer',
+          'service',
+          'treatment',
+          'employee', // Legacy relation
+          'timeSlot',
+          'notifications',
+          'bookingEmployees',
+          'bookingEmployees.employee',
+        ],
+      });
 
-    const result = await this.findOne(savedBooking.id);
-    return {
-      status: 200,
-      data: result,
-      message: 'Tạo booking thành công',
-    };
+      return {
+        status: 200,
+        data: result,
+        message: 'Tạo booking thành công',
+      };
+    });
   }
 
-  async findAll(filters?: { status?: BookingStatus; date?: string; customerId?: string }) {
+  async findAll(filters?: {
+    status?: BookingStatus;
+    date?: string;
+    startDate?: string;
+    endDate?: string;
+    customerId?: string;
+  }) {
     const query = this.bookingRepository
       .createQueryBuilder('booking')
       .leftJoinAndSelect('booking.customer', 'customer')
@@ -168,9 +212,22 @@ export class BookingsService {
       query.andWhere('booking.status = :status', { status: filters.status });
     }
 
-    if (filters?.date) {
+    if (filters?.startDate && filters?.endDate) {
+      const start = new Date(filters.startDate);
+      const end = new Date(filters.endDate);
+      // Ensure end date includes the entire day
+      end.setHours(23, 59, 59, 999);
+
+      query.andWhere('booking.bookingDate BETWEEN :start AND :end', { start, end });
+    } else if (filters?.date) {
       const date = new Date(filters.date);
-      query.andWhere('booking.bookingDate = :date', { date });
+      // Create range for that specific day
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+
+      query.andWhere('booking.bookingDate BETWEEN :start AND :end', { start, end });
     }
 
     if (filters?.customerId) {
@@ -226,7 +283,8 @@ export class BookingsService {
       updateBookingDto.status === BookingStatus.CANCELLED &&
       booking.status !== BookingStatus.CANCELLED
     ) {
-      await this.timeSlotsService.decrementBookings(booking.timeSlotId, booking.numberOfGuests);
+      // Decrement booking logic removed as we calculate dynamically now
+      // await this.timeSlotsService.decrementBookings(booking.timeSlotId, booking.numberOfGuests);
 
       booking.cancelledAt = new Date();
 
@@ -282,7 +340,8 @@ export class BookingsService {
 
     // Free up time slot if booking was confirmed
     if (booking.status === BookingStatus.CONFIRMED) {
-      await this.timeSlotsService.decrementBookings(booking.timeSlotId, booking.numberOfGuests);
+      // Decrement logic removed
+      // await this.timeSlotsService.decrementBookings(booking.timeSlotId, booking.numberOfGuests);
     }
 
     await this.bookingRepository.remove(booking);
@@ -297,12 +356,18 @@ export class BookingsService {
   async checkAvailability(date: string, timeSlotId: string) {
     const timeSlot = await this.timeSlotsService.findOne(timeSlotId);
 
+    // Create range for that specific day
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+
     // Get bookings for this date and time slot
     const bookings = await this.bookingRepository.find({
       where: {
-        bookingDate: new Date(date),
+        bookingDate: Between(start, end),
         timeSlotId,
-        status: BookingStatus.CONFIRMED,
+        status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]),
       },
     });
 
@@ -323,22 +388,107 @@ export class BookingsService {
     };
   }
 
+  // Get active employees for booking
+  async getActiveEmployees() {
+    const employees = await this.employeeRepository.find({
+      where: { isActive: true },
+      order: { fullName: 'ASC' },
+    });
+    return {
+      status: 200,
+      data: employees,
+      message: 'Lấy danh sách nhân viên thành công',
+    };
+  }
+
   // Get available time slots for a specific date
-  async getAvailableTimeSlots(date: string) {
+  async getAvailableTimeSlots(date: string, serviceId?: string, employeeId?: string) {
     const allTimeSlots = await this.timeSlotsService.findActive();
+
+    let serviceCategory: string | undefined;
+    if (serviceId) {
+      const service = await this.serviceRepository.findOne({ where: { id: serviceId } });
+      serviceCategory = service?.category?.toLowerCase();
+    }
+
+    // Nếu có employeeId, lấy danh sách các slot mà nhân viên đó ĐÃ CÓ booking
+    let employeeBusySlots: string[] = [];
+    if (employeeId) {
+      const bookings = await this.bookingRepository.find({
+        where: {
+          bookingDate: new Date(date),
+          status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]),
+          bookingEmployees: {
+            employeeId: employeeId,
+          },
+        },
+        relations: ['bookingEmployees'], // Cần join để filter
+      });
+      // Đoạn trên query hơi sai vì TypeORM find relations lồng nhau.
+      // Dùng bookingEmployeeRepos sẽ chuẩn hơn.
+    }
+
+    // Query lại logic employeeBusySlots chuẩn hơn bằng bookingEmployeeRepository
+    if (employeeId) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+
+      const busy = await this.bookingEmployeeRepository.find({
+        where: {
+          employeeId,
+          booking: {
+            bookingDate: Between(start, end),
+            status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]),
+          },
+        },
+        relations: ['booking'],
+      });
+      employeeBusySlots = busy.map((b) => b.booking.timeSlotId);
+    }
 
     const availability = await Promise.all(
       allTimeSlots.map(async (slot) => {
         const avail = await this.checkAvailability(date, slot.id);
+
+        // Check Employee specific availability
+        if (employeeId) {
+          if (employeeBusySlots.includes(slot.id)) {
+            avail.data.isAvailable = false;
+            // Có thể thêm message "Nhân viên bận" nếu cần
+          }
+          // Vẫn phải check checkAvailability (global capacity) bên trên.
+          // Nếu global full -> false.
+          // Nếu global ok mà employee bận -> false.
+        } else if (avail.data.isAvailable && serviceCategory) {
+          // Logic cũ: Nếu không chọn Employee trước, kiểm tra có ÍT NHẤT 1 employee phù hợp rảnh k
+          const employeesRes = await this.getAvailableEmployees(date, slot.id);
+          const hasSpecialized = employeesRes.data.availableEmployees.some((emp) => {
+            if (!emp.specialization) return true;
+            const specs = emp.specialization
+              .toLowerCase()
+              .split(',')
+              .map((s: string) => s.trim());
+            return specs.some((spec: string) => serviceCategory.includes(spec));
+          });
+
+          if (!hasSpecialized) {
+            avail.data.isAvailable = false;
+          }
+        }
+
         return avail.data;
       }),
     );
 
-    const availableSlots = availability.filter((a) => a.isAvailable);
+    // Trả về tất cả các slot (bao gồm cả slot không available) để frontend hiển thị trạng thái disabled
+    const resultSlots = availability.map((a) => a);
+    // Hoặc đơn giản là return availability;
     return {
       status: 200,
-      data: availableSlots,
-      message: 'Lấy danh sách khung giờ khả dụng thành công',
+      data: availability,
+      message: 'Lấy danh sách khung giờ thành công',
     };
   }
 
@@ -419,10 +569,15 @@ export class BookingsService {
     });
 
     // Get employees already booked for this time slot and date through bookingEmployees table
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+
     const bookedBookingEmployees = await this.bookingEmployeeRepository.find({
       where: {
         booking: {
-          bookingDate: new Date(date),
+          bookingDate: Between(start, end),
           timeSlotId,
           status: BookingStatus.CONFIRMED,
         },

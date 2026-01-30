@@ -6,67 +6,74 @@ import {
   Card,
   CardContent,
   Button,
-} from '@mui/material'
-import LocalOfferIcon from '@mui/icons-material/LocalOffer'
-import StarIcon from '@mui/icons-material/Star'
-import WhatshotIcon from '@mui/icons-material/Whatshot'
-import spaServices from '../../../data/spaServices'
-import { formatPrice } from '../../../utils'
-import BookingModal from '../../../components/BookingModal'
-import { useBookingModal } from '../../../hooks/useBookingModal'
+} from "@mui/material";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import StarIcon from "@mui/icons-material/Star";
+import WhatshotIcon from "@mui/icons-material/Whatshot";
+import { formatPrice } from "../../../utils";
+import BookingModal from "../../../components/BookingModal";
+import { useBookingModal } from "../../../hooks/useBookingModal";
+import { useServices } from "../../../hooks";
+import { Skeleton } from "@mui/material";
 
 const SpecialOfferSection = () => {
-  const { isOpen, selectedService, openModal, closeModal } = useBookingModal()
+  const { servicesByCategory, loading } = useServices();
+  const specialOffers = servicesByCategory.uu_dai_mua_5_tang_1;
+  const { isOpen, selectedService, openModal, closeModal } = useBookingModal();
 
   return (
     <Box
       sx={{
         py: { xs: 8, md: 10 },
-        position: 'relative',
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, #fff5e6 0%, #ffe8cc 50%, #fff5e6 100%)',
+        position: "relative",
+        overflow: "hidden",
+        background:
+          "linear-gradient(135deg, #fff5e6 0%, #ffe8cc 50%, #fff5e6 100%)",
       }}
     >
       {/* Decorative elements */}
       <Box
         sx={{
-          position: 'absolute',
+          position: "absolute",
           top: -100,
           right: -100,
-          width: '400px',
-          height: '400px',
-          background: 'radial-gradient(circle, rgba(255, 107, 53, 0.15) 0%, transparent 70%)',
-          borderRadius: '50%',
+          width: "400px",
+          height: "400px",
+          background:
+            "radial-gradient(circle, rgba(255, 107, 53, 0.15) 0%, transparent 70%)",
+          borderRadius: "50%",
           zIndex: 0,
         }}
       />
       <Box
         sx={{
-          position: 'absolute',
+          position: "absolute",
           bottom: -150,
           left: -150,
-          width: '500px',
-          height: '500px',
-          background: 'radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%)',
-          borderRadius: '50%',
+          width: "500px",
+          height: "500px",
+          background:
+            "radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%)",
+          borderRadius: "50%",
           zIndex: 0,
         }}
       />
 
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
         {/* Promotional Banner */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ff6b35 100%)',
+            background:
+              "linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ff6b35 100%)",
             borderRadius: { xs: 3, md: 4 },
             p: { xs: 3, md: 4 },
             mb: { xs: 4, md: 5 },
-            boxShadow: '0 8px 32px rgba(255, 107, 53, 0.3)',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::before': {
+            boxShadow: "0 8px 32px rgba(255, 107, 53, 0.3)",
+            position: "relative",
+            overflow: "hidden",
+            "&::before": {
               content: '""',
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
@@ -76,29 +83,29 @@ const SpecialOfferSection = () => {
             },
           }}
         >
-          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          <Box sx={{ position: "relative", zIndex: 1, textAlign: "center" }}>
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 gap: 1.5,
                 mb: 2,
-                flexWrap: 'wrap',
+                flexWrap: "wrap",
               }}
             >
               <WhatshotIcon
                 sx={{
-                  fontSize: { xs: '2.5rem', md: '3rem' },
-                  color: 'white',
-                  animation: 'pulse 2s ease-in-out infinite',
-                  '@keyframes pulse': {
-                    '0%, 100%': {
-                      transform: 'scale(1)',
+                  fontSize: { xs: "2.5rem", md: "3rem" },
+                  color: "white",
+                  animation: "pulse 2s ease-in-out infinite",
+                  "@keyframes pulse": {
+                    "0%, 100%": {
+                      transform: "scale(1)",
                       opacity: 1,
                     },
-                    '50%': {
-                      transform: 'scale(1.15)',
+                    "50%": {
+                      transform: "scale(1.15)",
                       opacity: 0.9,
                     },
                   },
@@ -108,10 +115,10 @@ const SpecialOfferSection = () => {
                 variant="h3"
                 sx={{
                   fontWeight: 800,
-                  color: 'white',
-                  fontSize: { xs: '2rem', md: '2.75rem' },
+                  color: "white",
+                  fontSize: { xs: "2rem", md: "2.75rem" },
                   fontFamily: '"Playfair Display", serif',
-                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
+                  textShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
                 }}
               >
                 MUA 5 TẶNG 1
@@ -120,18 +127,19 @@ const SpecialOfferSection = () => {
             <Typography
               variant="h6"
               sx={{
-                color: 'white',
+                color: "white",
                 fontWeight: 500,
-                fontSize: { xs: '1rem', md: '1.25rem' },
+                fontSize: { xs: "1rem", md: "1.25rem" },
                 opacity: 0.95,
-                maxWidth: '700px',
-                mx: 'auto',
+                maxWidth: "700px",
+                mx: "auto",
                 lineHeight: 1.6,
               }}
             >
-              Chương trình ưu đãi đặc biệt - Mua 5 buổi trị liệu, tặng ngay 1 buổi miễn phí!
+              Chương trình ưu đãi đặc biệt - Mua 5 buổi trị liệu, tặng ngay 1
+              buổi miễn phí!
               <br />
-              <Box component="span" sx={{ fontWeight: 700, fontSize: '1.1em' }}>
+              <Box component="span" sx={{ fontWeight: 700, fontSize: "1.1em" }}>
                 Áp dụng cho tất cả dịch vụ dưới đây
               </Box>
             </Typography>
@@ -140,142 +148,169 @@ const SpecialOfferSection = () => {
 
         {/* Services Grid - Horizontal Layout */}
         <Grid container spacing={{ xs: 2, md: 3 }}>
-          {spaServices.uu_dai_mua_5_tang_1.map((service, index) => (
-            <Grid item xs={12} sm={6} md={4} key={service.id}>
-              <Card
-                sx={{
-                  height: '100%',
-                  background: 'white',
-                  borderRadius: 3,
-                  border: '2px solid',
-                  borderColor: 'rgba(255, 107, 53, 0.2)',
-                  boxShadow: '0 4px 20px rgba(255, 107, 53, 0.15)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
-                  overflow: 'visible',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: '0 12px 40px rgba(255, 107, 53, 0.25)',
-                    borderColor: '#ff6b35',
-                  },
-                }}
-              >
-                {/* Ribbon Badge */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 12,
-                    right: -30,
-                    backgroundColor: '#ff6b35',
-                    color: 'white',
-                    px: 4,
-                    py: 0.5,
-                    transform: 'rotate(45deg)',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    boxShadow: '0 2px 8px rgba(255, 107, 53, 0.4)',
-                    zIndex: 2,
-                    width: '120px',
-                    textAlign: 'center',
-                  }}
-                >
-                  ƯU ĐÃI
-                </Box>
-
-                <CardContent sx={{ p: { xs: 2.5, md: 3 }, pt: { xs: 4, md: 4.5 } }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      mb: 2,
-                    }}
-                  >
-                    <LocalOfferIcon
-                      sx={{
-                        fontSize: '1.5rem',
-                        color: '#ff6b35',
-                      }}
+          {loading
+            ? Array.from({ length: 3 }).map((_, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Card sx={{ height: "100%", borderRadius: 3, p: 3 }}>
+                    <Skeleton
+                      variant="text"
+                      sx={{ fontSize: "1.25rem", mb: 2 }}
                     />
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 700,
-                        color: 'text.primary',
-                        fontSize: { xs: '1.1rem', md: '1.25rem' },
-                        flex: 1,
-                      }}
-                    >
-                      {service.name}
-                    </Typography>
-                  </Box>
-
-                  <Box
+                    <Skeleton
+                      variant="rectangular"
+                      height={100}
+                      sx={{ mb: 2, borderRadius: 2 }}
+                    />
+                    <Skeleton
+                      variant="rectangular"
+                      height={45}
+                      sx={{ borderRadius: 2 }}
+                    />
+                  </Card>
+                </Grid>
+              ))
+            : specialOffers.map((service, index) => (
+                <Grid item xs={12} sm={6} md={4} key={service.id}>
+                  <Card
                     sx={{
-                      background: 'linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 140, 66, 0.1) 100%)',
-                      borderRadius: 2,
-                      p: 2,
-                      mb: 2.5,
-                      border: '1px solid',
-                      borderColor: 'rgba(255, 107, 53, 0.2)',
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: 'text.secondary',
-                        mb: 0.5,
-                        fontSize: '0.85rem',
-                      }}
-                    >
-                      Giá ưu đãi
-                    </Typography>
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        color: '#ff6b35',
-                        fontWeight: 800,
-                        fontSize: { xs: '1.5rem', md: '1.75rem' },
-                        fontFamily: '"Playfair Display", serif',
-                      }}
-                    >
-                      {formatPrice(service.price)}
-                    </Typography>
-                  </Box>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={() => openModal(service.id)}
-                    startIcon={<StarIcon />}
-                    sx={{
-                      py: 1.5,
-                      backgroundColor: '#ff6b35',
-                      color: 'white',
-                      fontWeight: 700,
-                      fontSize: '0.9375rem',
-                      textTransform: 'none',
-                      borderRadius: 2,
-                      boxShadow: '0 4px 16px rgba(255, 107, 53, 0.3)',
-                      '&:hover': {
-                        backgroundColor: '#e55a2b',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 20px rgba(255, 107, 53, 0.4)',
+                      height: "100%",
+                      background: "white",
+                      borderRadius: 3,
+                      border: "2px solid",
+                      borderColor: "rgba(255, 107, 53, 0.2)",
+                      boxShadow: "0 4px 20px rgba(255, 107, 53, 0.15)",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      position: "relative",
+                      overflow: "visible",
+                      "&:hover": {
+                        transform: "translateY(-8px)",
+                        boxShadow: "0 12px 40px rgba(255, 107, 53, 0.25)",
+                        borderColor: "#ff6b35",
                       },
                     }}
                   >
-                    Đặt Lịch Ngay
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+                    {/* Ribbon Badge */}
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 12,
+                        right: -30,
+                        backgroundColor: "#ff6b35",
+                        color: "white",
+                        px: 4,
+                        py: 0.5,
+                        transform: "rotate(45deg)",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        boxShadow: "0 2px 8px rgba(255, 107, 53, 0.4)",
+                        zIndex: 2,
+                        width: "120px",
+                        textAlign: "center",
+                      }}
+                    >
+                      ƯU ĐÃI
+                    </Box>
+
+                    <CardContent
+                      sx={{ p: { xs: 2.5, md: 3 }, pt: { xs: 4, md: 4.5 } }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 2,
+                        }}
+                      >
+                        <LocalOfferIcon
+                          sx={{
+                            fontSize: "1.5rem",
+                            color: "#ff6b35",
+                          }}
+                        />
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 700,
+                            color: "text.primary",
+                            fontSize: { xs: "1.1rem", md: "1.25rem" },
+                            flex: 1,
+                          }}
+                        >
+                          {service.name}
+                        </Typography>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          background:
+                            "linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 140, 66, 0.1) 100%)",
+                          borderRadius: 2,
+                          p: 2,
+                          mb: 2.5,
+                          border: "1px solid",
+                          borderColor: "rgba(255, 107, 53, 0.2)",
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "text.secondary",
+                            mb: 0.5,
+                            fontSize: "0.85rem",
+                          }}
+                        >
+                          Giá ưu đãi
+                        </Typography>
+                        <Typography
+                          variant="h5"
+                          sx={{
+                            color: "#ff6b35",
+                            fontWeight: 800,
+                            fontSize: { xs: "1.5rem", md: "1.75rem" },
+                            fontFamily: '"Playfair Display", serif',
+                          }}
+                        >
+                          {formatPrice(service.price)}
+                        </Typography>
+                      </Box>
+
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={() => openModal(service.id)}
+                        startIcon={<StarIcon />}
+                        sx={{
+                          py: 1.5,
+                          backgroundColor: "#ff6b35",
+                          color: "white",
+                          fontWeight: 700,
+                          fontSize: "0.9375rem",
+                          textTransform: "none",
+                          borderRadius: 2,
+                          boxShadow: "0 4px 16px rgba(255, 107, 53, 0.3)",
+                          "&:hover": {
+                            backgroundColor: "#e55a2b",
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 6px 20px rgba(255, 107, 53, 0.4)",
+                          },
+                        }}
+                      >
+                        Đặt Lịch Ngay
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
         </Grid>
       </Container>
-      <BookingModal open={isOpen} onClose={closeModal} initialService={selectedService} />
+      <BookingModal
+        open={isOpen}
+        onClose={closeModal}
+        initialService={selectedService}
+      />
     </Box>
-  )
-}
+  );
+};
 
-export default SpecialOfferSection
-
+export default SpecialOfferSection;

@@ -52,7 +52,7 @@ import { BookingsModule } from './customer/bookings/bookings.module';
           BookingEmployee,
           BookingNotification,
         ],
-        synchronize: false, // QUAN TRỌNG: set false trong production
+        synchronize: true, // QUAN TRỌNG: set false trong production
         logging: true,
         charset: 'utf8mb4',
       }),
