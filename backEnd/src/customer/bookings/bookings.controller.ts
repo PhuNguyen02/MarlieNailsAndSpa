@@ -18,25 +18,14 @@ export class BookingsController {
   findAll(
     @Query('status') status?: BookingStatus,
     @Query('date') date?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
     @Query('customerId') customerId?: string,
   ) {
-    return this.bookingsService.findAll({ status, date, startDate, endDate, customerId });
-  }
-
-  @Get('employees')
-  getActiveEmployees() {
-    return this.bookingsService.getActiveEmployees();
+    return this.bookingsService.findAll({ status, date, customerId });
   }
 
   @Get('available-slots/:date')
-  getAvailableTimeSlots(
-    @Param('date') date: string,
-    @Query('serviceId') serviceId?: string,
-    @Query('employeeId') employeeId?: string,
-  ) {
-    return this.bookingsService.getAvailableTimeSlots(date, serviceId, employeeId);
+  getAvailableTimeSlots(@Param('date') date: string) {
+    return this.bookingsService.getAvailableTimeSlots(date);
   }
 
   @Get('available-employees')

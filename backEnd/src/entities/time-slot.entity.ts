@@ -22,6 +22,9 @@ export class TimeSlot {
   @Column({ type: 'int', default: 5 })
   maxCapacity: number; // Số lượng khách tối đa trong 1 khung giờ
 
+  @Column({ type: 'int', default: 0 })
+  currentBookings: number; // Số lượng booking hiện tại
+
   @Column({ default: true })
   isActive: boolean; // Có thể đặt false để tắt khung giờ
 

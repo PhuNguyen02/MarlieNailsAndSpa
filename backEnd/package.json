@@ -23,7 +23,7 @@
     "migration:create": "typeorm-ts-node-commonjs migration:create",
     "migration:run": "npm run build && typeorm-ts-node-commonjs migration:run -d dist/config/typeorm.config.js",
     "migration:revert": "npm run build && typeorm-ts-node-commonjs migration:revert -d dist/config/typeorm.config.js",
-    "seed": "ts-node src/seed.ts"
+    "seed": "npm run build && node dist/database/seed.js"
   },
   "dependencies": {
     "24": "^0.0.0",

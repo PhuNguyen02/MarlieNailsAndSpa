@@ -14,13 +14,8 @@ export class CustomersService {
 
   async create(createCustomerDto: CreateCustomerDto) {
     // Check if email or phone already exists
-    const whereConditions: any[] = [{ phone: createCustomerDto.phone }];
-    if (createCustomerDto.email) {
-      whereConditions.push({ email: createCustomerDto.email });
-    }
-
     const existing = await this.customerRepository.findOne({
-      where: whereConditions,
+      where: [{ email: createCustomerDto.email }, { phone: createCustomerDto.phone }],
     });
 
     if (existing) {
@@ -74,12 +69,7 @@ export class CustomersService {
   }
 
   async findByPhone(phone: string) {
-    const customer = await this.customerRepository.findOne({ where: { phone } });
-    return {
-      status: 200,
-      data: customer,
-      message: customer ? 'Tìm thấy khách hàng' : 'Không tìm thấy khách hàng',
-    };
+    return this.customerRepository.findOne({ where: { phone } });
   }
 
   async update(id: string, updateCustomerDto: UpdateCustomerDto) {

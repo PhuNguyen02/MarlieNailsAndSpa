@@ -1,13 +1,19 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsDateString } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsDateString,
+} from 'class-validator';
 
 export class CreateCustomerDto {
   @IsNotEmpty({ message: 'Họ tên không được để trống' })
   @IsString()
   fullName: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'Email không được để trống' })
   @IsEmail({}, { message: 'Email không hợp lệ' })
-  email?: string;
+  email: string;
 
   @IsNotEmpty({ message: 'Số điện thoại không được để trống' })
   @IsString()
