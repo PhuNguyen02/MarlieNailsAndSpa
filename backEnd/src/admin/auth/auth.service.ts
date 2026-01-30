@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/co
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 import { Admin } from '../../entities/admin.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -11,6 +12,7 @@ export class AuthService {
   constructor(
     @InjectRepository(Admin)
     private adminRepository: Repository<Admin>,
+    private jwtService: JwtService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -75,6 +77,8 @@ export class AuthService {
     admin.lastLogin = new Date();
     await this.adminRepository.save(admin);
 
+    const payload = { email: admin.email, sub: admin.id };
+
     return {
       status: 200,
       data: {
@@ -82,6 +86,7 @@ export class AuthService {
         email: admin.email,
         username: admin.username,
         fullName: admin.fullName,
+        access_token: this.jwtService.sign(payload),
       },
       message: 'Đăng nhập thành công',
     };
