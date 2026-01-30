@@ -25,11 +25,6 @@ export class TimeSlotsController {
     return this.timeSlotsService.findOneFormatted(id);
   }
 
-  @Get(':id/availability')
-  checkAvailability(@Param('id') id: string, @Query('guests') numberOfGuests: number) {
-    return this.timeSlotsService.checkAvailability(id, numberOfGuests);
-  }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTimeSlotDto: UpdateTimeSlotDto) {
     return this.timeSlotsService.update(id, updateTimeSlotDto);
