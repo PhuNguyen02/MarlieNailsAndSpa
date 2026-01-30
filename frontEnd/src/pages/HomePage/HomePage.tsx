@@ -1,4 +1,4 @@
-import { Box } from '@mui/material'
+import { Box } from "@mui/material";
 import {
   Header,
   HeroSection,
@@ -10,15 +10,15 @@ import {
   TestimonialsSection,
   BlogSection,
   Footer,
-} from './components'
+} from "./components";
 
 const HomePage = () => {
   return (
     <Box
       sx={{
-        overflowX: 'hidden',
-        '& *': {
-          transition: 'opacity 0.3s ease, transform 0.3s ease',
+        overflowX: "hidden",
+        "& *": {
+          transition: "opacity 0.3s ease, transform 0.3s ease",
         },
       }}
     >
@@ -29,11 +29,11 @@ const HomePage = () => {
       <WorkingHoursSection />
       <PricingSection />
       <SpecialOfferSection />
-      <TestimonialsSection />
-      <BlogSection />
+      {/* <TestimonialsSection /> */}
+      {/* <BlogSection /> */}
       <Footer />
     </Box>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;

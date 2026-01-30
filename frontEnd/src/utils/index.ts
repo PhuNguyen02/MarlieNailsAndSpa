@@ -6,18 +6,20 @@
  * @returns Formatted string (e.g., "79.000 đ")
  */
 export const formatVND = (amount: number | string): string => {
-  if (typeof amount === 'string') {
-    return amount
+  const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(num)) {
+    return typeof amount === "string" ? amount : "0 VNĐ";
   }
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })
-    .format(amount)
-    .replace('₫', 'đ')
-}
+    .format(num)
+    .replace("₫", "VNĐ")
+    .replace(/\s/g, " "); // Ensure standard space
+};
 
 /**
  * Format price range or single price
@@ -27,17 +29,21 @@ export const formatVND = (amount: number | string): string => {
  */
 export const formatPrice = (
   price?: number | string,
-  priceRange?: string
+  priceRange?: string,
 ): string => {
   if (priceRange) {
-    return priceRange + ' đ'
+    // If priceRange already contains 'đ', don't add another one
+    if (
+      priceRange.includes("VNĐ") ||
+      priceRange.includes("VND") ||
+      priceRange.includes("đ")
+    ) {
+      return priceRange.replace("đ", "VNĐ");
+    }
+    return priceRange + " VNĐ";
   }
-  if (typeof price === 'number') {
-    return formatVND(price)
+  if (price !== undefined && price !== null && price !== "") {
+    return formatVND(price);
   }
-  if (typeof price === 'string') {
-    return price
-  }
-  return 'Liên hệ'
-}
-
+  return "Liên hệ";
+};
