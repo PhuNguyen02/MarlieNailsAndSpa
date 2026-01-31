@@ -16,7 +16,7 @@ export class Customer {
   @Column({ length: 100 })
   fullName: string;
 
-  @Column({ unique: true, length: 255 })
+  @Column({ unique: true, length: 255, nullable: true })
   email: string;
 
   @Column({ length: 20 })
