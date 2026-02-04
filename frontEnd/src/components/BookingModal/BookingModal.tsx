@@ -431,7 +431,7 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3 }}>
+      <DialogContent sx={{ pt: 4 }}>
         {servicesLoading ? (
           <Box
             sx={{
@@ -448,7 +448,14 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
             {servicesError}
           </Alert>
         ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              paddingTop: 2,
+            }}
+          >
             {bookingError && (
               <Alert severity="error" sx={{ mb: 1 }}>
                 {bookingError}

@@ -4,9 +4,9 @@ import SpaIcon from "@mui/icons-material/Spa";
 import { useBookingModal } from "../../../hooks/useBookingModal";
 
 const workingHours = [
-  { day: "Thứ 2 - Thứ 6", time: "9:00 - 18:00" },
-  { day: "Thứ 7", time: "9:00 - 16:00" },
-  { day: "Chủ Nhật", time: "Nghỉ" },
+  { day: "Thứ 2 - Thứ 6", time: "09:00 - 20:00" },
+  { day: "Thứ 7", time: "Mở cửa cả ngày" },
+  { day: "Chủ Nhật", time: "Mở cửa cả ngày" },
 ];
 
 const WorkingHoursSection = () => {
@@ -18,7 +18,7 @@ const WorkingHoursSection = () => {
         py: { xs: 8, md: 12 },
         position: "relative",
         background:
-          "linear-gradient(180deg, #fafafa 0%, #ffffff 50%, #f8f6f3 100%)",
+          "linear-gradient(180deg, #fffcf9 0%, #ffffff 50%, #f7f0e8 100%)",
         overflow: "hidden",
         "&::before": {
           content: '""',
@@ -27,8 +27,8 @@ const WorkingHoursSection = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4af8c' fill-opacity='0.02'%3E%3Cpath d='M50 50c0-10 10-20 20-20s20 10 20 20-10 20-20 20-20-10-20-20zm-30 0c0-10 10-20 20-20s20 10 20 20-10 20-20 20-20-10-20-20z'/%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundSize: "200px 200px",
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 30c2-2 5-2 7 0s2 5 0 7-5 2-7 0-2-5 0-7z' fill='%23d4af8c' fill-opacity='0.03'/%3E%3C/svg%3E")`,
+          backgroundSize: "120px 120px",
           opacity: 0.5,
           zIndex: 0,
         },
@@ -204,7 +204,7 @@ const WorkingHoursSection = () => {
             >
               <Box
                 component="img"
-                src="https://picsum.photos/800/600?random=4"
+                src="/images/working-hours.png"
                 alt="Relaxing spa"
                 sx={{
                   width: "100%",

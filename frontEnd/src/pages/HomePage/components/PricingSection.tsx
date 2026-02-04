@@ -15,12 +15,54 @@ import { pricingStyles } from "../styles";
 import { formatPrice } from "../../../utils";
 import BookingModal from "../../../components/BookingModal";
 import { useBookingModal } from "../../../hooks/useBookingModal";
-import { useServices } from "../../../hooks";
+import { useServices, ServiceItem } from "../../../hooks";
 import { Skeleton } from "@mui/material";
 
 const PricingSection = () => {
   const { servicesByCategory, loading } = useServices();
-  const featuredCombos = servicesByCategory.goi_dau_duong_sinh.slice(0, 3);
+
+  // Helper function to find a service by name pattern in specific categories
+  const findService = (namePart: string, categories: ServiceItem[][]) => {
+    for (const cat of categories) {
+      const found = cat.find((s) =>
+        s.name.toLowerCase().includes(namePart.toLowerCase()),
+      );
+      if (found) return found;
+    }
+    return null;
+  };
+
+  // Define the target services with fallbacks to prevent blank cards
+  const displayServices = [
+    // 1. Combo 2
+    findService("Combo 2", [servicesByCategory.goi_dau_duong_sinh]) || {
+      id: "fallback-combo2",
+      name: "Gội Đầu Dưỡng Sinh Combo 2",
+      price: 150000,
+      duration: "60 phút",
+      steps_count: 11,
+      category: "Gội đầu",
+    },
+    // 2. Combo 4 (Phổ biến nhất)
+    findService("Combo 4", [servicesByCategory.goi_dau_duong_sinh]) || {
+      id: "fallback-combo4",
+      name: "Gội Đầu Dưỡng Sinh Combo 4",
+      price: 250000,
+      duration: "90 phút",
+      steps_count: 14,
+      category: "Gội đầu",
+    },
+    // 3. Thải độc CO2
+    findService("Thải độc CO2", [servicesByCategory.cham_soc_da]) || {
+      id: "fallback-co2",
+      name: "Thải Độc CO2 - Gồm 18 bước",
+      price: 450000,
+      duration: "75 phút",
+      steps_count: 18,
+      category: "Chăm sóc da",
+    },
+  ];
+
   const { isOpen, selectedService, openModal, closeModal } = useBookingModal();
 
   return (
@@ -56,31 +98,15 @@ const PricingSection = () => {
           {loading
             ? Array.from({ length: 3 }).map((_, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Card sx={pricingStyles.featuredCard}>
-                    <CardContent sx={pricingStyles.featuredCardContent}>
-                      <Skeleton
-                        variant="circular"
-                        width={40}
-                        height={40}
-                        sx={{ mb: 2 }}
-                      />
-                      <Skeleton
-                        variant="text"
-                        sx={{ fontSize: "1.5rem", mb: 1 }}
-                      />
-                      <Skeleton variant="text" width="60%" sx={{ mb: 2 }} />
-                      <Skeleton
-                        variant="rectangular"
-                        height={50}
-                        sx={{ mb: 3 }}
-                      />
-                      <Skeleton variant="rectangular" height={45} />
-                    </CardContent>
-                  </Card>
+                  <Skeleton
+                    variant="rectangular"
+                    height={400}
+                    sx={{ borderRadius: 4 }}
+                  />
                 </Grid>
               ))
-            : featuredCombos.map((combo, index) => {
-                const isFeatured = index === 1; // Combo 2 là featured
+            : displayServices.map((combo: any, index) => {
+                const isFeatured = index === 1; // Combo 4 ở vị trí giữa
                 return (
                   <Grid item xs={12} sm={6} md={4} key={combo.id}>
                     <Card
@@ -106,11 +132,11 @@ const PricingSection = () => {
                         >
                           <Spa
                             sx={{
-                              fontSize: "2rem",
+                              fontSize: "2.5rem",
                               color: isFeatured
                                 ? "primary.main"
                                 : "primary.light",
-                              mr: 1.5,
+                              mr: 2,
                             }}
                           />
                           <Box sx={{ flex: 1 }}>
@@ -118,34 +144,29 @@ const PricingSection = () => {
                               variant="h5"
                               sx={{
                                 fontWeight: 700,
-                                fontSize: "1.5rem",
+                                fontSize: "1.4rem",
                                 color: isFeatured
                                   ? "primary.dark"
                                   : "text.primary",
                                 mb: 0.5,
+                                fontFamily: '"Playfair Display", serif',
                               }}
                             >
                               {combo.name}
                             </Typography>
                             {combo.duration && (
-                              <Chip
-                                label={combo.duration}
-                                size="small"
-                                sx={{
-                                  backgroundColor: isFeatured
-                                    ? "primary.main"
-                                    : "primary.light",
-                                  color: isFeatured ? "white" : "primary.dark",
-                                  fontWeight: 600,
-                                  fontSize: "0.75rem",
-                                  height: "24px",
-                                }}
-                              />
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {combo.duration}
+                              </Typography>
                             )}
                           </Box>
                         </Box>
 
-                        <Box sx={{ my: 3, textAlign: "center" }}>
+                        <Box sx={{ my: 4, textAlign: "center" }}>
                           <Typography
                             variant="h3"
                             sx={{
@@ -153,55 +174,48 @@ const PricingSection = () => {
                               color: isFeatured
                                 ? "primary.main"
                                 : "text.primary",
-                              fontSize: isFeatured ? "2.5rem" : "2rem",
+                              fontSize: isFeatured ? "2.75rem" : "2.25rem",
+                              fontWeight: 800,
                             }}
                           >
-                            {combo.price_range
-                              ? `${combo.price_range} đ`
-                              : formatPrice(combo.price)}
+                            {combo.price_range || formatPrice(combo.price)}
                           </Typography>
                         </Box>
 
-                        {combo.steps && (
-                          <Stack spacing={1} sx={{ mb: 3 }}>
-                            <Box
+                        <Stack spacing={1} sx={{ mb: 4 }}>
+                          <Box
+                            sx={{
+                              p: 2.5,
+                              borderRadius: "16px",
+                              backgroundColor: isFeatured
+                                ? "rgba(212, 175, 140, 0.15)"
+                                : "rgba(0, 0, 0, 0.02)",
+                              border: isFeatured
+                                ? "1px dashed rgba(212, 175, 140, 0.5)"
+                                : "none",
+                              minHeight: "80px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Typography
+                              variant="body2"
                               sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 1,
-                                p: 2,
-                                borderRadius: 2,
-                                backgroundColor: isFeatured
-                                  ? "primary.light"
-                                  : "rgba(212, 175, 140, 0.1)",
+                                color: isFeatured
+                                  ? "primary.dark"
+                                  : "text.secondary",
+                                fontWeight: 600,
+                                textAlign: "center",
+                                lineHeight: 1.6,
                               }}
                             >
-                              <Typography
-                                variant="h6"
-                                sx={{
-                                  color: isFeatured
-                                    ? "primary.dark"
-                                    : "text.secondary",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {combo.steps.length}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  color: isFeatured
-                                    ? "primary.dark"
-                                    : "text.secondary",
-                                  fontWeight: 500,
-                                }}
-                              >
-                                bước chăm sóc chuyên nghiệp
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        )}
+                              {combo.name.toLowerCase().includes("thải độc")
+                                ? "Liệu trình chuyên sâu giải độc tố cho da hoàn hảo (18 bước)"
+                                : `${combo.steps_count || combo.steps?.length || 11} bước chăm sóc chuyên sâu & thư giãn tuyệt đối`}
+                            </Typography>
+                          </Box>
+                        </Stack>
 
                         <Button
                           variant={isFeatured ? "contained" : "outlined"}
@@ -214,9 +228,9 @@ const PricingSection = () => {
                                   color: "white",
                                   "&:hover": {
                                     backgroundColor: "primary.dark",
-                                    transform: "translateY(-2px)",
+                                    transform: "translateY(-4px)",
                                     boxShadow:
-                                      "0 8px 20px rgba(212, 175, 140, 0.4)",
+                                      "0 12px 25px rgba(212, 175, 140, 0.4)",
                                   },
                                 }
                               : {
@@ -224,16 +238,17 @@ const PricingSection = () => {
                                   color: "primary.main",
                                   "&:hover": {
                                     borderColor: "primary.dark",
-                                    backgroundColor: "primary.light",
-                                    transform: "translateY(-2px)",
+                                    backgroundColor:
+                                      "rgba(212, 175, 140, 0.05)",
+                                    transform: "translateY(-4px)",
                                   },
                                 }),
-                            py: 1.5,
-                            fontWeight: 600,
+                            py: 2,
+                            fontWeight: 700,
                             textTransform: "none",
-                            fontSize: "0.95rem",
-                            borderRadius: 2,
-                            transition: "all 0.3s ease",
+                            fontSize: "1rem",
+                            borderRadius: "12px",
+                            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                           }}
                         >
                           Đặt Lịch Ngay

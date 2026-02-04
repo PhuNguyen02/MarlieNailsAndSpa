@@ -3,7 +3,7 @@
 // ==========================================
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://192.168.1.10:3000/api";
+  import.meta.env.VITE_API_BASE_URL || "http://192.168.1.10:8080/api";
 
 export interface RequestOptions {
   headers?: Record<string, string>;

@@ -28,11 +28,44 @@ const WellnessSection = () => {
               <Box sx={wellnessStyles.image}>
                 <Box
                   component="img"
-                  src="https://picsum.photos/800/500?random=3"
+                  src="/images/spa-service.png"
                   alt="Wellness & Spa"
                 />
               </Box>
             </Box>
+          </Grid>
+        </Grid>
+
+        <Grid
+          container
+          spacing={6}
+          alignItems="center"
+          sx={{ mt: { xs: 4, md: 8 } }}
+        >
+          <Grid item xs={12} md={6} order={{ xs: 2, md: 1 }}>
+            <Box sx={wellnessStyles.imageContainer}>
+              <Box sx={wellnessStyles.image}>
+                <Box
+                  component="img"
+                  src="/images/waiting-area.png"
+                  alt="Luxurious Waiting Area"
+                />
+              </Box>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6} order={{ xs: 1, md: 2 }}>
+            <Typography variant="overline" sx={wellnessStyles.overline}>
+              Luxurious
+            </Typography>
+            <Typography variant="h2" sx={wellnessStyles.title}>
+              Waiting Area
+            </Typography>
+            <Typography variant="body1" sx={wellnessStyles.description}>
+              Không gian chờ sang trọng và thoải mái với nội thất cao cấp. Tại
+              Marlie Nails & Spa, chúng tôi chú trọng từng chi tiết nhỏ nhất để
+              mang lại cảm giác dễ chịu ngay từ khi bạn bước chân vào cửa.
+              Thưởng thức một tách trà thơm trong khi chờ đợi được phục vụ.
+            </Typography>
           </Grid>
         </Grid>
       </Container>

@@ -23,7 +23,123 @@ import { formatPrice } from "../../../utils";
 import BookingModal from "../../../components/BookingModal";
 import { useBookingModal } from "../../../hooks/useBookingModal";
 import { useServices } from "../../../hooks";
-import { Skeleton, Stack } from "@mui/material";
+import { Skeleton } from "@mui/material";
+import PromotionPricing from "./PromotionPricing";
+
+const SKIN_CARE_STEPS: Record<string, string[]> = {
+  "Lấy Nhân Mụn Cơ bản": [
+    "Soi da",
+    "Tẩy trang",
+    "Rửa mặt",
+    "Tẩy tế bào da chết",
+    "Massage mặt",
+    "Xông hơi + Cà sủi",
+    "Hút bã nhờn",
+    "Sát khuẩn lần 1",
+    "Lấy nhân mụn",
+    "Sát khuẩn lần 2",
+    "Điện tím",
+    "Đắp mặt nạ + Chiếu đèn sinh học",
+    "Massage đầu",
+  ],
+  "Lấy Nhân Mụn Cấp độ 2": [
+    "Soi da",
+    "Tẩy trang",
+    "Rửa mặt",
+    "Tẩy tế bào da chết",
+    "Massage mặt",
+    "Xông hơi + Cà sủi",
+    "Ủ mụn",
+    "Hút bã nhờn",
+    "Sát khuẩn lần 1",
+    "Lấy nhân mụn",
+    "Sát khuẩn lần 2",
+    "Điện tím",
+    "Đắp mặt nạ + Chiếu đèn",
+    "Massage đầu",
+  ],
+  "Thải Độc Da": [
+    "Soi da",
+    "Tẩy trang",
+    "Rửa mặt",
+    "Tẩy tế bào da chết",
+    "Massage mặt nâng cơ",
+    "Xông hơi + Cà sủi",
+    "Aqua Peel",
+    "Đắp mask",
+    "Chiếu đèn sinh học",
+    "Massage đầu",
+    "Thoa Serum",
+    "Điện di",
+  ],
+  "Cấy trắng NANO": [
+    "Tẩy trang",
+    "Rửa mặt",
+    "Tẩy tế bào chết da",
+    "Massage mặt",
+    "Xông hơi + Cà sủi",
+    "Phun Oxyjet",
+    "Cấy trắng bằng máy DOCTORPEN",
+    "Chiếu ánh sáng",
+    "Đắp mask",
+    "Massage đầu",
+    "Thoa Serum",
+    "Điện di",
+    "Thoa kem chống nắng",
+  ],
+  "Lấy nhân mụn chuyên sâu": [
+    "Soi da",
+    "Tẩy trang",
+    "Rửa mặt",
+    "Tẩy tế bào da chết",
+    "Massage Mặt",
+    "Xông hơi + Cà sủi",
+    "Ủ mụn",
+    "Hút bã nhờn",
+    "Sát khuẩn lần 1",
+    "Lấy nhân mụn",
+    "Sát khuẩn lần 2",
+    "Đắp mặt nạ chiếu đèn",
+    "Đi tinh chất",
+    "Đùa nóng lạnh",
+    "Massage đầu",
+    "Đi điện tím",
+  ],
+  "Thải Độc CO2": [
+    "Soi da",
+    "Tẩy trang",
+    "Rửa mặt",
+    "Tẩy tế bào da chết",
+    "Massage mặt (Đối với da không có mụn viêm)",
+    "Xông hơi + Cà sủi",
+    "Hút bã nhờn",
+    "Sát khuẩn lần 1",
+    "Lấy nhân mụn nếu có ít",
+    "Sát khuẩn lần 2",
+    "Điện tím",
+    "Thải độc CO2",
+    "Chiếu đèn sinh học",
+    "Massage đầu",
+    "Đắp mask",
+    "Thoa Serum",
+    "Điện di",
+    "Thoa Kem chống nắng",
+  ],
+  "PEEL DA": [
+    "Soi da",
+    "Tẩy trang",
+    "Rửa mặt",
+    "Tẩy tế bào chết",
+    "Xông hơi + Cà sủi",
+    "Hút bã nhờn",
+    "Sát khuẩn lần 1",
+    "Lấy nhân mụn nếu có ít",
+    "Sát khuẩn lần 2",
+    "Điện tím",
+    "Peel da",
+    "Điện di",
+  ],
+};
 
 const FullPricingSection = () => {
   const { servicesByCategory, loading } = useServices();
@@ -372,21 +488,96 @@ const FullPricingSection = () => {
                         <Typography variant="h5" sx={pricingStyles.price}>
                           {formatPrice(service.price)}
                         </Typography>
-                        {service.steps_count && (
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 1, mb: 2 }}
+                        {/* Hiển thị các bước nếu có trong database hoặc trong bản đồ local */}
+                        {(service.steps || SKIN_CARE_STEPS[service.name]) && (
+                          <Accordion
+                            sx={{
+                              mt: 2,
+                              boxShadow: "none",
+                              "&:before": { display: "none" },
+                              "&.Mui-expanded": {
+                                margin: "12px 0",
+                              },
+                            }}
                           >
-                            {service.steps_count} bước chăm sóc
-                          </Typography>
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              sx={{
+                                px: 0,
+                                minHeight: "auto",
+                                "& .MuiAccordionSummary-content": { my: 1 },
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontSize: "0.85rem",
+                                  color: "text.secondary",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                Xem chi tiết{" "}
+                                {
+                                  (
+                                    service.steps ||
+                                    SKIN_CARE_STEPS[service.name]
+                                  ).length
+                                }{" "}
+                                bước
+                              </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ px: 0, pt: 0 }}>
+                              <List dense sx={{ py: 0 }}>
+                                {(
+                                  service.steps || SKIN_CARE_STEPS[service.name]
+                                ).map((step: string, idx: number) => (
+                                  <ListItem
+                                    key={idx}
+                                    sx={{
+                                      py: 0.25,
+                                      px: 0,
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        mr: 1,
+                                        color: "primary.main",
+                                        fontWeight: 700,
+                                      }}
+                                    >
+                                      {idx + 1}.
+                                    </Typography>
+                                    <ListItemText
+                                      primary={step}
+                                      primaryTypographyProps={{
+                                        variant: "body2",
+                                        fontSize: "0.8rem",
+                                        lineHeight: 1.4,
+                                      }}
+                                      sx={{
+                                        m: 0,
+                                        "& .MuiListItemText-primary": {
+                                          color: "text.secondary",
+                                        },
+                                      }}
+                                    />
+                                  </ListItem>
+                                ))}
+                              </List>
+                            </AccordionDetails>
+                          </Accordion>
                         )}
                         <Button
                           variant="contained"
                           fullWidth
                           onClick={() => openModal(service.id)}
                           sx={{
-                            mt: service.steps_count ? 0 : 2,
+                            mt:
+                              service.steps || SKIN_CARE_STEPS[service.name]
+                                ? 1
+                                : 2,
                             py: 1.5,
                             backgroundColor: "primary.main",
                             color: "white",
@@ -493,213 +684,7 @@ const FullPricingSection = () => {
                 ))}
           </Grid>
         </Box>
-
-        {/* Ưu đãi */}
-        <Box sx={{ position: "relative" }}>
-          <Typography variant="h4" sx={pricingStyles.categoryTitle}>
-            Ưu Đãi Đặc Biệt
-          </Typography>
-          <Box
-            sx={{
-              mt: 4,
-              position: "relative",
-              background:
-                "linear-gradient(135deg, rgba(212, 175, 140, 0.15) 0%, rgba(184, 149, 111, 0.2) 50%, rgba(212, 175, 140, 0.15) 100%)",
-              borderRadius: 4,
-              border: "2px solid",
-              borderColor: "primary.main",
-              boxShadow: "0 8px 32px rgba(212, 175, 140, 0.25)",
-              overflow: "hidden",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background:
-                  "linear-gradient(135deg, rgba(212, 175, 140, 0.05) 0%, transparent 50%, rgba(212, 175, 140, 0.05) 100%)",
-                pointerEvents: "none",
-              },
-            }}
-          >
-            <Box sx={{ position: "relative", zIndex: 1, p: { xs: 3, md: 5 } }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 1.5,
-                  mb: 3,
-                  flexWrap: "wrap",
-                }}
-              >
-                <LocalOfferIcon
-                  sx={{
-                    fontSize: { xs: "2rem", md: "2.5rem" },
-                    color: "primary.main",
-                    animation: "pulse 2s ease-in-out infinite",
-                    "@keyframes pulse": {
-                      "0%, 100%": {
-                        transform: "scale(1)",
-                        opacity: 1,
-                      },
-                      "50%": {
-                        transform: "scale(1.1)",
-                        opacity: 0.8,
-                      },
-                    },
-                  }}
-                />
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontWeight: 700,
-                    color: "primary.dark",
-                    fontSize: { xs: "1.75rem", md: "2.25rem" },
-                    fontFamily: '"Playfair Display", serif',
-                    textAlign: "center",
-                  }}
-                >
-                  Mua 5 Tặng 1
-                </Typography>
-                <Chip
-                  icon={<StarIcon sx={{ color: "#ff6b35 !important" }} />}
-                  label="HOT"
-                  sx={{
-                    backgroundColor: "#ff6b35",
-                    color: "white",
-                    fontWeight: 700,
-                    fontSize: "0.875rem",
-                    px: 1,
-                    height: "32px",
-                    animation: "bounce 2s ease-in-out infinite",
-                    "@keyframes bounce": {
-                      "0%, 100%": {
-                        transform: "translateY(0)",
-                      },
-                      "50%": {
-                        transform: "translateY(-4px)",
-                      },
-                    },
-                  }}
-                />
-              </Box>
-              <Grid container spacing={3}>
-                {loading
-                  ? Array.from({ length: 3 }).map((_, index) => (
-                      <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Skeleton
-                          variant="rectangular"
-                          height={200}
-                          sx={{ borderRadius: 3 }}
-                        />
-                      </Grid>
-                    ))
-                  : servicesByCategory.uu_dai_mua_5_tang_1.map((service) => (
-                      <Grid item xs={12} sm={6} md={4} key={service.id}>
-                        <Card
-                          sx={{
-                            height: "100%",
-                            background:
-                              "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 246, 243, 0.95) 100%)",
-                            borderRadius: 3,
-                            border: "1px solid",
-                            borderColor: "primary.light",
-                            boxShadow: "0 4px 20px rgba(212, 175, 140, 0.15)",
-                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                            position: "relative",
-                            overflow: "visible",
-                            "&:hover": {
-                              transform: "translateY(-8px)",
-                              boxShadow: "0 12px 40px rgba(212, 175, 140, 0.3)",
-                              borderColor: "primary.main",
-                            },
-                          }}
-                        >
-                          <CardContent
-                            sx={{
-                              p: 3,
-                              textAlign: "center",
-                              position: "relative",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                position: "absolute",
-                                top: -12,
-                                right: 16,
-                                backgroundColor: "primary.main",
-                                borderRadius: "50%",
-                                width: 40,
-                                height: 40,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                boxShadow:
-                                  "0 4px 12px rgba(212, 175, 140, 0.4)",
-                              }}
-                            >
-                              <StarIcon
-                                sx={{ color: "white", fontSize: "1.25rem" }}
-                              />
-                            </Box>
-                            <Typography
-                              variant="h6"
-                              sx={{
-                                fontWeight: 600,
-                                mb: 1.5,
-                                color: "text.primary",
-                                fontSize: { xs: "1rem", md: "1.125rem" },
-                                pt: 1,
-                              }}
-                            >
-                              {service.name}
-                            </Typography>
-                            <Typography
-                              variant="h5"
-                              sx={{
-                                color: "primary.dark",
-                                fontWeight: 700,
-                                mb: 2.5,
-                                fontSize: { xs: "1.5rem", md: "1.75rem" },
-                                fontFamily: '"Playfair Display", serif',
-                              }}
-                            >
-                              {formatPrice(service.price)}
-                            </Typography>
-                            <Button
-                              variant="contained"
-                              fullWidth
-                              onClick={() => openModal(service.id)}
-                              sx={{
-                                py: 1.5,
-                                backgroundColor: "primary.main",
-                                color: "white",
-                                fontWeight: 600,
-                                fontSize: "0.875rem",
-                                textTransform: "none",
-                                borderRadius: 2,
-                                boxShadow:
-                                  "0 4px 12px rgba(212, 175, 140, 0.3)",
-                                "&:hover": {
-                                  backgroundColor: "primary.dark",
-                                  transform: "translateY(-2px)",
-                                  boxShadow:
-                                    "0 6px 20px rgba(212, 175, 140, 0.4)",
-                                },
-                              }}
-                            >
-                              Đặt Lịch Ngay
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    ))}
-              </Grid>
-            </Box>
-          </Box>
-        </Box>
+        <PromotionPricing />
       </Container>
       <BookingModal
         open={isOpen}

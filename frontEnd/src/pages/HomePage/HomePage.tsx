@@ -7,8 +7,6 @@ import {
   WorkingHoursSection,
   PricingSection,
   SpecialOfferSection,
-  TestimonialsSection,
-  BlogSection,
   Footer,
 } from "./components";
 
@@ -29,8 +27,6 @@ const HomePage = () => {
       <WorkingHoursSection />
       <PricingSection />
       <SpecialOfferSection />
-      {/* <TestimonialsSection /> */}
-      {/* <BlogSection /> */}
       <Footer />
     </Box>
   );
