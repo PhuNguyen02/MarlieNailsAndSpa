@@ -47,19 +47,21 @@ docker-compose up --build
 
 ### 3. Environment Variables Cần Chuẩn Bị
 
-**Backend (.env hoặc Render Dashboard):**
+**Backend (Railway MySQL - Public Connection):**
 ```
 NODE_ENV=production
-DB_TYPE=postgres (hoặc mysql)
-DB_HOST=<your-db-host>
-DB_PORT=5432 (hoặc 3306)
-DB_USERNAME=<username>
-DB_PASSWORD=<password>
-DB_NAME=<database-name>
+DB_TYPE=mysql
+DB_HOST=tramway.proxy.rlwy.net
+DB_PORT=39215
+DB_USERNAME=root
+DB_PASSWORD=yuuRnIqOgQjuAeGBXUMypogFitvDaDwS
+DB_NAME=railway
 JWT_SECRET=<random-32-char-string>
 ADMIN_PASSWORD=<admin-password>
 FRONTEND_URL=<frontend-url-sau-khi-deploy>
 ```
+
+**⚠️ QUAN TRỌNG**: Phải dùng `tramway.proxy.rlwy.net:39215` (public), không dùng `mysql.railway.internal:3306`!
 
 **Frontend (.env.production hoặc Render Dashboard):**
 ```
@@ -74,15 +76,17 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ### 5. Database Preparation
 
-**Nếu dùng Render PostgreSQL:**
-- [ ] Tạo database trên Render Dashboard
-- [ ] Lưu connection info
-- [ ] Test connection từ local (optional)
+**Database đã có sẵn (Railway MySQL):**
+- [x] Database đã được deploy trên Railway
+- [x] Public connection: tramway.proxy.rlwy.net:39215
+- [x] Allow external connections (default enabled)
+- [ ] Test connection từ local (optional):
+  ```bash
+  mysql -h tramway.proxy.rlwy.net -P 39215 -u root -p railway
+  # Password: yuuRnIqOgQjuAeGBXUMypogFitvDaDwS
+  ```
 
-**Nếu dùng external database:**
-- [ ] Đảm bảo database accessible từ internet
-- [ ] Whitelist Render IPs (hoặc allow all)
-- [ ] Test connection string
+**⚠️ LƯU Ý**: Khi deploy trên Render, phải dùng **public URL** (tramway.proxy.rlwy.net:39215), không dùng internal URL (mysql.railway.internal:3306)!
 
 ### 6. GitHub Repository
 - [ ] Code đã được push lên GitHub
@@ -91,10 +95,10 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## 🚀 Deploy Steps
 
-### Step 1: Database (Nếu dùng Render)
-1. [ ] Login Render Dashboard
-2. [ ] Create PostgreSQL database
-3. [ ] Copy connection info
+### Step 1: Database (Đã Có Sẵn)
+- [x] Database Railway MySQL đã sẵn sàng
+- [x] Public connection: tramway.proxy.rlwy.net:39215
+- [x] Không cần tạo database mới
 
 ### Step 2: Backend Service
 1. [ ] New Web Service → Connect GitHub

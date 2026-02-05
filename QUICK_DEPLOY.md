@@ -19,11 +19,17 @@ git commit -m "Add Docker configuration for deployment"
 git push origin main
 ```
 
-### 2️⃣ Tạo Database Trên Render
-1. Vào https://dashboard.render.com
-2. New + → PostgreSQL
-3. Name: `marlie-spa-db`
-4. **LƯU LẠI** connection info
+### 2️⃣ Database Đã Có Sẵn (Railway MySQL)
+Database đã được setup sẵn trên Railway với **public connection**:
+```
+Public URL: tramway.proxy.rlwy.net:39215
+User: root
+Password: yuuRnIqOgQjuAeGBXUMypogFitvDaDwS
+Database: railway
+```
+**⚠️ LƯU Ý**: Dùng public URL (tramway.proxy.rlwy.net:39215), không dùng internal URL!
+
+**Không cần tạo database mới!**
 
 ### 3️⃣ Deploy Backend
 1. New + → Web Service
@@ -33,7 +39,19 @@ git push origin main
    - Root Directory: `backEnd`
    - Environment: Docker
    - Region: Singapore
-4. Add Environment Variables (từ bước 2)
+4. Add Environment Variables (Railway MySQL):
+   ```
+   NODE_ENV=production
+   DB_TYPE=mysql
+   DB_HOST=tramway.proxy.rlwy.net
+   DB_PORT=39215
+   DB_USERNAME=root
+   DB_PASSWORD=yuuRnIqOgQjuAeGBXUMypogFitvDaDwS
+   DB_NAME=railway
+   JWT_SECRET=<generate-random-string>
+   ADMIN_PASSWORD=<your-admin-password>
+   FRONTEND_URL=https://marlie-spa-frontend.onrender.com
+   ```
 5. Create Web Service
 
 ### 4️⃣ Deploy Frontend  

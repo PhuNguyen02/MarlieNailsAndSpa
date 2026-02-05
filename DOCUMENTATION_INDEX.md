@@ -18,7 +18,8 @@ Dự án **Marlie Nails & Spa** đã được chuẩn bị đầy đủ để de
 | 🐳 Hiểu Docker configuration | [DOCKER_EXPLAINED.md](./DOCKER_EXPLAINED.md) |
 | 🌐 Setup custom domain | [CUSTOM_DOMAIN_GUIDE.md](./CUSTOM_DOMAIN_GUIDE.md) |
 | 🔧 Cấu hình API URL | [API_CONFIG.md](./API_CONFIG.md) |
-| 📝 Tổng quan files đã tạo | [DEPLOYMENT_SUMMARY.md](./DEPLOYMENT_SUMMARY.md) |
+| �️ Railway MySQL Database | [RAILWAY_MYSQL_GUIDE.md](./RAILWAY_MYSQL_GUIDE.md) |
+| �📝 Tổng quan files đã tạo | [DEPLOYMENT_SUMMARY.md](./DEPLOYMENT_SUMMARY.md) |
 
 ---
 

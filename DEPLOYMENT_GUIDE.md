@@ -50,39 +50,47 @@ git push -u origin main
 
 ## 2. Setup Database
 
-### Option 1: Dùng Database Của Render (Khuyến Nghị)
+### Sử Dụng Database External (Railway MySQL)
 
-#### Bước 2.1: Tạo PostgreSQL Database
-1. Đăng nhập Render Dashboard: https://dashboard.render.com
-2. Click nút **"New +"** góc trên bên phải
-3. Chọn **"PostgreSQL"**
-4. Điền thông tin:
-   - **Name**: `marlie-spa-db`
-   - **Database**: `marliespa`
-   - **User**: `marliespa_user`
-   - **Region**: Singapore (gần Việt Nam nhất)
-   - **PostgreSQL Version**: 16 (latest)
-   - **Plan**: Free
-5. Click **"Create Database"**
+Dự án này sử dụng MySQL database đã được deploy trên **Railway**, không cần tạo database mới trên Render.
 
-#### Bước 2.2: Lưu Thông Tin Database
-Sau khi tạo xong, bạn sẽ thấy:
-- **Hostname**: (ví dụ: dpg-xxxxx-singapore.render.com)
-- **Port**: 5432
-- **Database**: marliespa
-- **Username**: marliespa_user
-- **Password**: (password được tạo tự động)
-- **Internal Database URL**: (để connect từ Render services)
-- **External Database URL**: (để connect từ local)
+#### Bước 2.1: Thông Tin Database Có Sẵn
 
-⚠️ **LƯU Ý**: Copy và lưu các thông tin này, sẽ dùng ở bước sau!
+Database Railway cung cấp các thông tin sau:
 
-### Option 2: Dùng MySQL External (Nếu bạn đã có database)
+**Để kết nối từ Render (External/Public Connection):**
+```
+MYSQL_PUBLIC_URL: mysql://root:yuuRnIqOgQjuAeGBXUMypogFitvDaDwS@tramway.proxy.rlwy.net:39215/railway
+```
 
-Nếu bạn muốn dùng database hiện tại hoặc database từ nhà cung cấp khác:
-- Đảm bảo database có thể truy cập từ internet
-- Cho phép IP của Render kết nối (hoặc mở cho tất cả IPs nếu cần)
-- Lưu thông tin: Host, Port, Username, Password, Database Name
+**Parse thành các biến riêng cho Render deployment:**
+- **DB_TYPE**: `mysql`
+- **DB_HOST**: `tramway.proxy.rlwy.net` (public host)
+- **DB_PORT**: `39215` (public port)
+- **DB_USERNAME**: `root`
+- **DB_PASSWORD**: `yuuRnIqOgQjuAeGBXUMypogFitvDaDwS`
+- **DB_NAME**: `railway`
+
+**Thông tin internal (chỉ dùng trong Railway):**
+- **MYSQLHOST**: `mysql.railway.internal` (chỉ dùng nếu deploy trong Railway)
+- **MYSQLPORT**: `3306` (internal port)
+
+⚠️ **QUAN TRỌNG**: Vì bạn deploy trên Render, phải dùng **public connection** (tramway.proxy.rlwy.net:39215), không dùng internal connection!
+
+#### Bước 2.2: Verify Database Connection (Optional)
+
+Bạn có thể test connection từ local trước khi deploy:
+
+```bash
+# Test bằng MySQL client
+mysql -h tramway.proxy.rlwy.net -P 39215 -u root -p railway
+# Nhập password khi được hỏi: yuuRnIqOgQjuAeGBXUMypogFitvDaDwS
+
+# Hoặc dùng connection string đầy đủ
+mysql://root:yuuRnIqOgQjuAeGBXUMypogFitvDaDwS@tramway.proxy.rlwy.net:39215/railway
+```
+
+✅ Database này đã được cấu hình để allow external connections qua public URL.
 
 ---
 
@@ -112,24 +120,43 @@ Nếu bạn muốn dùng database hiện tại hoặc database từ nhà cung c�
 ### Bước 3.3: Thêm Environment Variables
 Scroll xuống phần **"Environment Variables"**, click **"Add Environment Variable"** và thêm:
 
-**Required Variables:**
+**Required Variables (Railway MySQL - Public Connection):**
 ```
 NODE_ENV=production
-DB_TYPE=postgres (hoặc mysql nếu dùng MySQL)
-DB_HOST=<hostname từ bước 2.2>
-DB_PORT=5432 (hoặc 3306 cho MySQL)
-DB_USERNAME=<username từ bước 2.2>
-DB_PASSWORD=<password từ bước 2.2>
-DB_NAME=marliespa
+DB_TYPE=mysql
+DB_HOST=tramway.proxy.rlwy.net
+DB_PORT=39215
+DB_USERNAME=root
+DB_PASSWORD=yuuRnIqOgQjuAeGBXUMypogFitvDaDwS
+DB_NAME=railway
 JWT_SECRET=<tạo một chuỗi random phức tạp>
 ADMIN_PASSWORD=<password cho admin>
-FRONTEND_URL=https://marlie-spa-frontend.onrender.com (tạm thời, sẽ update sau)
+FRONTEND_URL=https://marlie-spa-frontend.onrender.com
 ```
+
+**⚠️ LƯU Ý QUAN TRỌNG:**
+- Phải dùng **tramway.proxy.rlwy.net:39215** (public URL)
+- KHÔNG dùng `mysql.railway.internal:3306` (đó là internal URL chỉ dùng trong Railway)
 
 **Tạo JWT_SECRET mạnh:**
 ```bash
 # Chạy command này trên terminal để tạo JWT_SECRET
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Copy/Paste Environment Variables nhanh:**
+Bạn có thể copy toàn bộ và paste vào Render (thay JWT_SECRET và ADMIN_PASSWORD):
+```
+NODE_ENV=production
+DB_TYPE=mysql
+DB_HOST=tramway.proxy.rlwy.net
+DB_PORT=39215
+DB_USERNAME=root
+DB_PASSWORD=yuuRnIqOgQjuAeGBXUMypogFitvDaDwS
+DB_NAME=railway
+JWT_SECRET=YOUR_GENERATED_SECRET_HERE
+ADMIN_PASSWORD=YOUR_ADMIN_PASSWORD_HERE
+FRONTEND_URL=https://marlie-spa-frontend.onrender.com
 ```
 
 ### Bước 3.4: Deploy Backend
@@ -309,8 +336,13 @@ Render tự động cung cấp SSL certificate miễn phí và force HTTPS cho t
 
 **Lỗi: "Cannot connect to database"**
 - Kiểm tra DB credentials trong Environment Variables
-- Verify database có allow external connections
-- Check DB_HOST, DB_PORT đúng
+- Verify Railway MySQL database đang chạy
+- Check DB_HOST: `tramway.proxy.rlwy.net`, DB_PORT: `39215`
+- Verify database allow external connections (Railway default allow)
+- Test connection từ local trước:
+  ```bash
+  mysql -h tramway.proxy.rlwy.net -P 39215 -u root -p railway
+  ```
 
 **Lỗi: "Port already in use"**
 - Đảm bảo backend listen trên port 3000 (hoặc port từ env variable)
@@ -384,11 +416,22 @@ docker run -p 80:80 marlie-frontend
 
 ### Debug Database Connection
 ```bash
-# Test từ local (dùng External URL từ Render)
-psql "postgresql://username:password@host:5432/database"
+# Test Railway MySQL từ local
+mysql -h tramway.proxy.rlwy.net -P 39215 -u root -p railway
+# Password: yuuRnIqOgQjuAeGBXUMypogFitvDaDwS
 
-# Hoặc MySQL
-mysql -h host -u username -p database
+# Hoặc dùng connection string
+mysql mysql://root:yuuRnIqOgQjuAeGBXUMypogFitvDaDwS@tramway.proxy.rlwy.net:39215/railway
+
+# Test với Node.js (tạo file test.js)
+# const mysql = require('mysql2/promise');
+# const connection = await mysql.createConnection({
+#   host: 'tramway.proxy.rlwy.net',
+#   port: 39215,
+#   user: 'root',
+#   password: 'yuuRnIqOgQjuAeGBXUMypogFitvDaDwS',
+#   database: 'railway'
+# });
 ```
 
 ---
