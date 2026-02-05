@@ -16,8 +16,6 @@ import {
   Button,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import StarIcon from "@mui/icons-material/Star";
 import { pricingStyles } from "../../HomePage/styles";
 import { formatPrice } from "../../../utils";
 import BookingModal from "../../../components/BookingModal";

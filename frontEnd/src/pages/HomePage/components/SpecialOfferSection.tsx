@@ -169,7 +169,7 @@ const SpecialOfferSection = () => {
                   </Card>
                 </Grid>
               ))
-            : specialOffers.map((service, index) => (
+            : specialOffers.map((service) => (
                 <Grid item xs={12} sm={6} md={4} key={service.id}>
                   <Card
                     sx={{

@@ -1,18 +1,15 @@
 import {
   Box,
-  Container,
   Typography,
   Grid,
   Card,
   CardContent,
   Button,
   Chip,
-  Divider,
   Paper,
 } from "@mui/material";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import { pricingStyles } from "../../HomePage/styles";
 import { formatPrice } from "../../../utils";
 import BookingModal from "../../../components/BookingModal";
 import { useBookingModal } from "../../../hooks/useBookingModal";
@@ -40,7 +37,7 @@ const promoServices = [
 ];
 
 const PromotionPricing = () => {
-  const { isOpen, selectedService, openModal, closeModal } = useBookingModal();
+  const { isOpen, openModal, closeModal } = useBookingModal();
 
   return (
     <Box sx={{ mb: 10 }}>

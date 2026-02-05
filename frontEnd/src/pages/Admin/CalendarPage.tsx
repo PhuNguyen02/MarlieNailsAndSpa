@@ -16,7 +16,6 @@ import {
   Select,
   FormControl,
   InputLabel,
-  Tooltip,
   Chip,
   Stack,
   Divider,
@@ -24,7 +23,6 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
-  Today,
   AccessTime,
   Person,
   AttachMoney,
@@ -545,8 +543,6 @@ const CalendarPage: React.FC = () => {
     // Let's rely on standard grid filling.
 
     const daysArray = [];
-    const prevMonthEnd = startOfMonth.subtract(1, "day");
-
     // Fill initial empty slots or previous month days
     // Adjust logic based on locale start of week.
     // dayjs.locale('vi') makes week start on Monday? Let's check visually or normalize.

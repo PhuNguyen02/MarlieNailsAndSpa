@@ -13,8 +13,6 @@ import {
   ListItemText,
   Collapse,
   Divider,
-  useTheme,
-  useMediaQuery,
   alpha,
 } from "@mui/material";
 import {
@@ -46,8 +44,6 @@ const Header = () => {
   const [serviceHover, setServiceHover] = useState(false);
   const location = useLocation();
   const { isOpen, openModal, closeModal } = useBookingModal();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   // Check if we're on homepage - only homepage has transparent header with white text
   const isHomePage = location.pathname === "/";
