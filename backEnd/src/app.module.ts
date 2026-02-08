@@ -55,7 +55,7 @@ import { EmployeeSchedulesModule } from './admin/employee-schedules/employee-sch
           BookingEmployee,
           BookingNotification,
         ],
-        synchronize: true, // QUAN TRỌNG: set false trong production
+        synchronize: false, // Tắt tạm để tránh conflict với bảng đã tồn tại
         logging: true,
         charset: 'utf8mb4',
       }),
