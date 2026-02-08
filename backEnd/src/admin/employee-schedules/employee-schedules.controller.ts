@@ -1,22 +1,10 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
 import { EmployeeSchedulesService } from './employee-schedules.service';
 import { CreateEmployeeScheduleDto } from './dto/create-employee-schedule.dto';
 import { UpdateEmployeeScheduleDto } from './dto/update-employee-schedule.dto';
 import { BulkSetScheduleDto } from './dto/bulk-set-schedule.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('admin/employee-schedules')
-@UseGuards(JwtAuthGuard)
 export class EmployeeSchedulesController {
   constructor(private readonly schedulesService: EmployeeSchedulesService) {}
 
