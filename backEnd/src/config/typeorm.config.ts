@@ -3,6 +3,9 @@ import { config } from 'dotenv';
 
 config(); // Load .env file
 
+// Detect if running in ts-node (development) or compiled (production)
+const isDevMode = process.env.TS_NODE || !__filename.includes('dist');
+
 export const dataSourceOptions: DataSourceOptions = {
   type: 'mysql',
   host: process.env.DB_HOST || 'localhost',
@@ -10,8 +13,8 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'spa_db',
-  entities: ['dist/entities/*.entity{.ts,.js}'],
-  migrations: ['dist/migrations/*{.ts,.js}'],
+  entities: isDevMode ? ['src/entities/*.entity{.ts,.js}'] : ['dist/entities/*.entity{.ts,.js}'],
+  migrations: isDevMode ? ['src/migrations/*{.ts,.js}'] : ['dist/migrations/*{.ts,.js}'],
   synchronize: false,
   logging: true,
   charset: 'utf8mb4',

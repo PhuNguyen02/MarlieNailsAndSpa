@@ -966,6 +966,152 @@ async function seed() {
       console.log(`⏭️  Employees already exist (${savedEmployees.length} employees), skipping...`);
     }
 
+    // 4.5 Seed Employee Schedules (lịch làm việc hàng tuần)
+    console.log('\nCreating employee schedules...');
+    const scheduleRepository = dataSource.getRepository('EmployeeSchedule');
+    const existingSchedules = await scheduleRepository.find();
+
+    if (existingSchedules.length === 0 && savedEmployees.length > 0) {
+      // Lịch mặc định cho therapists: T2-T7 (9:00-18:00), nghỉ CN
+      // Receptionist: T2-T6 (8:30-17:30), nghỉ T7+CN
+      const daysOfWeek = [
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+        'sunday',
+      ];
+
+      for (const employee of savedEmployees) {
+        const isTherapist = (employee as any).role === 'therapist';
+        const isReceptionist = (employee as any).role === 'receptionist';
+
+        for (const day of daysOfWeek) {
+          let scheduleData: any;
+
+          if (isTherapist) {
+            if (day === 'sunday') {
+              // CN nghỉ
+              scheduleData = {
+                employeeId: (employee as any).id,
+                dayOfWeek: day,
+                startTime: '00:00',
+                endTime: '00:00',
+                isDayOff: true,
+                note: 'Nghỉ Chủ Nhật',
+              };
+            } else if (day === 'saturday') {
+              // T7 làm nửa ngày
+              scheduleData = {
+                employeeId: (employee as any).id,
+                dayOfWeek: day,
+                startTime: '09:00',
+                endTime: '15:00',
+                breakStartTime: '12:00',
+                breakEndTime: '12:30',
+                isDayOff: false,
+                note: 'Thứ 7 làm nửa ngày',
+              };
+            } else {
+              // T2-T6 full day
+              scheduleData = {
+                employeeId: (employee as any).id,
+                dayOfWeek: day,
+                startTime: '09:00',
+                endTime: '18:00',
+                breakStartTime: '12:00',
+                breakEndTime: '13:00',
+                isDayOff: false,
+                note: null,
+              };
+            }
+          } else if (isReceptionist) {
+            if (day === 'saturday' || day === 'sunday') {
+              // T7+CN nghỉ
+              scheduleData = {
+                employeeId: (employee as any).id,
+                dayOfWeek: day,
+                startTime: '00:00',
+                endTime: '00:00',
+                isDayOff: true,
+                note: day === 'saturday' ? 'Nghỉ Thứ 7' : 'Nghỉ Chủ Nhật',
+              };
+            } else {
+              // T2-T6
+              scheduleData = {
+                employeeId: (employee as any).id,
+                dayOfWeek: day,
+                startTime: '08:30',
+                endTime: '17:30',
+                breakStartTime: '12:00',
+                breakEndTime: '13:00',
+                isDayOff: false,
+                note: null,
+              };
+            }
+          } else {
+            // Manager hoặc role khác: T2-T6
+            if (day === 'saturday' || day === 'sunday') {
+              scheduleData = {
+                employeeId: (employee as any).id,
+                dayOfWeek: day,
+                startTime: '00:00',
+                endTime: '00:00',
+                isDayOff: true,
+                note: 'Nghỉ cuối tuần',
+              };
+            } else {
+              scheduleData = {
+                employeeId: (employee as any).id,
+                dayOfWeek: day,
+                startTime: '09:00',
+                endTime: '18:00',
+                breakStartTime: '12:00',
+                breakEndTime: '13:00',
+                isDayOff: false,
+                note: null,
+              };
+            }
+          }
+
+          await scheduleRepository.save(scheduleData);
+        }
+        console.log(`✅ Schedule created for: ${(employee as any).fullName} (${(employee as any).role})`);
+      }
+
+      // Thêm vài ngày nghỉ riêng (specificDate) làm ví dụ
+      const therapists = savedEmployees.filter((e: any) => e.role === 'therapist');
+      if (therapists.length >= 2) {
+        // Nhân viên 1 nghỉ phép ngày 2026-02-14
+        await scheduleRepository.save({
+          employeeId: (therapists[0] as any).id,
+          specificDate: new Date('2026-02-14'),
+          startTime: '00:00',
+          endTime: '00:00',
+          isDayOff: true,
+          note: 'Nghỉ phép - Valentine',
+        });
+        console.log(`✅ Day-off created for ${(therapists[0] as any).fullName} on 2026-02-14`);
+
+        // Nhân viên 2 làm thêm Chủ Nhật 2026-02-15
+        await scheduleRepository.save({
+          employeeId: (therapists[1] as any).id,
+          specificDate: new Date('2026-02-15'),
+          startTime: '10:00',
+          endTime: '16:00',
+          isDayOff: false,
+          note: 'Làm thêm cuối tuần',
+        });
+        console.log(`✅ Extra schedule created for ${(therapists[1] as any).fullName} on 2026-02-15`);
+      }
+    } else if (existingSchedules.length > 0) {
+      console.log(`⏭️  Schedules already exist (${existingSchedules.length} records), skipping...`);
+    } else {
+      console.log('⚠️  Skipping schedules: No employees found');
+    }
+
     // 5. Seed Customers
     console.log('\nCreating customers...');
     const customerRepository = dataSource.getRepository('Customer');
@@ -1114,6 +1260,7 @@ async function seed() {
     console.log(
       `   - Employees: ${savedEmployees.length} (${savedEmployees.filter((e) => e.role === 'therapist').length} therapists)`,
     );
+    console.log(`   - Employee Schedules: ${(await scheduleRepository.find()).length} records`);
     console.log(`   - Customers: ${savedCustomers.length}`);
     console.log(`   - Sample Bookings: 3`);
     console.log('\n💡 Service Categories:');

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Booking } from './booking.entity';
 import { BookingEmployee } from './booking-employee.entity';
+import { EmployeeSchedule } from './employee-schedule.entity';
 
 export enum EmployeeRole {
   THERAPIST = 'therapist',
@@ -53,6 +54,9 @@ export class Employee {
 
   @OneToMany(() => BookingEmployee, (bookingEmployee) => bookingEmployee.employee)
   bookingEmployees: BookingEmployee[];
+
+  @OneToMany(() => EmployeeSchedule, (schedule) => schedule.employee)
+  schedules: EmployeeSchedule[];
 
   @CreateDateColumn()
   createdAt: Date;

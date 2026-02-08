@@ -1,18 +1,22 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { DataSource } from 'typeorm';
+import { dataSourceOptions } from './config/typeorm.config';
 import { seedInitialData } from './database/seeds/initial-data.seed';
 
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(AppModule);
-  const dataSource = app.get(DataSource);
-
+  const dataSource = new DataSource(dataSourceOptions);
+  
   try {
+    await dataSource.initialize();
+    console.log('✅ Database connection established');
+    
     await seedInitialData(dataSource);
+    
+    console.log('✅ Seeding completed successfully!');
   } catch (error) {
     console.error('❌ Seeding thất bại:', error);
+    process.exit(1);
   } finally {
-    await app.close();
+    await dataSource.destroy();
   }
 }
 
