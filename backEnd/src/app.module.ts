@@ -9,6 +9,7 @@ import {
   Service,
   Treatment,
   Employee,
+  EmployeeSchedule,
   Customer,
   TimeSlot,
   Booking,
@@ -21,6 +22,7 @@ import { TimeSlotsModule } from './admin/time-slots/time-slots.module';
 import { EmployeesModule } from './admin/employees/employees.module';
 import { CustomersModule } from './customer/customers/customers.module';
 import { BookingsModule } from './customer/bookings/bookings.module';
+import { EmployeeSchedulesModule } from './admin/employee-schedules/employee-schedules.module';
 
 @Module({
   imports: [
@@ -46,13 +48,14 @@ import { BookingsModule } from './customer/bookings/bookings.module';
           Service,
           Treatment,
           Employee,
+          EmployeeSchedule,
           Customer,
           TimeSlot,
           Booking,
           BookingEmployee,
           BookingNotification,
         ],
-        synchronize: true, // QUAN TRỌNG: set false trong production
+        synchronize: false, // Tắt tạm để tránh conflict với bảng đã tồn tại
         logging: true,
         charset: 'utf8mb4',
       }),
@@ -65,6 +68,7 @@ import { BookingsModule } from './customer/bookings/bookings.module';
     EmployeesModule,
     CustomersModule,
     BookingsModule,
+    EmployeeSchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

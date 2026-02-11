@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { Service } from '../../entities/service.entity';
 import { Employee, EmployeeRole } from '../../entities/employee.entity';
 import { TimeSlot } from '../../entities/time-slot.entity';
+import { EmployeeSchedule, DayOfWeek } from '../../entities/employee-schedule.entity';
 
 export const seedInitialData = async (dataSource: DataSource) => {
   console.log('🌱 Bắt đầu seeding dữ liệu mẫu...');
@@ -53,7 +54,6 @@ export const seedInitialData = async (dataSource: DataSource) => {
   for (const s of services) {
     const existing = await serviceRepo.findOne({ where: { name: s.name } });
     if (!existing) {
-      // @ts-ignore
       await serviceRepo.save(serviceRepo.create(s));
     }
   }
@@ -139,6 +139,100 @@ export const seedInitialData = async (dataSource: DataSource) => {
     }
   }
   console.log('✅ TimeSlots seeded');
+
+  // 4. Seed Employee Schedules (lịch làm việc hàng tuần)
+  const scheduleRepo = dataSource.getRepository(EmployeeSchedule);
+  const existingSchedules = await scheduleRepo.find();
+
+  if (existingSchedules.length === 0) {
+    const allEmployees = await employeeRepo.find();
+    const allDays = [
+      DayOfWeek.MONDAY,
+      DayOfWeek.TUESDAY,
+      DayOfWeek.WEDNESDAY,
+      DayOfWeek.THURSDAY,
+      DayOfWeek.FRIDAY,
+      DayOfWeek.SATURDAY,
+      DayOfWeek.SUNDAY,
+    ];
+
+    for (const emp of allEmployees) {
+      for (const day of allDays) {
+        const isWeekend = day === DayOfWeek.SATURDAY || day === DayOfWeek.SUNDAY;
+        const isSaturday = day === DayOfWeek.SATURDAY;
+
+        if (emp.role === EmployeeRole.THERAPIST) {
+          if (day === DayOfWeek.SUNDAY) {
+            await scheduleRepo.save(
+              scheduleRepo.create({
+                employeeId: emp.id,
+                dayOfWeek: day,
+                startTime: '00:00',
+                endTime: '00:00',
+                isDayOff: true,
+                note: 'Nghỉ Chủ Nhật',
+              }),
+            );
+          } else if (isSaturday) {
+            await scheduleRepo.save(
+              scheduleRepo.create({
+                employeeId: emp.id,
+                dayOfWeek: day,
+                startTime: '09:00',
+                endTime: '15:00',
+                breakStartTime: '12:00',
+                breakEndTime: '12:30',
+                isDayOff: false,
+                note: 'Thứ 7 nửa ngày',
+              }),
+            );
+          } else {
+            await scheduleRepo.save(
+              scheduleRepo.create({
+                employeeId: emp.id,
+                dayOfWeek: day,
+                startTime: '09:00',
+                endTime: '18:00',
+                breakStartTime: '12:00',
+                breakEndTime: '13:00',
+                isDayOff: false,
+              }),
+            );
+          }
+        } else {
+          // Receptionist / Manager: T2-T6, nghỉ T7+CN
+          if (isWeekend) {
+            await scheduleRepo.save(
+              scheduleRepo.create({
+                employeeId: emp.id,
+                dayOfWeek: day,
+                startTime: '00:00',
+                endTime: '00:00',
+                isDayOff: true,
+                note: 'Nghỉ cuối tuần',
+              }),
+            );
+          } else {
+            await scheduleRepo.save(
+              scheduleRepo.create({
+                employeeId: emp.id,
+                dayOfWeek: day,
+                startTime: '08:30',
+                endTime: '17:30',
+                breakStartTime: '12:00',
+                breakEndTime: '13:00',
+                isDayOff: false,
+              }),
+            );
+          }
+        }
+      }
+      console.log(`✅ Schedule seeded for ${emp.fullName}`);
+    }
+  } else {
+    console.log(`⏭️  Schedules already exist (${existingSchedules.length} records), skipping...`);
+  }
+  console.log('✅ Employee Schedules seeded');
 
   console.log('🏁 Seeding hoàn tất!');
 };

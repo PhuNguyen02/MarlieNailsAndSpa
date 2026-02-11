@@ -6,10 +6,12 @@ import {
   HttpStatus,
   Get,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +29,7 @@ export class AuthController {
   }
 
   @Get('admin/:id')
+  @UseGuards(JwtAuthGuard)
   async getAdmin(@Param('id') id: string) {
     return this.authService.getAdminById(id);
   }

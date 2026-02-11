@@ -2,6 +2,7 @@ export { Admin } from './admin.entity';
 export { Service } from './service.entity';
 export { Treatment } from './treatment.entity';
 export { Employee, EmployeeRole } from './employee.entity';
+export { EmployeeSchedule, DayOfWeek } from './employee-schedule.entity';
 export { Customer } from './customer.entity';
 export { TimeSlot } from './time-slot.entity';
 export { Booking, BookingStatus } from './booking.entity';

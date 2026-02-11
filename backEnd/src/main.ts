@@ -9,7 +9,12 @@ async function bootstrap() {
   // Enable CORS với config cho production
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
   app.enableCors({
-    origin: [frontendUrl, 'http://localhost:5174', 'http://localhost:3000'],
+    origin: [
+      frontendUrl, 
+      'http://localhost:5174', 
+      'http://localhost:3000',
+      'https://marlienailsandspa.onrender.com'  // Production frontend URL
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
