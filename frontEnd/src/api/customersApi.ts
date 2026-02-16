@@ -27,10 +27,6 @@ export const customersApi = {
     return apiClient.get(`/customers/${id}`);
   },
 
-  /**
-   * Tìm kiếm khách hàng theo số điện thoại
-   * GET /api/customers/search/phone/:phone
-   */
   getByPhone(phone: string): Promise<ApiResponse<Customer | null>> {
     return apiClient.get(`/customers/search/phone/${phone}`);
   },

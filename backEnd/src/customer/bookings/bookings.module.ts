@@ -9,12 +9,14 @@ import { Employee } from '../../entities/employee.entity';
 import { TimeSlotsModule } from '../../admin/time-slots/time-slots.module';
 import { CustomersModule } from '../customers/customers.module';
 import { Service } from '../../entities/service.entity';
+import { EmployeeSchedulesModule } from '../../admin/employee-schedules/employee-schedules.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Booking, BookingNotification, BookingEmployee, Employee, Service]),
     TimeSlotsModule,
     CustomersModule,
+    EmployeeSchedulesModule,
   ],
   controllers: [BookingsController],
   providers: [BookingsService],

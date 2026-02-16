@@ -32,8 +32,9 @@ interface Employee {
   fullName: string;
   phone: string;
   email: string;
-  specialty: string;
+  specialization: string;
   isActive: boolean;
+  workSchedule?: string;
 }
 
 const StaffManagement: React.FC = () => {
@@ -63,8 +64,9 @@ const StaffManagement: React.FC = () => {
         fullName: "",
         phone: "",
         email: "",
-        specialty: "",
+        specialization: "",
         isActive: true,
+        workSchedule: "",
       },
     );
     setOpen(true);
@@ -76,9 +78,20 @@ const StaffManagement: React.FC = () => {
   };
 
   const handleSave = async () => {
-    // Implement save logic (POST/PATCH)
-    handleClose();
-    fetchEmployees();
+    try {
+      if (selectedEmployee?.id) {
+        await apiClient.patch(
+          `/admin/employees/${selectedEmployee.id}`,
+          selectedEmployee,
+        );
+      } else {
+        await apiClient.post("/admin/employees", selectedEmployee);
+      }
+      handleClose();
+      fetchEmployees();
+    } catch (err) {
+      console.error("Failed to save employee", err);
+    }
   };
 
   return (
@@ -101,6 +114,7 @@ const StaffManagement: React.FC = () => {
               <TableCell>Họ Tên</TableCell>
               <TableCell>Số Điện Thoại</TableCell>
               <TableCell>Chuyên Môn</TableCell>
+              <TableCell>Lịch Làm Việc</TableCell>
               <TableCell>Trạng Thái</TableCell>
               <TableCell align="right">Thao Tác</TableCell>
             </TableRow>
@@ -110,7 +124,8 @@ const StaffManagement: React.FC = () => {
               <TableRow key={emp.id}>
                 <TableCell>{emp.fullName}</TableCell>
                 <TableCell>{emp.phone}</TableCell>
-                <TableCell>{emp.specialty}</TableCell>
+                <TableCell>{emp.specialization}</TableCell>
+                <TableCell>{emp.workSchedule || "Chưa xếp lịch"}</TableCell>
                 <TableCell>
                   <Chip
                     label={emp.isActive ? "Đang làm" : "Nghỉ"}
@@ -174,11 +189,25 @@ const StaffManagement: React.FC = () => {
             <TextField
               label="Chuyên Môn"
               fullWidth
-              value={selectedEmployee?.specialty || ""}
+              value={selectedEmployee?.specialization || ""}
               onChange={(e) =>
                 setSelectedEmployee({
                   ...selectedEmployee,
-                  specialty: e.target.value,
+                  specialization: e.target.value,
+                })
+              }
+            />
+            <TextField
+              label="Lịch Làm Việc (Shift)"
+              fullWidth
+              multiline
+              rows={2}
+              placeholder="Ví dụ: Thứ 2-6 (8:00 - 17:00)"
+              value={selectedEmployee?.workSchedule || ""}
+              onChange={(e) =>
+                setSelectedEmployee({
+                  ...selectedEmployee,
+                  workSchedule: e.target.value,
                 })
               }
             />

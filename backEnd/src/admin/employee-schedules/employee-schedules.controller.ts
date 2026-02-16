@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { EmployeeSchedulesService } from './employee-schedules.service';
 import { CreateEmployeeScheduleDto } from './dto/create-employee-schedule.dto';
 import { UpdateEmployeeScheduleDto } from './dto/update-employee-schedule.dto';

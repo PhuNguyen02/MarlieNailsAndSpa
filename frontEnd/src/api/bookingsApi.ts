@@ -2,7 +2,7 @@
 // Bookings API Service
 // ==========================================
 
-import { apiClient } from "./index";
+import { apiClient } from './index';
 import type {
   ApiResponse,
   Booking,
@@ -15,7 +15,7 @@ import type {
   AvailableEmployeesResponse,
   Notification,
   PendingNotification,
-} from "./types";
+} from './types';
 
 export const bookingsApi = {
   // ==========================================
@@ -28,7 +28,7 @@ export const bookingsApi = {
    * @param filters - Lọc theo status, date, customerId
    */
   getAll(filters?: BookingFilters): Promise<ApiResponse<Booking[]>> {
-    return apiClient.get("/bookings", { params: filters });
+    return apiClient.get('/bookings', { params: filters });
   },
 
   /**
@@ -44,17 +44,14 @@ export const bookingsApi = {
    * POST /api/bookings
    */
   create(data: CreateBookingRequest): Promise<ApiResponse<Booking>> {
-    return apiClient.post("/bookings", data);
+    return apiClient.post('/bookings', data);
   },
 
   /**
    * Cập nhật booking (confirm, cancel, complete)
    * PATCH /api/bookings/:id
    */
-  update(
-    id: string,
-    data: UpdateBookingRequest,
-  ): Promise<ApiResponse<Booking>> {
+  update(id: string, data: UpdateBookingRequest): Promise<ApiResponse<Booking>> {
     return apiClient.patch(`/bookings/${id}`, data);
   },
 
@@ -74,14 +71,14 @@ export const bookingsApi = {
    * Xác nhận booking
    */
   confirm(id: string): Promise<ApiResponse<Booking>> {
-    return apiClient.patch(`/bookings/${id}`, { status: "confirmed" });
+    return apiClient.patch(`/bookings/${id}`, { status: 'confirmed' });
   },
 
   /**
    * Hoàn thành booking
    */
   complete(id: string): Promise<ApiResponse<Booking>> {
-    return apiClient.patch(`/bookings/${id}`, { status: "completed" });
+    return apiClient.patch(`/bookings/${id}`, { status: 'completed' });
   },
 
   /**
@@ -91,7 +88,7 @@ export const bookingsApi = {
    */
   cancel(id: string, reason?: string): Promise<ApiResponse<Booking>> {
     return apiClient.patch(`/bookings/${id}`, {
-      status: "cancelled",
+      status: 'cancelled',
       cancellationReason: reason,
     });
   },
@@ -107,7 +104,7 @@ export const bookingsApi = {
   checkAvailability(
     data: AvailabilityCheckRequest,
   ): Promise<ApiResponse<AvailabilityCheckResponse>> {
-    return apiClient.post("/bookings/check-availability", data);
+    return apiClient.post('/bookings/check-availability', data);
   },
 
   /**
@@ -129,7 +126,7 @@ export const bookingsApi = {
    * GET /api/bookings/employees
    */
   getActiveEmployees(): Promise<ApiResponse<any[]>> {
-    return apiClient.get("/bookings/employees");
+    return apiClient.get('/bookings/employees');
   },
 
   /**
@@ -140,7 +137,7 @@ export const bookingsApi = {
     date: string,
     timeSlotId: string,
   ): Promise<ApiResponse<AvailableEmployeesResponse>> {
-    return apiClient.get("/bookings/available-employees", {
+    return apiClient.get('/bookings/available-employees', {
       params: { date, timeSlotId },
     });
   },
@@ -162,16 +159,14 @@ export const bookingsApi = {
    * GET /api/bookings/notifications/pending
    */
   getPendingNotifications(): Promise<ApiResponse<PendingNotification[]>> {
-    return apiClient.get("/bookings/notifications/pending");
+    return apiClient.get('/bookings/notifications/pending');
   },
 
   /**
    * Đánh dấu thông báo đã đọc
    * PATCH /api/bookings/notifications/:id/read
    */
-  markNotificationRead(
-    notificationId: string,
-  ): Promise<ApiResponse<Notification>> {
+  markNotificationRead(notificationId: string): Promise<ApiResponse<Notification>> {
     return apiClient.patch(`/bookings/notifications/${notificationId}/read`);
   },
 };

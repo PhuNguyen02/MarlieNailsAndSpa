@@ -4,10 +4,14 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CheckAvailabilityDto } from './dto/check-availability.dto';
 import { BookingStatus } from '../../entities/booking.entity';
+import { EmployeeSchedulesService } from '../../admin/employee-schedules/employee-schedules.service';
 
 @Controller('bookings')
 export class BookingsController {
-  constructor(private readonly bookingsService: BookingsService) {}
+  constructor(
+    private readonly bookingsService: BookingsService,
+    private readonly employeeSchedulesService: EmployeeSchedulesService,
+  ) {}
 
   @Post()
   create(@Body() createBookingDto: CreateBookingDto) {
@@ -23,6 +27,11 @@ export class BookingsController {
     @Query('customerId') customerId?: string,
   ) {
     return this.bookingsService.findAll({ status, date, startDate, endDate, customerId });
+  }
+
+  @Get('employee-schedules')
+  getEmployeeSchedules() {
+    return this.employeeSchedulesService.getAllSchedules({ isActive: true });
   }
 
   @Get('employees')
