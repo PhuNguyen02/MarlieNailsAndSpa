@@ -19,6 +19,7 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { TimeSlotsService } from '../../admin/time-slots/time-slots.service';
 import { CustomersService } from '../customers/customers.service';
+import { EmployeeSchedulesService } from '../../admin/employee-schedules/employee-schedules.service';
 
 @Injectable()
 export class BookingsService {
@@ -35,6 +36,7 @@ export class BookingsService {
     private serviceRepository: Repository<ServiceEntity>,
     private timeSlotsService: TimeSlotsService,
     private customersService: CustomersService,
+    private employeeSchedulesService: EmployeeSchedulesService,
     private dataSource: DataSource,
   ) {}
 
@@ -82,6 +84,30 @@ export class BookingsService {
           );
         }
 
+        // Kiểm tra trùng lặp trong danh sách
+        const uniqueEmployeeIds = [...new Set(employeeIds)];
+        if (uniqueEmployeeIds.length !== employeeIds.length) {
+          throw new BadRequestException('Danh sách nhân viên có ID trùng lặp');
+        }
+
+        // Kiểm tra nhân viên có đi làm ngày đó không (lịch làm việc)
+        const timeSlot = await this.timeSlotsService.findOne(timeSlotId);
+        const slotStartTime = timeSlot.startTime; // HH:mm:ss
+        const scheduleAvailable = await this.employeeSchedulesService.getAvailableEmployees(
+          bookingDate,
+          typeof slotStartTime === 'string' ? slotStartTime.substring(0, 5) : slotStartTime,
+        );
+        const availableEmpIds = scheduleAvailable.data.map((emp: any) => emp.id);
+
+        for (const empId of employeeIds) {
+          if (!availableEmpIds.includes(empId)) {
+            const emp = await this.employeeRepository.findOne({ where: { id: empId } });
+            throw new BadRequestException(
+              `Nhân viên ${emp?.fullName || empId} không làm việc vào ngày/giờ này`,
+            );
+          }
+        }
+
         // IMPORTANT: Re-check employee availability INSIDE the transaction
         // Since we locked the employees, this check is now thread-safe
         const start = new Date(bookingDate);
@@ -107,12 +133,6 @@ export class BookingsService {
           throw new ConflictException(
             `Nhân viên ${busyEmployeeName} vừa được đặt bởi khách hàng khác. Vui lòng chọn nhân viên khác.`,
           );
-        }
-
-        // Kiểm tra trùng lặp trong danh sách
-        const uniqueEmployeeIds = [...new Set(employeeIds)];
-        if (uniqueEmployeeIds.length !== employeeIds.length) {
-          throw new BadRequestException('Danh sách nhân viên có ID trùng lặp');
         }
       }
 
@@ -562,13 +582,24 @@ export class BookingsService {
   }
 
   // Get available employees for a specific date and time slot
+  // Kết hợp cả lịch làm việc (employee_schedules) và lịch đặt hẹn (bookings)
   async getAvailableEmployees(date: string, timeSlotId: string) {
-    // Get all active employees
-    const allEmployees = await this.employeeRepository.find({
-      where: { isActive: true },
-    });
+    // 1. Lấy thông tin time slot để biết giờ bắt đầu
+    const timeSlot = await this.timeSlotsService.findOne(timeSlotId);
+    const slotStartTime =
+      typeof timeSlot.startTime === 'string'
+        ? timeSlot.startTime.substring(0, 5)
+        : timeSlot.startTime;
 
-    // Get employees already booked for this time slot and date through bookingEmployees table
+    // 2. Lấy nhân viên đang làm việc vào ngày/giờ đó (từ employee_schedules)
+    const scheduleResult = await this.employeeSchedulesService.getAvailableEmployees(
+      date,
+      slotStartTime,
+    );
+    const workingEmployees = scheduleResult.data; // Nhân viên có lịch làm việc
+    const workingEmployeeIds = workingEmployees.map((emp: any) => emp.id);
+
+    // 3. Lấy nhân viên đã có booking trong khung giờ này
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
     const end = new Date(date);
@@ -584,13 +615,15 @@ export class BookingsService {
       },
       relations: ['booking', 'employee'],
     });
-
     const bookedEmployeeIds = bookedBookingEmployees.map((be) => be.employeeId);
 
-    // Filter out booked employees
-    const availableEmployees = allEmployees.filter(
-      (employee) => !bookedEmployeeIds.includes(employee.id),
+    // 4. Kết hợp: Nhân viên phải CÓ lịch làm việc VÀ chưa có booking
+    const availableEmployees = workingEmployees.filter(
+      (emp: any) => !bookedEmployeeIds.includes(emp.id),
     );
+
+    // Lấy tất cả nhân viên active để tính tổng
+    const allEmployees = await this.employeeRepository.find({ where: { isActive: true } });
 
     return {
       status: 200,
@@ -598,8 +631,9 @@ export class BookingsService {
         date,
         timeSlotId,
         totalEmployees: allEmployees.length,
+        workingEmployees: workingEmployeeIds.length,
         bookedEmployees: bookedEmployeeIds.length,
-        availableEmployees: availableEmployees.map((emp) => ({
+        availableEmployees: availableEmployees.map((emp: any) => ({
           id: emp.id,
           fullName: emp.fullName,
           email: emp.email,

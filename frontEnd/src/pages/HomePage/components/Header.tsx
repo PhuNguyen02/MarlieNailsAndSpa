@@ -67,6 +67,7 @@ const Header = () => {
   const menuItems = [
     { label: "TRANG CHỦ", path: "/", hasDropdown: false },
     { label: "BẢNG GIÁ", path: "/pricing", hasDropdown: false },
+    { label: "ĐẶT LỊCH", path: "/booking", hasDropdown: false },
     {
       label: "DỊCH VỤ",
       path: "/services",

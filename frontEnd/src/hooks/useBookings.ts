@@ -2,10 +2,10 @@
 // Custom Hook for Bookings API
 // ==========================================
 
-import { useState, useCallback } from "react";
-import bookingsApi from "../api/bookingsApi";
-import customersApi from "../api/customersApi";
-import type { CreateBookingRequest, Booking } from "../api/types";
+import { useState, useCallback } from 'react';
+import bookingsApi from '../api/bookingsApi';
+import customersApi from '../api/customersApi';
+import type { CreateBookingRequest, Booking } from '../api/types';
 
 export interface BookingFormData {
   name: string;
@@ -35,15 +35,11 @@ export function useBookings() {
       setLoading(true);
       setError(null);
       try {
-        const response = await bookingsApi.getAvailableSlots(
-          date,
-          serviceId,
-          employeeId,
-        );
+        const response = await bookingsApi.getAvailableSlots(date, serviceId, employeeId);
         return response.data || [];
       } catch (err) {
-        console.error("Error fetching available slots:", err);
-        setError("Không thể tải danh sách khung giờ trống");
+        console.error('Error fetching available slots:', err);
+        setError('Không thể tải danh sách khung giờ trống');
         return [];
       } finally {
         setLoading(false);
@@ -60,7 +56,7 @@ export function useBookings() {
       const response = await bookingsApi.getActiveEmployees();
       return response.data || [];
     } catch (err) {
-      console.error("Error fetching employees:", err);
+      console.error('Error fetching employees:', err);
       // setError("Không thể tải danh sách nhân viên"); // Optional
       return [];
     } finally {
@@ -69,26 +65,20 @@ export function useBookings() {
   }, []);
 
   // Fetch available employees for a date and slot
-  const getAvailableEmployees = useCallback(
-    async (date: string, timeSlotId: string) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await bookingsApi.getAvailableEmployees(
-          date,
-          timeSlotId,
-        );
-        return response.data?.availableEmployees || [];
-      } catch (err) {
-        console.error("Error fetching available employees:", err);
-        setError("Không thể tải danh sách nhân viên trống");
-        return [];
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
+  const getAvailableEmployees = useCallback(async (date: string, timeSlotId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await bookingsApi.getAvailableEmployees(date, timeSlotId);
+      return response.data?.availableEmployees || [];
+    } catch (err) {
+      console.error('Error fetching available employees:', err);
+      setError('Không thể tải danh sách nhân viên trống');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Submit multiple bookings
   const submitBooking = async (formData: BookingFormData) => {
@@ -98,9 +88,7 @@ export function useBookings() {
     try {
       // 1. Find or create customer
       let customerId: string;
-      const customerSearchResponse = await customersApi.getByPhone(
-        formData.phone,
-      );
+      const customerSearchResponse = await customersApi.getByPhone(formData.phone);
 
       if (customerSearchResponse.data) {
         customerId = customerSearchResponse.data.id;
@@ -108,12 +96,12 @@ export function useBookings() {
         const createCustomerResponse = await customersApi.create({
           fullName: formData.name,
           phone: formData.phone,
-          email: formData?.email || undefined,
+          email: formData?.email?.trim() || undefined,
         });
         if (createCustomerResponse.data) {
           customerId = createCustomerResponse.data.id;
         } else {
-          throw new Error("Không thể tạo khách hàng mới");
+          throw new Error('Không thể tạo khách hàng mới');
         }
       }
 
@@ -133,7 +121,7 @@ export function useBookings() {
       const results: Booking[] = [];
 
       for (const key of Object.keys(groupedBookings)) {
-        const [date, timeSlotId] = key.split("_");
+        const [date, timeSlotId] = key.split('_');
         const bookingsInSlot = groupedBookings[key];
 
         // Pick primary service (first guest)
@@ -143,14 +131,14 @@ export function useBookings() {
           .filter((id) => !!id) as string[];
 
         // Build notes with other services if they differ
-        let extendedNotes = formData.note || "";
+        let extendedNotes = formData.note || '';
         if (bookingsInSlot.length > 1) {
           const guestDetails = bookingsInSlot
             .map(
               (b, i) =>
-                `Khách ${i + 1}: Dịch vụ ID ${b.serviceId}${b.employeeId ? `, NV ${b.employeeId}` : ""}`,
+                `Khách ${i + 1}: Dịch vụ ID ${b.serviceId}${b.employeeId ? `, NV ${b.employeeId}` : ''}`,
             )
-            .join("\n");
+            .join('\n');
           extendedNotes = `${extendedNotes}\n\nChi tiết khách hàng:\n${guestDetails}`;
         }
 
@@ -162,8 +150,7 @@ export function useBookings() {
           serviceId: primaryServiceId,
           employeeIds: employeeIds.length > 0 ? employeeIds : undefined,
           totalPrice:
-            formData.totalPrice ||
-            bookingsInSlot.reduce((sum, b) => sum + (b.price || 0), 0),
+            formData.totalPrice || bookingsInSlot.reduce((sum, b) => sum + (b.price || 0), 0),
           notes: extendedNotes,
         };
 
@@ -175,8 +162,8 @@ export function useBookings() {
 
       return results;
     } catch (err: any) {
-      console.error("Error submitting booking:", err);
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi đặt lịch");
+      console.error('Error submitting booking:', err);
+      setError(err.response?.data?.message || 'Đã xảy ra lỗi khi đặt lịch');
       throw err;
     } finally {
       setLoading(false);

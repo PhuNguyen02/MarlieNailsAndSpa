@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -16,16 +16,16 @@ import {
   Autocomplete,
   CircularProgress,
   Divider,
-} from "@mui/material";
-import dayjs from "dayjs";
-import { bookingsApi, customersApi, servicesApi } from "@/api";
+} from '@mui/material';
+import dayjs from 'dayjs';
+import { bookingsApi, customersApi, servicesApi } from '@/api';
 import type {
   Service,
   Employee,
   Customer,
   CreateBookingRequest,
   CreateCustomerRequest,
-} from "@/api/types";
+} from '@/api/types';
 
 interface CreateBookingDialogProps {
   open: boolean;
@@ -47,21 +47,21 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
   initialStartTime,
 }) => {
   // Form State
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState('');
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [newCustomer, setNewCustomer] = useState<CreateCustomerRequest>({
-    fullName: "",
-    phone: "",
-    email: "",
+    fullName: '',
+    phone: '',
+    email: undefined,
   });
   const [isSearching, setIsSearching] = useState(false);
 
-  const [date, setDate] = useState(initialDate || dayjs().format("YYYY-MM-DD"));
+  const [date, setDate] = useState(initialDate || dayjs().format('YYYY-MM-DD'));
   const [services, setServices] = useState<Service[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const [availableSlots, setAvailableSlots] = useState<any[]>([]);
-  const [selectedSlotId, setSelectedSlotId] = useState(initialTimeSlotId || "");
+  const [selectedSlotId, setSelectedSlotId] = useState(initialTimeSlotId || '');
 
   const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>(
@@ -70,7 +70,7 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
 
   const [numberOfGuests, setNumberOfGuests] = useState(1);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,16 +94,17 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
 
   useEffect(() => {
     if (selectedService) {
-      setTotalPrice(selectedService.singlePrice || 0);
+      const price = Number(selectedService.singlePrice || 0);
+      setTotalPrice(price * numberOfGuests);
     }
-  }, [selectedService]);
+  }, [selectedService, numberOfGuests]);
 
   const fetchServices = async () => {
     try {
       const res = await servicesApi.getAll({ active: true });
       setServices(res.data);
     } catch (err) {
-      console.error("Failed to fetch services", err);
+      console.error('Failed to fetch services', err);
     }
   };
 
@@ -122,7 +123,7 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
         }
       }
     } catch (err) {
-      console.error("Failed to fetch slots", err);
+      console.error('Failed to fetch slots', err);
     }
   };
 
@@ -131,7 +132,7 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
       const res = await bookingsApi.getAvailableEmployees(targetDate, slotId);
       setAvailableEmployees(res.data.availableEmployees);
     } catch (err) {
-      console.error("Failed to fetch employees", err);
+      console.error('Failed to fetch employees', err);
     }
   };
 
@@ -148,8 +149,8 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
         setNewCustomer({ ...newCustomer, phone });
       }
     } catch (err) {
-      console.error("Search failed", err);
-      setError("Lỗi khi tìm kiếm khách hàng");
+      console.error('Search failed', err);
+      setError('Lỗi khi tìm kiếm khách hàng');
     } finally {
       setIsSearching(false);
     }
@@ -163,18 +164,26 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
 
       // 1. Create customer if new (either manually entered or search failed)
       if (!customer && newCustomer.fullName) {
-        const custRes = await customersApi.create(newCustomer);
+        // Sanitize newCustomer: remove empty email to avoid backend validation error
+        const sanitizedCustomer = { ...newCustomer };
+        if (sanitizedCustomer.email && !sanitizedCustomer.email.trim()) {
+          delete sanitizedCustomer.email;
+        } else if (!sanitizedCustomer.email) {
+          delete sanitizedCustomer.email;
+        }
+
+        const custRes = await customersApi.create(sanitizedCustomer);
         finalCustomerId = custRes.data.id;
       }
 
       if (!finalCustomerId) {
-        setError("Vui lòng chọn khách hàng hoặc nhập thông tin khách mới");
+        setError('Vui lòng chọn khách hàng hoặc nhập thông tin khách mới');
         setLoading(false);
         return;
       }
 
       if (!selectedService || !selectedSlotId) {
-        setError("Vui lòng chọn dịch vụ và khung giờ");
+        setError('Vui lòng chọn dịch vụ và khung giờ');
         setLoading(false);
         return;
       }
@@ -195,8 +204,8 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
       onSuccess();
       handleClose();
     } catch (err: any) {
-      console.error("Booking failed", err);
-      setError(err.message || "Lỗi khi tạo booking");
+      console.error('Booking failed', err);
+      setError(err.message || 'Lỗi khi tạo booking');
     } finally {
       setLoading(false);
     }
@@ -205,18 +214,23 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
   const handleClose = () => {
     // Reset state
     setCustomer(null);
-    setPhone("");
+    setPhone('');
     setSelectedService(null);
     setSelectedEmployeeIds([]);
     setTotalPrice(0);
-    setNotes("");
+    setNotes('');
+    setNewCustomer({
+      fullName: '',
+      phone: '',
+      email: undefined,
+    });
     setError(null);
     onClose();
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: "bold" }}>Tạo Booking Mới</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 'bold' }}>Tạo Booking Mới</DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={3}>
           {/* Customer Section */}
@@ -224,7 +238,7 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
             <Typography variant="subtitle1" gutterBottom fontWeight="bold">
               Thông tin khách hàng
             </Typography>
-            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
               <TextField
                 label="Số điện thoại"
                 size="small"
@@ -242,7 +256,7 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
                 onClick={handleSearchCustomer}
                 disabled={isSearching || !phone}
               >
-                {isSearching ? <CircularProgress size={20} /> : "Tìm"}
+                {isSearching ? <CircularProgress size={20} /> : 'Tìm'}
               </Button>
             </Box>
 
@@ -250,17 +264,17 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
               <Box
                 sx={{
                   p: 2,
-                  bgcolor: "#e3f2fd",
+                  bgcolor: '#e3f2fd',
                   borderRadius: 1,
-                  border: "1px solid #90caf9",
+                  border: '1px solid #90caf9',
                   mb: 2,
                 }}
               >
                 <Box
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}
                 >
                   <Typography variant="body2" fontWeight="bold">
@@ -273,18 +287,16 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
                 <Typography variant="caption" display="block">
                   Email: {customer.email}
                 </Typography>
-                <Typography variant="caption">
-                  Số lần đến: {customer.totalVisits}
-                </Typography>
+                <Typography variant="caption">Số lần đến: {customer.totalVisits}</Typography>
               </Box>
             ) : (
               <Box
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: 2,
                   p: 2,
-                  border: "1px dashed #ccc",
+                  border: '1px dashed #ccc',
                   borderRadius: 1,
                 }}
               >
@@ -303,13 +315,16 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
                   }}
                 />
                 <TextField
-                  label="Email (tùy chọn)"
+                  label="Số điện thoại"
                   size="small"
                   fullWidth
-                  value={newCustomer.email}
-                  onChange={(e) =>
-                    setNewCustomer({ ...newCustomer, email: e.target.value })
-                  }
+                  required
+                  value={newCustomer.phone}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewCustomer({ ...newCustomer, phone: val });
+                    setPhone(val); // Sync with search field
+                  }}
                 />
               </Box>
             )}
@@ -320,11 +335,11 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
             <Typography variant="subtitle1" gutterBottom fontWeight="bold">
               Dịch vụ & Thời gian
             </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Dịch vụ</InputLabel>
                 <Select
-                  value={selectedService?.id || ""}
+                  value={selectedService?.id || ''}
                   label="Dịch vụ"
                   onChange={(e) => {
                     const s = services.find((sv) => sv.id === e.target.value);
@@ -362,9 +377,9 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
                       value={slot.timeSlot.id}
                       disabled={!slot.isAvailable}
                     >
-                      {slot.timeSlot.startTime.substring(0, 5)} -{" "}
+                      {slot.timeSlot.startTime.substring(0, 5)} -{' '}
                       {slot.timeSlot.endTime.substring(0, 5)}
-                      {!slot.isAvailable && " (Hết chỗ)"}
+                      {!slot.isAvailable && ' (Hết chỗ)'}
                     </MenuItem>
                   ))}
                 </Select>
@@ -385,9 +400,7 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
               multiple
               options={availableEmployees}
               getOptionLabel={(option) => option.fullName}
-              value={availableEmployees.filter((e) =>
-                selectedEmployeeIds.includes(e.id),
-              )}
+              value={availableEmployees.filter((e) => selectedEmployeeIds.includes(e.id))}
               onChange={(_, newValue) => {
                 setSelectedEmployeeIds(newValue.map((v) => v.id));
               }}
@@ -415,9 +428,10 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
                   fullWidth
                   value={numberOfGuests}
                   inputProps={{ min: 1 }}
-                  onChange={(e) =>
-                    setNumberOfGuests(parseInt(e.target.value) || 1)
-                  }
+                  onChange={(e) => {
+                    const num = parseInt(e.target.value);
+                    setNumberOfGuests(isNaN(num) ? 1 : Math.max(1, num));
+                  }}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -427,7 +441,11 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
                   size="small"
                   fullWidth
                   value={totalPrice}
-                  onChange={(e) => setTotalPrice(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const num = parseInt(val);
+                    setTotalPrice(isNaN(num) ? 0 : Math.max(0, num));
+                  }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -445,11 +463,7 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
         </Grid>
 
         {error && (
-          <Typography
-            color="error"
-            variant="caption"
-            sx={{ mt: 2, display: "block" }}
-          >
+          <Typography color="error" variant="caption" sx={{ mt: 2, display: 'block' }}>
             {error}
           </Typography>
         )}
@@ -462,18 +476,11 @@ const CreateBookingDialog: React.FC<CreateBookingDialogProps> = ({
           variant="contained"
           onClick={handleCreateBooking}
           disabled={
-            loading ||
-            !selectedSlotId ||
-            !selectedService ||
-            (!customer && !newCustomer.fullName)
+            loading || !selectedSlotId || !selectedService || (!customer && !newCustomer.fullName)
           }
           sx={{ minWidth: 150 }}
         >
-          {loading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            "Xác nhận đặt lịch"
-          )}
+          {loading ? <CircularProgress size={24} color="inherit" /> : 'Xác nhận đặt lịch'}
         </Button>
       </DialogActions>
     </Dialog>

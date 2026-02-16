@@ -23,7 +23,7 @@ export class CreateEmployeeSchedulesTable1769200000000 implements MigrationInter
         UNIQUE KEY \`UQ_employee_day_date\` (\`employeeId\`, \`dayOfWeek\`, \`specificDate\`),
         KEY \`FK_employee_schedule_employee\` (\`employeeId\`),
         CONSTRAINT \`FK_employee_schedule_employee\` FOREIGN KEY (\`employeeId\`) REFERENCES \`employees\`(\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      ) ENGINE=InnoDB
     `);
 
     console.log('✅ Created employee_schedules table');

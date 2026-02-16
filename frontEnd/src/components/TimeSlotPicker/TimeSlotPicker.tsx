@@ -10,12 +10,12 @@ import {
   Grid,
   Chip,
   Alert,
-} from "@mui/material";
-import { Close as CloseIcon, AccessTime } from "@mui/icons-material";
-import { useState, useMemo, useEffect } from "react";
-import { useBookings } from "../../hooks";
-import { CircularProgress } from "@mui/material";
-import { AvailableSlot } from "@/api";
+} from '@mui/material';
+import { Close as CloseIcon, AccessTime } from '@mui/icons-material';
+import { useState, useMemo, useEffect } from 'react';
+import { useBookings } from '../../hooks';
+import { CircularProgress } from '@mui/material';
+import { AvailableSlot } from '@/api';
 
 interface ConflictBooking {
   staff?: string;
@@ -46,23 +46,15 @@ const TimeSlotPicker = ({
   serviceId,
   employeeId,
 }: TimeSlotPickerProps) => {
-  const [selectedTimeSlotId, setSelectedTimeSlotId] = useState<string | null>(
-    null,
-  );
-  const [selectedTimeLabel, setSelectedTimeLabel] = useState<string | null>(
-    null,
-  );
+  const [selectedTimeSlotId, setSelectedTimeSlotId] = useState<string | null>(null);
+  const [selectedTimeLabel, setSelectedTimeLabel] = useState<string | null>(null);
   const [slots, setSlots] = useState<AvailableSlot[]>([]);
   const { getAvailableSlots, loading, error } = useBookings();
 
   useEffect(() => {
     if (open && selectedDate) {
       const fetchSlots = async () => {
-        const availableSlots = await getAvailableSlots(
-          selectedDate,
-          serviceId,
-          employeeId,
-        );
+        const availableSlots = await getAvailableSlots(selectedDate, serviceId, employeeId);
         setSlots(availableSlots);
       };
       fetchSlots();
@@ -99,9 +91,7 @@ const TimeSlotPicker = ({
         isPast: (() => {
           if (!selectedDate) return false;
           const now = new Date();
-          const slotDateTime = new Date(
-            `${selectedDate}T${slot.timeSlot.startTime}`,
-          );
+          const slotDateTime = new Date(`${selectedDate}T${slot.timeSlot.startTime}`);
           return slotDateTime < now;
         })(),
         hasConflict,
@@ -144,34 +134,31 @@ const TimeSlotPicker = ({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.15)",
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
         },
       }}
     >
       <DialogTitle
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           pb: 2,
-          borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
+          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
         }}
       >
         <Box>
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 600, color: "primary.dark", mb: 0.5 }}
-          >
+          <Typography variant="h5" sx={{ fontWeight: 600, color: 'primary.dark', mb: 0.5 }}>
             Chọn Giờ Đặt Lịch
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Ngày:{" "}
+            Ngày:{' '}
             <strong>
-              {new Date(selectedDate).toLocaleDateString("vi-VN", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
+              {new Date(selectedDate).toLocaleDateString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
               })}
             </strong>
           </Typography>
@@ -179,9 +166,9 @@ const TimeSlotPicker = ({
         <IconButton
           onClick={handleClose}
           sx={{
-            color: "text.secondary",
-            "&:hover": {
-              backgroundColor: "rgba(0, 0, 0, 0.05)",
+            color: 'text.secondary',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
             },
           }}
         >
@@ -198,87 +185,80 @@ const TimeSlotPicker = ({
           )}
 
           <Alert severity="info" sx={{ mb: 3 }}>
-            Các giờ đã hết chỗ, đã qua, hoặc đã được chọn bởi người khác trong
-            cùng form sẽ không thể chọn. Vui lòng chọn một khung giờ trống.
+            Các giờ đã hết chỗ, đã qua, hoặc đã được chọn bởi người khác trong cùng form sẽ không
+            thể chọn. Vui lòng chọn một khung giờ trống.
           </Alert>
 
           {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />
             </Box>
           ) : (
             <>
               <Grid container spacing={1.5}>
                 {timeSlots.map((slot) => {
-                  const isDisabled =
-                    slot.isBooked || slot.isPast || slot.hasConflict;
+                  const isDisabled = slot.isBooked || slot.isPast || slot.hasConflict;
                   const isSelected = selectedTimeSlotId === slot.id;
 
                   return (
                     <Grid item xs={6} sm={4} md={3} key={slot.id}>
                       <Box
-                        onClick={() =>
-                          !isDisabled && handleTimeSelect(slot.id, slot.time)
-                        }
+                        onClick={() => !isDisabled && handleTimeSelect(slot.id, slot.time)}
                         sx={{
                           p: 2,
-                          border: "2px solid",
+                          border: '2px solid',
                           borderColor: isSelected
-                            ? "primary.main"
+                            ? 'primary.main'
                             : isDisabled
-                              ? "rgba(0, 0, 0, 0.12)"
-                              : "rgba(0, 0, 0, 0.2)",
+                              ? 'rgba(0, 0, 0, 0.12)'
+                              : 'rgba(0, 0, 0, 0.2)',
                           borderRadius: 2,
                           backgroundColor: isSelected
-                            ? "primary.light"
+                            ? 'primary.light'
                             : isDisabled
-                              ? "rgba(0, 0, 0, 0.04)"
-                              : "white",
-                          cursor: isDisabled ? "not-allowed" : "pointer",
-                          transition: "all 0.2s ease",
+                              ? 'rgba(0, 0, 0, 0.04)'
+                              : 'white',
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s ease',
                           opacity: isDisabled ? 0.5 : 1,
-                          position: "relative",
-                          "&:hover": {
+                          position: 'relative',
+                          '&:hover': {
                             ...(!isDisabled && {
-                              borderColor: "primary.main",
-                              backgroundColor: "primary.light",
-                              transform: "translateY(-2px)",
-                              boxShadow: "0 4px 12px rgba(212, 175, 140, 0.2)",
+                              borderColor: 'primary.main',
+                              backgroundColor: 'primary.light',
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 4px 12px rgba(212, 175, 140, 0.2)',
                             }),
                           },
                         }}
                       >
                         <Box
                           sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             gap: 0.5,
                           }}
                         >
                           <Box
                             sx={{
-                              display: "flex",
-                              alignItems: "center",
+                              display: 'flex',
+                              alignItems: 'center',
                               gap: 1,
                             }}
                           >
                             <AccessTime
                               sx={{
-                                fontSize: "1rem",
-                                color: isSelected
-                                  ? "primary.dark"
-                                  : "text.secondary",
+                                fontSize: '1rem',
+                                color: isSelected ? 'primary.dark' : 'text.secondary',
                               }}
                             />
                             <Typography
                               variant="body1"
                               sx={{
                                 fontWeight: isSelected ? 600 : 500,
-                                color: isSelected
-                                  ? "primary.dark"
-                                  : "text.primary",
+                                color: isSelected ? 'primary.dark' : 'text.primary',
                               }}
                             >
                               {slot.time}
@@ -293,13 +273,13 @@ const TimeSlotPicker = ({
                             label="Hết chỗ"
                             size="small"
                             sx={{
-                              position: "absolute",
+                              position: 'absolute',
                               top: 4,
                               right: 4,
-                              height: "20px",
-                              fontSize: "0.65rem",
-                              backgroundColor: "error.light",
-                              color: "error.dark",
+                              height: '20px',
+                              fontSize: '0.65rem',
+                              backgroundColor: 'error.light',
+                              color: 'error.dark',
                             }}
                           />
                         )}
@@ -308,13 +288,13 @@ const TimeSlotPicker = ({
                             label={`Người ${slot.conflictGuestNumber}`}
                             size="small"
                             sx={{
-                              position: "absolute",
+                              position: 'absolute',
                               top: 4,
                               right: 4,
-                              height: "20px",
-                              fontSize: "0.65rem",
-                              backgroundColor: "warning.light",
-                              color: "warning.dark",
+                              height: '20px',
+                              fontSize: '0.65rem',
+                              backgroundColor: 'warning.light',
+                              color: 'warning.dark',
                             }}
                           />
                         )}
@@ -323,13 +303,13 @@ const TimeSlotPicker = ({
                             label="Đã qua"
                             size="small"
                             sx={{
-                              position: "absolute",
+                              position: 'absolute',
                               top: 4,
                               right: 4,
-                              height: "20px",
-                              fontSize: "0.65rem",
-                              backgroundColor: "grey.300",
-                              color: "grey.700",
+                              height: '20px',
+                              fontSize: '0.65rem',
+                              backgroundColor: 'grey.300',
+                              color: 'grey.700',
                             }}
                           />
                         )}
@@ -340,7 +320,7 @@ const TimeSlotPicker = ({
               </Grid>
 
               {timeSlots.length === 0 && (
-                <Box sx={{ textAlign: "center", py: 4 }}>
+                <Box sx={{ textAlign: 'center', py: 4 }}>
                   <Typography variant="body1" color="text.secondary">
                     Không có khung giờ trống trong ngày này
                   </Typography>
@@ -351,9 +331,7 @@ const TimeSlotPicker = ({
         </Box>
       </DialogContent>
 
-      <DialogActions
-        sx={{ px: 3, py: 2.5, borderTop: "1px solid rgba(0, 0, 0, 0.08)" }}
-      >
+      <DialogActions sx={{ px: 3, py: 2.5, borderTop: '1px solid rgba(0, 0, 0, 0.08)' }}>
         <Button onClick={handleClose} variant="outlined" sx={{ minWidth: 100 }}>
           Hủy
         </Button>
@@ -363,12 +341,12 @@ const TimeSlotPicker = ({
           disabled={!selectedTimeSlotId}
           sx={{
             minWidth: 120,
-            backgroundColor: "primary.main",
-            "&:hover": {
-              backgroundColor: "primary.dark",
+            backgroundColor: 'primary.main',
+            '&:hover': {
+              backgroundColor: 'primary.dark',
             },
-            "&:disabled": {
-              backgroundColor: "rgba(0, 0, 0, 0.12)",
+            '&:disabled': {
+              backgroundColor: 'rgba(0, 0, 0, 0.12)',
             },
           }}
         >

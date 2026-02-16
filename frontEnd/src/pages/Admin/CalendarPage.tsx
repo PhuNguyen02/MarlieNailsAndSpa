@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -19,7 +19,7 @@ import {
   Chip,
   Stack,
   Divider,
-} from "@mui/material";
+} from '@mui/material';
 import {
   ChevronLeft,
   ChevronRight,
@@ -31,54 +31,65 @@ import {
   Event,
   ViewWeek,
   ViewDay,
-} from "@mui/icons-material";
-import dayjs from "dayjs";
-import weekday from "dayjs/plugin/weekday";
-import localeData from "dayjs/plugin/localeData";
-import isBetween from "dayjs/plugin/isBetween";
-import "dayjs/locale/vi";
-import { apiClient, employeesApi } from "@/api";
-import CreateBookingDialog from "@/components/Admin/CreateBookingDialog";
-import type { Booking, Employee } from "@/api/types";
+} from '@mui/icons-material';
+import dayjs from 'dayjs';
+import weekday from 'dayjs/plugin/weekday';
+import localeData from 'dayjs/plugin/localeData';
+import isBetween from 'dayjs/plugin/isBetween';
+import 'dayjs/locale/vi';
+import { apiClient, employeesApi } from '@/api';
+import CreateBookingDialog from '@/components/Admin/CreateBookingDialog';
+import type { Booking, Employee } from '@/api/types';
 
 dayjs.extend(weekday);
 dayjs.extend(localeData);
 dayjs.extend(isBetween);
-dayjs.locale("vi");
+dayjs.locale('vi');
 
 const STATUS_COLORS = {
-  pending: { bg: "#fff9c4", text: "#fbc02d", border: "#fbc02d" },
-  confirmed: { bg: "#e3f2fd", text: "#1976d2", border: "#1976d2" },
-  completed: { bg: "#e8f5e9", text: "#2e7d32", border: "#2e7d32" },
-  cancelled: { bg: "#ffebee", text: "#d32f2f", border: "#d32f2f" },
+  pending: { bg: '#fff9c4', text: '#fbc02d', border: '#fbc02d' },
+  confirmed: { bg: '#e3f2fd', text: '#1976d2', border: '#1976d2' },
+  completed: { bg: '#e8f5e9', text: '#2e7d32', border: '#2e7d32' },
+  cancelled: { bg: '#ffebee', text: '#d32f2f', border: '#d32f2f' },
 };
 
 const STATUS_LABELS = {
-  pending: "Chờ xác nhận",
-  confirmed: "Đã xác nhận",
-  completed: "Đã hoàn thành",
-  cancelled: "Đã hủy",
+  pending: 'Chờ xác nhận',
+  confirmed: 'Đã xác nhận',
+  completed: 'Đã hoàn thành',
+  cancelled: 'Đã hủy',
 };
 
+// Kiểu dữ liệu lịch làm việc nhân viên
+interface EmployeeScheduleInfo {
+  employeeId: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  breakStartTime: string | null;
+  breakEndTime: string | null;
+  isDayOff: boolean;
+}
+
 const CalendarPage: React.FC = () => {
-  const [view, setView] = useState<"day" | "week" | "month">("day");
+  const [view, setView] = useState<'day' | 'week' | 'month'>('day');
   const [currentDate, setCurrentDate] = useState(dayjs());
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employeeSchedules, setEmployeeSchedules] = useState<EmployeeScheduleInfo[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [newStatus, setNewStatus] = useState("");
+  const [newStatus, setNewStatus] = useState('');
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [presetSlotId, setPresetSlotId] = useState<string | undefined>();
-  const [presetEmployeeId, setPresetEmployeeId] = useState<
-    string | undefined
-  >();
+  const [presetEmployeeId, setPresetEmployeeId] = useState<string | undefined>();
   const [presetStartTime, setPresetStartTime] = useState<string | undefined>();
 
   useEffect(() => {
     fetchBookings();
-    if (view === "day") {
+    if (view === 'day') {
       fetchEmployees();
+      fetchEmployeeSchedules();
     }
   }, [currentDate, view]);
 
@@ -89,31 +100,137 @@ const CalendarPage: React.FC = () => {
         setEmployees(result.data || []);
       }
     } catch (err) {
-      console.error("Failed to fetch employees", err);
+      console.error('Failed to fetch employees', err);
     }
+  };
+
+  const fetchEmployeeSchedules = async () => {
+    try {
+      const result: any = await apiClient.get('/admin/employee-schedules');
+      if (result.status === 200) {
+        // API trả về nested: [{ employee: { id, ... }, schedules: [...] }]
+        // Flatten thành flat array với employeeId
+        const flat: EmployeeScheduleInfo[] = [];
+        (result.data || []).forEach((item: any) => {
+          const empId = item.employee?.id;
+          if (!empId) return;
+          (item.schedules || []).forEach((s: any) => {
+            flat.push({
+              employeeId: empId,
+              dayOfWeek: s.dayOfWeek,
+              startTime: s.startTime,
+              endTime: s.endTime,
+              breakStartTime: s.breakStartTime,
+              breakEndTime: s.breakEndTime,
+              isDayOff: s.isDayOff,
+            });
+          });
+        });
+        console.log('Admin Flattened Schedules:', flat); // DEBUG LOG
+        setEmployeeSchedules(flat);
+      }
+    } catch (err) {
+      console.error('Failed to fetch employee schedules', err);
+    }
+  };
+
+  // Kiểm tra nhân viên có làm việc vào giờ cụ thể không
+  const isEmployeeWorking = (employeeId: string, hour: number): boolean => {
+    const dayOfWeek = currentDate.format('dddd').toLowerCase();
+    // Map dayjs locale 'vi' day names to entity enum values
+    const dayMap: Record<string, string> = {
+      monday: 'monday',
+      'thứ hai': 'monday',
+      tuesday: 'tuesday',
+      'thứ ba': 'tuesday',
+      wednesday: 'wednesday',
+      'thứ tư': 'wednesday',
+      thursday: 'thursday',
+      'thứ năm': 'thursday',
+      friday: 'friday',
+      'thứ sáu': 'friday',
+      saturday: 'saturday',
+      'thứ bảy': 'saturday',
+      sunday: 'sunday',
+      'chủ nhật': 'sunday',
+    };
+    const mappedDay = dayMap[dayOfWeek] || dayOfWeek;
+
+    const schedule = employeeSchedules.find(
+      (s) => s.employeeId === employeeId && s.dayOfWeek === mappedDay,
+    );
+
+    // Không có lịch = xem như không làm việc
+    if (!schedule) return false;
+    // Ngày nghỉ
+    if (schedule.isDayOff) return false;
+
+    // Handle time formats 'HH:mm' or 'HH:mm:ss'
+    const cleanTime = (t: string | null) => (t ? t.split(':').slice(0, 2).join(':') : '00:00');
+
+    // Kiểm tra giờ làm việc
+    const startHour = parseInt(cleanTime(schedule.startTime).split(':')[0] || '0');
+    const endHour = parseInt(cleanTime(schedule.endTime).split(':')[0] || '0');
+
+    if (hour < startHour || hour >= endHour) return false;
+
+    // Kiểm tra giờ nghỉ trưa
+    if (schedule.breakStartTime && schedule.breakEndTime) {
+      const breakStart = parseInt(cleanTime(schedule.breakStartTime).split(':')[0]);
+      const breakEnd = parseInt(cleanTime(schedule.breakEndTime).split(':')[0]);
+      if (hour >= breakStart && hour < breakEnd) return false;
+    }
+
+    return true;
+  };
+
+  // Lấy thông tin lịch làm việc của nhân viên cho ngày hiện tại
+  const getEmployeeScheduleForDay = (employeeId: string): EmployeeScheduleInfo | null => {
+    const dayOfWeek = currentDate.format('dddd').toLowerCase();
+    const dayMap: Record<string, string> = {
+      monday: 'monday',
+      'thứ hai': 'monday',
+      tuesday: 'tuesday',
+      'thứ ba': 'tuesday',
+      wednesday: 'wednesday',
+      'thứ tư': 'wednesday',
+      thursday: 'thursday',
+      'thứ năm': 'thursday',
+      friday: 'friday',
+      'thứ sáu': 'friday',
+      saturday: 'saturday',
+      'thứ bảy': 'saturday',
+      sunday: 'sunday',
+      'chủ nhật': 'sunday',
+    };
+    const mappedDay = dayMap[dayOfWeek] || dayOfWeek;
+    return (
+      employeeSchedules.find((s) => s.employeeId === employeeId && s.dayOfWeek === mappedDay) ||
+      null
+    );
   };
 
   const fetchBookings = async () => {
     try {
       let params: any = {};
 
-      if (view === "day") {
-        params.startDate = currentDate.format("YYYY-MM-DD");
-      } else if (view === "week") {
-        params.startDate = currentDate.startOf("week").format("YYYY-MM-DD");
-        params.endDate = currentDate.endOf("week").format("YYYY-MM-DD");
-      } else if (view === "month") {
-        params.startDate = currentDate.startOf("month").format("YYYY-MM-DD");
-        params.endDate = currentDate.endOf("month").format("YYYY-MM-DD");
+      if (view === 'day') {
+        params.startDate = currentDate.format('YYYY-MM-DD');
+      } else if (view === 'week') {
+        params.startDate = currentDate.startOf('week').format('YYYY-MM-DD');
+        params.endDate = currentDate.endOf('week').format('YYYY-MM-DD');
+      } else if (view === 'month') {
+        params.startDate = currentDate.startOf('month').format('YYYY-MM-DD');
+        params.endDate = currentDate.endOf('month').format('YYYY-MM-DD');
       }
 
-      const result: any = await apiClient.get("/bookings", { params });
+      const result: any = await apiClient.get('/bookings', { params });
 
       if (result.status === 200) {
         setBookings(result.data || []);
       }
     } catch (err) {
-      console.error("Failed to fetch bookings", err);
+      console.error('Failed to fetch bookings', err);
     }
   };
 
@@ -128,17 +245,16 @@ const CalendarPage: React.FC = () => {
     if (!selectedBooking) return;
 
     try {
-      const result: any = await apiClient.patch(
-        `/bookings/${selectedBooking.id}`,
-        { status: newStatus },
-      );
+      const result: any = await apiClient.patch(`/bookings/${selectedBooking.id}`, {
+        status: newStatus,
+      });
 
       if (result.status === 200) {
         setOpenDialog(false);
         fetchBookings(); // Refresh data
       }
     } catch (err) {
-      console.error("Failed to update status", err);
+      console.error('Failed to update status', err);
     }
   };
 
@@ -156,14 +272,14 @@ const CalendarPage: React.FC = () => {
 
   // Helper to get bookings for a specific day
   const getBookingsForDate = (date: dayjs.Dayjs) => {
-    return bookings.filter((b) => dayjs(b.bookingDate).isSame(date, "day"));
+    return bookings.filter((b) => dayjs(b.bookingDate).isSame(date, 'day'));
   };
 
   // Helper to get bookings for a day and hour
   const getBookingsForSlot = (date: dayjs.Dayjs, hour: number) => {
     return bookings.filter((b) => {
-      const isSameDate = dayjs(b.bookingDate).isSame(date, "day");
-      const bHour = parseInt(b.timeSlot.startTime.split(":")[0]);
+      const isSameDate = dayjs(b.bookingDate).isSame(date, 'day');
+      const bHour = parseInt(b.timeSlot.startTime.split(':')[0]);
       return isSameDate && bHour === hour;
     });
   };
@@ -179,14 +295,14 @@ const CalendarPage: React.FC = () => {
         sx={{
           p: 0.5,
           mb: 0.5,
-          cursor: "pointer",
+          cursor: 'pointer',
           backgroundColor: color.bg,
           borderLeft: `3px solid ${color.border}`,
-          overflow: "hidden",
-          transition: "all 0.2s",
-          "&:hover": {
+          overflow: 'hidden',
+          transition: 'all 0.2s',
+          '&:hover': {
             opacity: 0.9,
-            transform: "translateY(-1px)",
+            transform: 'translateY(-1px)',
             boxShadow: 2,
           },
         }}
@@ -195,13 +311,12 @@ const CalendarPage: React.FC = () => {
           variant="caption"
           display="block"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 'bold',
             lineHeight: 1.2,
-            fontSize: isSmall ? "0.65rem" : "0.75rem",
+            fontSize: isSmall ? '0.65rem' : '0.75rem',
           }}
         >
-          {booking.timeSlot.startTime.substring(0, 5)} -{" "}
-          {booking.customer.fullName}
+          {booking.timeSlot.startTime.substring(0, 5)} - {booking.customer.fullName}
         </Typography>
 
         {/* Employee Name - Prominent Display */}
@@ -210,25 +325,23 @@ const CalendarPage: React.FC = () => {
             sx={{
               mt: 0.5,
               mb: 0.2,
-              display: "flex",
-              alignItems: "center",
-              color: "secondary.main", // Use secondary color for prominence
+              display: 'flex',
+              alignItems: 'center',
+              color: 'secondary.main', // Use secondary color for prominence
             }}
           >
-            <Person sx={{ fontSize: isSmall ? "0.7rem" : "0.8rem", mr: 0.5 }} />
+            <Person sx={{ fontSize: isSmall ? '0.7rem' : '0.8rem', mr: 0.5 }} />
             <Typography
               variant="caption"
               sx={{
-                fontWeight: "bold",
-                fontSize: isSmall ? "0.65rem" : "0.75rem",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                fontWeight: 'bold',
+                fontSize: isSmall ? '0.65rem' : '0.75rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
-              {booking.bookingEmployees
-                .map((be) => be.employee.fullName)
-                .join(", ")}
+              {booking.bookingEmployees.map((be) => be.employee.fullName).join(', ')}
             </Typography>
           </Box>
         )}
@@ -238,11 +351,11 @@ const CalendarPage: React.FC = () => {
             variant="caption"
             display="block"
             sx={{
-              color: "text.secondary",
-              fontSize: "0.7rem",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              color: 'text.secondary',
+              fontSize: '0.7rem',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
             {booking.service.name}
@@ -257,22 +370,20 @@ const CalendarPage: React.FC = () => {
 
     // Helper to check if a booking belongs to an employee
     const isBookingForEmployee = (booking: Booking, employeeId: string) => {
-      return booking.bookingEmployees.some(
-        (be) => be.employee.id === employeeId,
-      );
+      return booking.bookingEmployees.some((be) => be.employee.id === employeeId);
     };
 
     return (
-      <Box sx={{ mt: 2, height: "calc(100vh - 250px)", overflow: "auto" }}>
+      <Box sx={{ mt: 2, height: 'calc(100vh - 250px)', overflow: 'auto' }}>
         {/* Employee Header */}
         <Box
           sx={{
-            display: "flex",
-            minWidth: "fit-content",
-            borderBottom: "1px solid #ddd",
-            position: "sticky",
+            display: 'flex',
+            minWidth: 'fit-content',
+            borderBottom: '1px solid #ddd',
+            position: 'sticky',
             top: 0,
-            bgcolor: "background.paper",
+            bgcolor: 'background.paper',
             zIndex: 10,
           }}
         >
@@ -281,56 +392,73 @@ const CalendarPage: React.FC = () => {
               width: 80,
               flexShrink: 0,
               p: 2,
-              borderRight: "1px solid #ddd",
-              bgcolor: "#f5f5f5",
+              borderRight: '1px solid #ddd',
+              bgcolor: '#f5f5f5',
             }}
           >
             <Typography variant="caption" fontWeight="bold">
               Time
             </Typography>
           </Box>
-          {employees.map((emp) => (
-            <Box
-              key={emp.id}
-              sx={{
-                width: 200,
-                minWidth: 200,
-                p: 1,
-                borderRight: "1px solid #ddd",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
+          {employees.map((emp) => {
+            const schedule = getEmployeeScheduleForDay(emp.id);
+            const isOff = !schedule || schedule.isDayOff;
+            const workTime =
+              schedule && !schedule.isDayOff
+                ? `${schedule.startTime?.substring(0, 5)} - ${schedule.endTime?.substring(0, 5)}`
+                : 'Nghỉ';
+
+            return (
               <Box
+                key={emp.id}
                 sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  bgcolor: "primary.light",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "primary.contrastText",
-                  fontWeight: "bold",
+                  width: 200,
+                  minWidth: 200,
+                  p: 1,
+                  borderRight: '1px solid #ddd',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  bgcolor: isOff ? '#fff3e0' : 'inherit',
                 }}
               >
-                {emp.fullName.charAt(0)}
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    bgcolor: isOff ? '#ffcc80' : 'primary.light',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isOff ? '#e65100' : 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {emp.fullName.charAt(0)}
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" fontWeight="bold" noWrap>
+                    {emp.fullName}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    noWrap
+                    sx={{
+                      color: isOff ? '#e65100' : 'text.secondary',
+                      fontWeight: isOff ? 'bold' : 'normal',
+                    }}
+                  >
+                    {workTime}
+                  </Typography>
+                </Box>
               </Box>
-              <Box>
-                <Typography variant="subtitle2" fontWeight="bold" noWrap>
-                  {emp.fullName}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" noWrap>
-                  {emp.role}
-                </Typography>
-              </Box>
-            </Box>
-          ))}
+            );
+          })}
         </Box>
 
         {/* Time Grid */}
-        <Box sx={{ minWidth: "fit-content" }}>
+        <Box sx={{ minWidth: 'fit-content' }}>
           {hours.map((hour) => {
             const slotBookings = getBookingsForSlot(currentDate, hour);
 
@@ -338,8 +466,8 @@ const CalendarPage: React.FC = () => {
               <Box
                 key={hour}
                 sx={{
-                  display: "flex",
-                  borderBottom: "1px solid #f0f0f0",
+                  display: 'flex',
+                  borderBottom: '1px solid #f0f0f0',
                   minHeight: 100, // Taller cells for cards
                 }}
               >
@@ -348,28 +476,23 @@ const CalendarPage: React.FC = () => {
                   sx={{
                     width: 80,
                     flexShrink: 0,
-                    borderRight: "1px solid #f0f0f0",
+                    borderRight: '1px solid #f0f0f0',
                     p: 1,
-                    display: "flex",
-                    alignItems: "flex-start",
-                    justifyContent: "center",
-                    bgcolor: "#fafafa",
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'center',
+                    bgcolor: '#fafafa',
                   }}
                 >
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    fontWeight="bold"
-                  >
+                  <Typography variant="caption" color="text.secondary" fontWeight="bold">
                     {hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
                   </Typography>
                 </Box>
 
                 {/* Employee Columns */}
                 {employees.map((emp) => {
-                  const empBookings = slotBookings.filter((b) =>
-                    isBookingForEmployee(b, emp.id),
-                  );
+                  const empBookings = slotBookings.filter((b) => isBookingForEmployee(b, emp.id));
+                  const working = isEmployeeWorking(emp.id, hour);
 
                   return (
                     <Box
@@ -378,24 +501,24 @@ const CalendarPage: React.FC = () => {
                         width: 200,
                         minWidth: 200,
                         p: 0.5,
-                        borderRight: "1px solid #f0f0f0",
-                        position: "relative",
-                        "&:hover": { backgroundColor: "#fafafa" },
+                        borderRight: '1px solid #f0f0f0',
+                        position: 'relative',
+                        cursor: working ? 'pointer' : 'not-allowed',
+                        bgcolor: working ? 'inherit' : '#f5f5f5',
+                        backgroundImage: working
+                          ? 'none'
+                          : 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px)',
+                        '&:hover': { backgroundColor: working ? '#e3f2fd' : '#f5f5f5' },
                       }}
                       onClick={() => {
-                        // Find slot ID for this hour
-                        const hourStr = hour.toString().padStart(2, "0");
-                        // This is a bit tricky since we don't have all slots pre-loaded for the UI logic here
-                        // but we can try to find a booking in this slot and use its slot ID,
-                        // or just pass the hour and let the dialog handle it.
-                        // However, the dialog expects timeSlotId.
+                        if (!working) return; // Không cho đặt lịch nếu nhân viên nghỉ
 
-                        // Let's check if any booking exists in this hour to get the slotId
+                        const hourStr = hour.toString().padStart(2, '0');
                         const slotBooking = slotBookings[0];
                         if (slotBooking) {
                           setPresetSlotId(slotBooking.timeSlot.id);
                         } else {
-                          setPresetSlotId(undefined); // Will let user pick
+                          setPresetSlotId(undefined);
                         }
                         setPresetStartTime(hourStr);
                         setPresetEmployeeId(emp.id);
@@ -403,6 +526,14 @@ const CalendarPage: React.FC = () => {
                       }}
                     >
                       {empBookings.map((b) => renderEventCard(b, true))}
+                      {!working && empBookings.length === 0 && (
+                        <Typography
+                          variant="caption"
+                          sx={{ color: '#bdbdbd', fontStyle: 'italic', fontSize: '0.65rem' }}
+                        >
+                          Nghỉ
+                        </Typography>
+                      )}
                     </Box>
                   );
                 })}
@@ -415,22 +546,20 @@ const CalendarPage: React.FC = () => {
   };
 
   const renderWeekView = () => {
-    const startOfWeek = currentDate.startOf("week");
-    const weekDays = Array.from({ length: 7 }, (_, i) =>
-      startOfWeek.add(i, "day"),
-    );
+    const startOfWeek = currentDate.startOf('week');
+    const weekDays = Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day'));
     const hours = Array.from({ length: 13 }, (_, i) => i + 8); // 8 AM to 8 PM
 
     return (
-      <Box sx={{ mt: 2, height: "calc(100vh - 250px)", overflowY: "auto" }}>
+      <Box sx={{ mt: 2, height: 'calc(100vh - 250px)', overflowY: 'auto' }}>
         {/* Header Row */}
         <Box
           sx={{
-            display: "flex",
-            borderBottom: "1px solid #ddd",
-            position: "sticky",
+            display: 'flex',
+            borderBottom: '1px solid #ddd',
+            position: 'sticky',
             top: 0,
-            bgcolor: "background.paper",
+            bgcolor: 'background.paper',
             zIndex: 10,
           }}
         >
@@ -439,8 +568,8 @@ const CalendarPage: React.FC = () => {
               width: 60,
               flexShrink: 0,
               p: 1,
-              borderRight: "1px solid #ddd",
-              textAlign: "center",
+              borderRight: '1px solid #ddd',
+              textAlign: 'center',
             }}
           >
             <AccessTime fontSize="small" color="disabled" />
@@ -450,26 +579,24 @@ const CalendarPage: React.FC = () => {
               key={index}
               sx={{
                 flex: 1,
-                textAlign: "center",
+                textAlign: 'center',
                 p: 1,
-                borderRight: index < 6 ? "1px solid #ddd" : "none",
-                bgcolor: date.isSame(dayjs(), "day") ? "#e3f2fd" : "inherit",
+                borderRight: index < 6 ? '1px solid #ddd' : 'none',
+                bgcolor: date.isSame(dayjs(), 'day') ? '#e3f2fd' : 'inherit',
               }}
             >
               <Typography
                 variant="subtitle2"
                 fontWeight="bold"
-                color={date.isSame(dayjs(), "day") ? "primary" : "text.primary"}
+                color={date.isSame(dayjs(), 'day') ? 'primary' : 'text.primary'}
               >
-                {date.format("ddd")}
+                {date.format('ddd')}
               </Typography>
               <Typography
                 variant="caption"
-                color={
-                  date.isSame(dayjs(), "day") ? "primary" : "text.secondary"
-                }
+                color={date.isSame(dayjs(), 'day') ? 'primary' : 'text.secondary'}
               >
-                {date.format("DD/MM")}
+                {date.format('DD/MM')}
               </Typography>
             </Box>
           ))}
@@ -480,8 +607,8 @@ const CalendarPage: React.FC = () => {
           <Box
             key={hour}
             sx={{
-              display: "flex",
-              borderBottom: "1px solid #eee",
+              display: 'flex',
+              borderBottom: '1px solid #eee',
               minHeight: 60,
             }}
           >
@@ -490,8 +617,8 @@ const CalendarPage: React.FC = () => {
                 width: 60,
                 flexShrink: 0,
                 p: 1,
-                borderRight: "1px solid #eee",
-                textAlign: "right",
+                borderRight: '1px solid #eee',
+                textAlign: 'right',
               }}
             >
               <Typography variant="caption" color="text.secondary">
@@ -507,13 +634,13 @@ const CalendarPage: React.FC = () => {
                   sx={{
                     flex: 1,
                     p: 0.5,
-                    borderRight: dayIndex < 6 ? "1px solid #eee" : "none",
-                    position: "relative",
-                    "&:hover": { bgcolor: "#fafafa" },
-                    cursor: "pointer",
+                    borderRight: dayIndex < 6 ? '1px solid #eee' : 'none',
+                    position: 'relative',
+                    '&:hover': { bgcolor: '#fafafa' },
+                    cursor: 'pointer',
                   }}
                   onClick={() => {
-                    const hourStr = hour.toString().padStart(2, "0");
+                    const hourStr = hour.toString().padStart(2, '0');
                     setPresetStartTime(hourStr);
                     setCurrentDate(date);
                     setOpenCreateDialog(true);
@@ -534,8 +661,8 @@ const CalendarPage: React.FC = () => {
   };
 
   const renderMonthView = () => {
-    const startOfMonth = currentDate.startOf("month");
-    const endOfMonth = currentDate.endOf("month");
+    const startOfMonth = currentDate.startOf('month');
+    const endOfMonth = currentDate.endOf('month');
 
     // Grid generation logic
     const startDayOfWeek = startOfMonth.day(); // 0 (Sunday) to 6 (Saturday) - assuming vi locale might be different but dayjs handles it
@@ -553,7 +680,7 @@ const CalendarPage: React.FC = () => {
 
     for (let i = 0; i < paddingDays; i++) {
       daysArray.push({
-        date: startOfMonth.subtract(paddingDays - i, "day"),
+        date: startOfMonth.subtract(paddingDays - i, 'day'),
         isCurrentMonth: false,
       });
     }
@@ -571,7 +698,7 @@ const CalendarPage: React.FC = () => {
 
     for (let i = 1; i <= remainingSlots; i++) {
       daysArray.push({
-        date: endOfMonth.add(i, "day"),
+        date: endOfMonth.add(i, 'day'),
         isCurrentMonth: false,
       });
     }
@@ -580,31 +707,29 @@ const CalendarPage: React.FC = () => {
       <Box sx={{ mt: 2 }}>
         {/* Month Header */}
         <Grid container spacing={0} sx={{ mb: 1 }}>
-          {["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"].map(
-            (day) => (
-              <Grid
-                item
-                xs={12 / 7}
-                key={day}
-                sx={{ textAlign: "center", fontWeight: "bold", pb: 1 }}
-              >
-                <Typography variant="subtitle2" color="text.secondary">
-                  {day}
-                </Typography>
-              </Grid>
-            ),
-          )}
+          {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'].map((day) => (
+            <Grid
+              item
+              xs={12 / 7}
+              key={day}
+              sx={{ textAlign: 'center', fontWeight: 'bold', pb: 1 }}
+            >
+              <Typography variant="subtitle2" color="text.secondary">
+                {day}
+              </Typography>
+            </Grid>
+          ))}
         </Grid>
 
         {/* Days Grid */}
         <Grid
           container
           spacing={0}
-          sx={{ borderTop: "1px solid #ddd", borderLeft: "1px solid #ddd" }}
+          sx={{ borderTop: '1px solid #ddd', borderLeft: '1px solid #ddd' }}
         >
           {daysArray.map((item, idx) => {
             const dayBookings = getBookingsForDate(item.date);
-            const isToday = item.date.isSame(dayjs(), "day");
+            const isToday = item.date.isSame(dayjs(), 'day');
 
             return (
               <Grid
@@ -613,16 +738,12 @@ const CalendarPage: React.FC = () => {
                 key={idx}
                 sx={{
                   height: 120,
-                  borderRight: "1px solid #ddd",
-                  borderBottom: "1px solid #ddd",
-                  bgcolor: isToday
-                    ? "#fffde7"
-                    : item.isCurrentMonth
-                      ? "#fff"
-                      : "#f9f9f9",
+                  borderRight: '1px solid #ddd',
+                  borderBottom: '1px solid #ddd',
+                  bgcolor: isToday ? '#fffde7' : item.isCurrentMonth ? '#fff' : '#f9f9f9',
                   p: 0.5,
-                  overflow: "hidden",
-                  cursor: "pointer",
+                  overflow: 'hidden',
+                  cursor: 'pointer',
                 }}
                 onClick={() => {
                   setCurrentDate(item.date);
@@ -631,17 +752,15 @@ const CalendarPage: React.FC = () => {
               >
                 <Box
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     mb: 0.5,
                   }}
                 >
                   <Typography
                     variant="body2"
-                    fontWeight={isToday ? "bold" : "normal"}
-                    color={
-                      item.isCurrentMonth ? "text.primary" : "text.disabled"
-                    }
+                    fontWeight={isToday ? 'bold' : 'normal'}
+                    color={item.isCurrentMonth ? 'text.primary' : 'text.disabled'}
                   >
                     {item.date.date()}
                   </Typography>
@@ -649,10 +768,10 @@ const CalendarPage: React.FC = () => {
 
                 <Box
                   sx={{
-                    display: "flex",
-                    flexDirection: "column",
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: 0.5,
-                    overflowY: "auto",
+                    overflowY: 'auto',
                     maxHeight: 90,
                   }}
                 >
@@ -663,33 +782,28 @@ const CalendarPage: React.FC = () => {
                       onClick={(e) => handleBookingClick(b, e)}
                       sx={{
                         p: 0.5,
-                        fontSize: "0.65rem",
-                        bgcolor: STATUS_COLORS[b.status]?.bg || "#eee",
-                        color: STATUS_COLORS[b.status]?.text || "#333",
-                        cursor: "pointer",
+                        fontSize: '0.65rem',
+                        bgcolor: STATUS_COLORS[b.status]?.bg || '#eee',
+                        color: STATUS_COLORS[b.status]?.text || '#333',
+                        cursor: 'pointer',
                         borderRadius: 1,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                       }}
                     >
-                      {b.timeSlot.startTime.substring(0, 5)}{" "}
-                      {b.customer.fullName}
+                      {b.timeSlot.startTime.substring(0, 5)} {b.customer.fullName}
                       {b.bookingEmployees?.length ? (
                         <Typography
                           variant="inherit"
                           component="span"
                           sx={{
-                            fontWeight: "bold",
-                            display: "block",
-                            color: "secondary.dark",
+                            fontWeight: 'bold',
+                            display: 'block',
+                            color: 'secondary.dark',
                           }}
                         >
-                          (
-                          {b.bookingEmployees
-                            .map((e) => e.employee.fullName)
-                            .join(", ")}
-                          )
+                          ({b.bookingEmployees.map((e) => e.employee.fullName).join(', ')})
                         </Typography>
                       ) : null}
                     </Paper>
@@ -699,7 +813,7 @@ const CalendarPage: React.FC = () => {
                       variant="caption"
                       color="text.secondary"
                       align="center"
-                      sx={{ display: "block" }}
+                      sx={{ display: 'block' }}
                     >
                       +{dayBookings.length - 3} nữa
                     </Typography>
@@ -718,9 +832,9 @@ const CalendarPage: React.FC = () => {
       {/* Header Toolbar */}
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           mb: 3,
         }}
       >
@@ -747,19 +861,19 @@ const CalendarPage: React.FC = () => {
       <Paper sx={{ p: 2, borderRadius: 2 }}>
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             mb: 2,
-            flexWrap: "wrap",
+            flexWrap: 'wrap',
             gap: 2,
           }}
         >
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              bgcolor: "#f5f5f5",
+              display: 'flex',
+              alignItems: 'center',
+              bgcolor: '#f5f5f5',
               borderRadius: 3,
               p: 0.5,
             }}
@@ -771,7 +885,7 @@ const CalendarPage: React.FC = () => {
               onClick={handleToday}
               size="small"
               variant="text"
-              sx={{ mx: 1, minWidth: "auto", fontWeight: "bold" }}
+              sx={{ mx: 1, minWidth: 'auto', fontWeight: 'bold' }}
             >
               Hôm nay
             </Button>
@@ -785,15 +899,15 @@ const CalendarPage: React.FC = () => {
             fontWeight="bold"
             color="primary"
             sx={{
-              textTransform: "capitalize",
+              textTransform: 'capitalize',
               minWidth: 200,
-              textAlign: "center",
+              textAlign: 'center',
             }}
           >
-            {currentDate.format("MMMM, YYYY")}
+            {currentDate.format('MMMM, YYYY')}
           </Typography>
 
-          <Paper elevation={0} sx={{ bgcolor: "#f5f5f5", borderRadius: 2 }}>
+          <Paper elevation={0} sx={{ bgcolor: '#f5f5f5', borderRadius: 2 }}>
             <Tabs
               value={view}
               onChange={(_, v) => setView(v)}
@@ -806,21 +920,21 @@ const CalendarPage: React.FC = () => {
                 value="day"
                 icon={<ViewDay fontSize="small" />}
                 iconPosition="start"
-                sx={{ minHeight: 40, textTransform: "none" }}
+                sx={{ minHeight: 40, textTransform: 'none' }}
               />
               <Tab
                 label="Tuần"
                 value="week"
                 icon={<ViewWeek fontSize="small" />}
                 iconPosition="start"
-                sx={{ minHeight: 40, textTransform: "none" }}
+                sx={{ minHeight: 40, textTransform: 'none' }}
               />
               <Tab
                 label="Tháng"
                 value="month"
                 icon={<CalendarMonth fontSize="small" />}
                 iconPosition="start"
-                sx={{ minHeight: 40, textTransform: "none" }}
+                sx={{ minHeight: 40, textTransform: 'none' }}
               />
             </Tabs>
           </Paper>
@@ -829,9 +943,9 @@ const CalendarPage: React.FC = () => {
         <Divider />
 
         {/* Views */}
-        {view === "day" && renderDayView()}
-        {view === "week" && renderWeekView()}
-        {view === "month" && renderMonthView()}
+        {view === 'day' && renderDayView()}
+        {view === 'week' && renderWeekView()}
+        {view === 'month' && renderMonthView()}
       </Paper>
 
       {/* Booking Details Dialog */}
@@ -844,22 +958,20 @@ const CalendarPage: React.FC = () => {
       >
         <DialogTitle
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             pb: 1,
           }}
         >
           <Typography variant="h6">Chi tiết Booking</Typography>
           {selectedBooking && selectedBooking.status && (
             <Chip
-              label={
-                STATUS_LABELS[selectedBooking.status] || selectedBooking.status
-              }
+              label={STATUS_LABELS[selectedBooking.status] || selectedBooking.status}
               sx={{
                 bgcolor: STATUS_COLORS[selectedBooking.status]?.bg,
                 color: STATUS_COLORS[selectedBooking.status]?.text,
-                fontWeight: "bold",
+                fontWeight: 'bold',
                 border: `1px solid ${STATUS_COLORS[selectedBooking.status]?.border}`,
               }}
             />
@@ -870,7 +982,7 @@ const CalendarPage: React.FC = () => {
           {selectedBooking && (
             <Stack spacing={2} sx={{ mt: 1 }}>
               {/* Customer Info */}
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
                 <Person color="action" fontSize="medium" sx={{ mt: 0.5 }} />
                 <Box>
                   <Typography variant="subtitle1" fontWeight="bold">
@@ -887,29 +999,23 @@ const CalendarPage: React.FC = () => {
                 </Box>
               </Box>
 
-              <Divider
-                variant="inset"
-                component="li"
-                sx={{ listStyle: "none" }}
-              />
+              <Divider variant="inset" component="li" sx={{ listStyle: 'none' }} />
 
               {/* Time & Service Info */}
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
                 <AccessTime color="action" fontSize="medium" sx={{ mt: 0.5 }} />
                 <Box>
                   <Typography variant="body1">
-                    {dayjs(selectedBooking.bookingDate).format(
-                      "dddd, DD/MM/YYYY",
-                    )}
+                    {dayjs(selectedBooking.bookingDate).format('dddd, DD/MM/YYYY')}
                   </Typography>
                   <Typography variant="body2" fontWeight="bold" color="primary">
-                    {selectedBooking.timeSlot.startTime.substring(0, 5)} -{" "}
+                    {selectedBooking.timeSlot.startTime.substring(0, 5)} -{' '}
                     {selectedBooking.timeSlot.endTime.substring(0, 5)}
                   </Typography>
                 </Box>
               </Box>
 
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
                 <Event color="action" fontSize="medium" sx={{ mt: 0.5 }} />
                 <Box>
                   <Typography variant="body1" fontWeight="bold">
@@ -924,13 +1030,13 @@ const CalendarPage: React.FC = () => {
                       component="div"
                       sx={{
                         mt: 0.5,
-                        fontStyle: "italic",
-                        color: "text.secondary",
+                        fontStyle: 'italic',
+                        color: 'text.secondary',
                       }}
                     >
-                      Các bước:{" "}
+                      Các bước:{' '}
                       {Array.isArray(selectedBooking.service.steps)
-                        ? selectedBooking.service.steps.join(" • ")
+                        ? selectedBooking.service.steps.join(' • ')
                         : selectedBooking.service.steps}
                     </Typography>
                   )}
@@ -938,12 +1044,8 @@ const CalendarPage: React.FC = () => {
               </Box>
 
               {/* Price & Payment */}
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <AttachMoney
-                  color="action"
-                  fontSize="medium"
-                  sx={{ mt: 0.5 }}
-                />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <AttachMoney color="action" fontSize="medium" sx={{ mt: 0.5 }} />
                 <Box>
                   <Typography variant="body1" fontWeight="bold" color="error">
                     {Number(selectedBooking.totalPrice).toLocaleString()} đ
@@ -954,18 +1056,14 @@ const CalendarPage: React.FC = () => {
                 </Box>
               </Box>
 
-              <Divider
-                variant="inset"
-                component="li"
-                sx={{ listStyle: "none" }}
-              />
+              <Divider variant="inset" component="li" sx={{ listStyle: 'none' }} />
 
               {/* Employees */}
               <Box>
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  sx={{ mb: 1, display: "block" }}
+                  sx={{ mb: 1, display: 'block' }}
                 >
                   NHÂN VIÊN THỰC HIỆN
                 </Typography>
@@ -992,22 +1090,20 @@ const CalendarPage: React.FC = () => {
               {selectedBooking.notes && (
                 <Box
                   sx={{
-                    bgcolor: "#fffdeb",
+                    bgcolor: '#fffdeb',
                     p: 1.5,
                     borderRadius: 1,
-                    border: "1px dashed #fdd835",
+                    border: '1px dashed #fdd835',
                   }}
                 >
                   <Typography
                     variant="caption"
                     fontWeight="bold"
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                   >
                     <Notes fontSize="inherit" /> Ghi chú
                   </Typography>
-                  <Typography variant="body2">
-                    {selectedBooking.notes}
-                  </Typography>
+                  <Typography variant="body2">{selectedBooking.notes}</Typography>
                 </Box>
               )}
 
@@ -1061,7 +1157,7 @@ const CalendarPage: React.FC = () => {
           setPresetStartTime(undefined);
           fetchBookings();
         }}
-        initialDate={currentDate.format("YYYY-MM-DD")}
+        initialDate={currentDate.format('YYYY-MM-DD')}
         initialTimeSlotId={presetSlotId}
         initialEmployeeId={presetEmployeeId}
         initialStartTime={presetStartTime}

@@ -13,13 +13,13 @@ import {
   Alert,
   Paper,
   CircularProgress,
-} from "@mui/material";
-import { Close as CloseIcon, AttachMoney } from "@mui/icons-material";
-import { useState, useEffect, useMemo } from "react";
-import { useServicesFlat, useBookings } from "../../hooks";
-import { formatVND, formatPrice } from "../../utils";
-import BookingItemCard from "./BookingItemCard";
-import { BookingItem, BookingFormData } from "./types";
+} from '@mui/material';
+import { Close as CloseIcon, AttachMoney } from '@mui/icons-material';
+import { useState, useEffect, useMemo } from 'react';
+import { useServicesFlat, useBookings } from '../../hooks';
+import { formatVND, formatPrice } from '../../utils';
+import BookingItemCard from './BookingItemCard';
+import { BookingItem, BookingFormData } from './types';
 
 interface BookingModalProps {
   open: boolean;
@@ -30,7 +30,7 @@ interface BookingModalProps {
 // Helper function to parse price range (e.g., "120.000 - 150.000" -> 120000)
 const parsePriceRange = (priceRange: string): number => {
   // Remove dots and spaces, then extract first number
-  const cleaned = priceRange.replace(/\./g, "").replace(/\s/g, "");
+  const cleaned = priceRange.replace(/\./g, '').replace(/\s/g, '');
   const match = cleaned.match(/(\d+)/);
   if (match) {
     return parseInt(match[1], 10);
@@ -83,36 +83,32 @@ const getServicePriceInfoFromList = (
 
 const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
   // Fetch services from API
-  const {
-    services,
-    loading: servicesLoading,
-    error: servicesError,
-  } = useServicesFlat();
+  const { services, loading: servicesLoading, error: servicesError } = useServicesFlat();
 
   const [formData, setFormData] = useState<BookingFormData>({
-    name: "",
-    phone: "",
-    email: "",
-    numberOfGuests: "1",
+    name: '',
+    phone: '',
+    email: '',
+    numberOfGuests: '1',
     bookings: [
       {
         guestNumber: 1,
-        service: initialService || "",
-        staff: "",
-        date: "",
-        time: "",
-        timeLabel: "",
+        service: initialService || '',
+        staff: '',
+        date: '',
+        time: '',
+        timeLabel: '',
       },
     ],
-    note: "",
+    note: '',
   });
 
   const [errors, setErrors] = useState<{
-    form?: Partial<Record<keyof Omit<BookingFormData, "bookings">, string>>;
+    form?: Partial<Record<keyof Omit<BookingFormData, 'bookings'>, string>>;
     bookings?: Record<number, Partial<Record<keyof BookingItem, string>>>;
   }>({});
 
-  const guestOptions = ["1", "2", "3", "4", "5", "6+"];
+  const guestOptions = ['1', '2', '3', '4', '5', '6+'];
 
   // Calculate total price
   const totalPrice = useMemo(() => {
@@ -130,17 +126,14 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
 
     if (guestCount > currentCount) {
       // Add new booking items
-      const newBookings = Array.from(
-        { length: guestCount - currentCount },
-        (_, i) => ({
-          guestNumber: currentCount + i + 1,
-          service: "",
-          staff: "",
-          date: "",
-          time: "",
-          timeLabel: "",
-        }),
-      );
+      const newBookings = Array.from({ length: guestCount - currentCount }, (_, i) => ({
+        guestNumber: currentCount + i + 1,
+        service: '',
+        staff: '',
+        date: '',
+        time: '',
+        timeLabel: '',
+      }));
       setFormData((prev) => ({
         ...prev,
         bookings: [...prev.bookings, ...newBookings],
@@ -158,11 +151,11 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
         bookings: [
           {
             guestNumber: 1,
-            service: initialService || "",
-            staff: "",
-            date: "",
-            time: "",
-            timeLabel: "",
+            service: initialService || '',
+            staff: '',
+            date: '',
+            time: '',
+            timeLabel: '',
           },
         ],
       }));
@@ -170,30 +163,22 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
   }, [formData.numberOfGuests, initialService]);
 
   const validateForm = (): boolean => {
-    const formErrors: Partial<
-      Record<keyof Omit<BookingFormData, "bookings">, string>
-    > = {};
-    const bookingErrors: Record<
-      number,
-      Partial<Record<keyof BookingItem, string>>
-    > = {};
+    const formErrors: Partial<Record<keyof Omit<BookingFormData, 'bookings'>, string>> = {};
+    const bookingErrors: Record<number, Partial<Record<keyof BookingItem, string>>> = {};
 
     // Validate form fields
     if (!formData.name.trim()) {
-      formErrors.name = "Vui lòng nhập tên";
+      formErrors.name = 'Vui lòng nhập tên';
     }
 
     if (!formData.phone.trim()) {
-      formErrors.phone = "Vui lòng nhập số điện thoại";
-    } else if (!/^[0-9]{10,11}$/.test(formData.phone.replace(/\s/g, ""))) {
-      formErrors.phone = "Số điện thoại không hợp lệ";
+      formErrors.phone = 'Vui lòng nhập số điện thoại';
+    } else if (!/^[0-9]{10,11}$/.test(formData.phone.replace(/\s/g, ''))) {
+      formErrors.phone = 'Số điện thoại không hợp lệ';
     }
 
-    if (
-      formData.email.trim() &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-    ) {
-      formErrors.email = "Email không hợp lệ";
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      formErrors.email = 'Email không hợp lệ';
     }
 
     // Validate each booking item
@@ -201,26 +186,26 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
       const itemErrors: Partial<Record<keyof BookingItem, string>> = {};
 
       if (!booking.service) {
-        itemErrors.service = "Vui lòng chọn dịch vụ";
+        itemErrors.service = 'Vui lòng chọn dịch vụ';
       }
 
       if (!booking.staff) {
-        itemErrors.staff = "Vui lòng chọn nhân viên";
+        itemErrors.staff = 'Vui lòng chọn nhân viên';
       }
 
       if (!booking.date) {
-        itemErrors.date = "Vui lòng chọn ngày đặt lịch";
+        itemErrors.date = 'Vui lòng chọn ngày đặt lịch';
       } else {
         const selectedDate = new Date(booking.date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (selectedDate < today) {
-          itemErrors.date = "Ngày đặt lịch phải trong tương lai hoặc hôm nay";
+          itemErrors.date = 'Ngày đặt lịch phải trong tương lai hoặc hôm nay';
         }
       }
 
       if (!booking.time) {
-        itemErrors.time = "Vui lòng chọn giờ đặt lịch";
+        itemErrors.time = 'Vui lòng chọn giờ đặt lịch';
       } else if (booking.staff && booking.date) {
         const hasConflict = formData.bookings.some(
           (otherBooking) =>
@@ -249,18 +234,14 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
 
     setErrors({
       form: formErrors,
-      bookings:
-        Object.keys(bookingErrors).length > 0 ? bookingErrors : undefined,
+      bookings: Object.keys(bookingErrors).length > 0 ? bookingErrors : undefined,
     });
 
-    return (
-      Object.keys(formErrors).length === 0 &&
-      Object.keys(bookingErrors).length === 0
-    );
+    return Object.keys(formErrors).length === 0 && Object.keys(bookingErrors).length === 0;
   };
 
   const handleChange =
-    (field: keyof Omit<BookingFormData, "bookings">) =>
+    (field: keyof Omit<BookingFormData, 'bookings'>) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
       // Clear error when user starts typing
@@ -272,15 +253,8 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
       }
     };
 
-  const handleBookingUpdate = (
-    index: number,
-    field: keyof BookingItem,
-    value: string,
-  ) => {
-    const price =
-      field === "service"
-        ? getServicePriceFromList(services, value)
-        : undefined;
+  const handleBookingUpdate = (index: number, field: keyof BookingItem, value: string) => {
+    const price = field === 'service' ? getServicePriceFromList(services, value) : undefined;
 
     setFormData((prev) => ({
       ...prev,
@@ -307,20 +281,13 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
         }
         return {
           ...prev,
-          bookings:
-            Object.keys(newBookingErrors).length > 0
-              ? newBookingErrors
-              : undefined,
+          bookings: Object.keys(newBookingErrors).length > 0 ? newBookingErrors : undefined,
         };
       });
     }
   };
 
-  const {
-    loading: bookingLoading,
-    error: bookingError,
-    submitBooking,
-  } = useBookings();
+  const { loading: bookingLoading, error: bookingError, submitBooking } = useBookings();
 
   const handleSubmit = async () => {
     if (validateForm()) {
@@ -342,13 +309,11 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
           totalPrice: totalPrice,
         });
 
-        alert(
-          "Đặt lịch thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.",
-        );
+        alert('Đặt lịch thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.');
         onClose();
       } catch (err) {
         // Error is handled by the hook and displayed via bookingError
-        console.error("Booking submission failed:", err);
+        console.error('Booking submission failed:', err);
       }
     }
   };
@@ -370,21 +335,21 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
     } else if (!open) {
       // Reset form when modal closes
       setFormData({
-        name: "",
-        phone: "",
-        email: "",
-        numberOfGuests: "1",
+        name: '',
+        phone: '',
+        email: '',
+        numberOfGuests: '1',
         bookings: [
           {
             guestNumber: 1,
-            service: "",
-            staff: "",
-            date: "",
-            time: "",
-            timeLabel: "",
+            service: '',
+            staff: '',
+            date: '',
+            time: '',
+            timeLabel: '',
           },
         ],
-        note: "",
+        note: '',
       });
       setErrors({});
     }
@@ -399,31 +364,28 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
       PaperProps={{
         sx: {
           borderRadius: 3,
-          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.15)",
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
         },
       }}
     >
       <DialogTitle
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           pb: 2,
-          borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
+          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
         }}
       >
-        <Typography
-          variant="h5"
-          sx={{ fontWeight: 600, color: "primary.dark" }}
-        >
+        <Typography variant="h5" sx={{ fontWeight: 600, color: 'primary.dark' }}>
           Đặt Lịch Hẹn
         </Typography>
         <IconButton
           onClick={handleClose}
           sx={{
-            color: "text.secondary",
-            "&:hover": {
-              backgroundColor: "rgba(0, 0, 0, 0.05)",
+            color: 'text.secondary',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
             },
           }}
         >
@@ -435,9 +397,9 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
         {servicesLoading ? (
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
               py: 10,
             }}
           >
@@ -450,8 +412,8 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
         ) : (
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
+              display: 'flex',
+              flexDirection: 'column',
               gap: 3,
               paddingTop: 2,
             }}
@@ -468,13 +430,13 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
               fullWidth
               required
               value={formData.numberOfGuests}
-              onChange={handleChange("numberOfGuests")}
+              onChange={handleChange('numberOfGuests')}
               variant="outlined"
               helperText="Chọn số lượng người sẽ sử dụng dịch vụ"
             >
               {guestOptions.map((option) => (
                 <MenuItem key={option} value={option}>
-                  {option === "6+" ? "6 người trở lên" : `${option} người`}
+                  {option === '6+' ? '6 người trở lên' : `${option} người`}
                 </MenuItem>
               ))}
             </TextField>
@@ -483,34 +445,35 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
             <Box>
               <Typography
                 variant="subtitle1"
-                sx={{ fontWeight: 600, mb: 2, color: "text.primary" }}
+                sx={{ fontWeight: 600, mb: 2, color: 'text.primary' }}
               >
                 Thông Tin Liên Hệ
               </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-                {/* Name */}
-                <TextField
-                  label="Họ và Tên"
-                  fullWidth
-                  required
-                  value={formData.name}
-                  onChange={handleChange("name")}
-                  error={!!errors.form?.name}
-                  helperText={errors.form?.name}
-                  variant="outlined"
-                />
-
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                 {/* Phone */}
                 <TextField
                   label="Số Điện Thoại"
                   fullWidth
                   required
                   value={formData.phone}
-                  onChange={handleChange("phone")}
+                  onChange={handleChange('phone')}
                   error={!!errors.form?.phone}
                   helperText={errors.form?.phone}
                   variant="outlined"
                   placeholder="0901234567"
+                />
+
+                {/* Name */}
+                <TextField
+                  label="Họ và Tên"
+                  fullWidth
+                  required
+                  value={formData.name}
+                  onChange={handleChange('name')}
+                  error={!!errors.form?.name}
+                  helperText={errors.form?.name}
+                  variant="outlined"
+                  placeholder="Nhập tên của bạn"
                 />
 
                 {/* Email */}
@@ -519,7 +482,7 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
                   fullWidth
                   type="email"
                   value={formData.email}
-                  onChange={handleChange("email")}
+                  onChange={handleChange('email')}
                   error={!!errors.form?.email}
                   helperText={errors.form?.email}
                   variant="outlined"
@@ -532,16 +495,13 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
             <Box>
               <Typography
                 variant="subtitle1"
-                sx={{ fontWeight: 600, mb: 2, color: "text.primary" }}
+                sx={{ fontWeight: 600, mb: 2, color: 'text.primary' }}
               >
-                Thông Tin Đặt Lịch{" "}
-                {formData.numberOfGuests !== "1" && "Cho Từng Người"}
+                Thông Tin Đặt Lịch {formData.numberOfGuests !== '1' && 'Cho Từng Người'}
               </Typography>
-              {formData.numberOfGuests === "1" ? (
+              {formData.numberOfGuests === '1' ? (
                 // Single booking - show inline form
-                <Box
-                  sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
-                >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                   <BookingItemCard
                     item={formData.bookings[0]}
                     index={0}
@@ -556,10 +516,9 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
                 <Box>
                   {formData.bookings.length > 0 && (
                     <Alert severity="info" sx={{ mb: 2 }}>
-                      Mỗi người có thể chọn dịch vụ, chuyên viên và thời gian
-                      khác nhau. Lưu ý: Nếu chọn cùng chuyên viên và cùng ngày,
-                      không thể chọn cùng giờ. Vui lòng điền đầy đủ thông tin
-                      cho tất cả {formData.numberOfGuests} người.
+                      Mỗi người có thể chọn dịch vụ, chuyên viên và thời gian khác nhau. Lưu ý: Nếu
+                      chọn cùng chuyên viên và cùng ngày, không thể chọn cùng giờ. Vui lòng điền đầy
+                      đủ thông tin cho tất cả {formData.numberOfGuests} người.
                     </Alert>
                   )}
                   {formData.bookings.map((booking, index) => (
@@ -584,7 +543,7 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
               multiline
               rows={4}
               value={formData.note}
-              onChange={handleChange("note")}
+              onChange={handleChange('note')}
               variant="outlined"
               placeholder="Vui lòng cho chúng tôi biết thêm thông tin nếu có..."
             />
@@ -595,57 +554,48 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
                 elevation={0}
                 sx={{
                   p: 2.5,
-                  backgroundColor: "primary.light",
+                  backgroundColor: 'primary.light',
                   borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "primary.main",
+                  border: '1px solid',
+                  borderColor: 'primary.main',
                 }}
               >
                 <Box
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                     mb: 1.5,
                   }}
                 >
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: 600, color: "primary.dark" }}
-                  >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.dark' }}>
                     Chi Tiết Giá
                   </Typography>
                 </Box>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   {formData.bookings.map((booking) => {
                     if (!booking.service) return null;
-                    const service = services.find(
-                      (s) => s.id === booking.service,
-                    );
-                    const priceInfo = getServicePriceInfoFromList(
-                      services,
-                      booking.service,
-                    );
+                    const service = services.find((s) => s.id === booking.service);
+                    const priceInfo = getServicePriceInfoFromList(services, booking.service);
 
                     return (
                       <Box
                         key={booking.guestNumber}
                         sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
                           py: 0.5,
                         }}
                       >
                         <Typography variant="body2" color="text.secondary">
-                          Người {booking.guestNumber}:{" "}
-                          {service?.name || "Chưa chọn dịch vụ"}
+                          Người {booking.guestNumber}: {service?.name || 'Chưa chọn dịch vụ'}
                         </Typography>
                         <Typography
                           variant="body2"
                           sx={{
                             fontWeight: 600,
-                            color: "primary.dark",
+                            color: 'primary.dark',
                           }}
                         >
                           {formatPrice(priceInfo.price, priceInfo.priceRange)}
@@ -657,48 +607,39 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
                 <Divider sx={{ my: 1.5 }} />
                 <Box
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}
                 >
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 700, color: "primary.dark" }}
-                  >
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.dark' }}>
                     Tổng Cộng:
                   </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <AttachMoney
-                      sx={{ color: "primary.dark", fontSize: "1.5rem" }}
-                    />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AttachMoney sx={{ color: 'primary.dark', fontSize: '1.5rem' }} />
                     <Typography
                       variant="h5"
                       sx={{
                         fontWeight: 700,
-                        color: "primary.dark",
+                        color: 'primary.dark',
                         fontFamily: '"Playfair Display", serif',
                       }}
                     >
-                      {totalPrice > 0 ? formatVND(totalPrice) : "0 VNĐ"}
+                      {totalPrice > 0 ? formatVND(totalPrice) : '0 VNĐ'}
                     </Typography>
                   </Box>
                 </Box>
                 {formData.bookings.some((b) => {
                   if (!b.service) return false;
-                  const priceInfo = getServicePriceInfoFromList(
-                    services,
-                    b.service,
-                  );
+                  const priceInfo = getServicePriceInfoFromList(services, b.service);
                   return !!priceInfo.priceRange;
                 }) && (
                   <Typography
                     variant="caption"
                     color="text.secondary"
-                    sx={{ mt: 1, display: "block" }}
+                    sx={{ mt: 1, display: 'block' }}
                   >
-                    * Tổng giá được tính dựa trên giá thấp nhất của các dịch vụ
-                    có khoảng giá
+                    * Tổng giá được tính dựa trên giá thấp nhất của các dịch vụ có khoảng giá
                   </Typography>
                 )}
               </Paper>
@@ -719,17 +660,13 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
           disabled={bookingLoading}
           sx={{
             minWidth: 120,
-            backgroundColor: "primary.main",
-            "&:hover": {
-              backgroundColor: "primary.dark",
+            backgroundColor: 'primary.main',
+            '&:hover': {
+              backgroundColor: 'primary.dark',
             },
           }}
         >
-          {bookingLoading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            "Đặt Lịch"
-          )}
+          {bookingLoading ? <CircularProgress size={24} color="inherit" /> : 'Đặt Lịch'}
         </Button>
       </DialogActions>
     </Dialog>

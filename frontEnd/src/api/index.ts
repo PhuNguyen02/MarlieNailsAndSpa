@@ -2,8 +2,7 @@
 // Base API Client
 // ==========================================
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'https://marlie-spa-backend.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 export interface RequestOptions {
   headers?: Record<string, string>;
@@ -15,17 +14,22 @@ function buildUrl(
   endpoint: string,
   params?: Record<string, string | number | boolean | undefined>,
 ): string {
-  const url = new URL(`${API_BASE_URL}${endpoint}`);
+  let url = `${API_BASE_URL}${endpoint}`;
 
   if (params) {
+    const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        url.searchParams.append(key, String(value));
+        searchParams.append(key, String(value));
       }
     });
+    const queryString = searchParams.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
   }
 
-  return url.toString();
+  return url;
 }
 
 // Generic fetch wrapper with error handling
@@ -56,6 +60,12 @@ async function request<T>(
     const json = await response.json();
 
     if (!response.ok) {
+      // Auto-logout khi token hết hạn hoặc không hợp lệ
+      if (response.status === 401 && !endpoint.includes('/auth/login')) {
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_info');
+        window.location.href = '/admin/login';
+      }
       throw {
         statusCode: response.status,
         message: json.message || 'An error occurred',
