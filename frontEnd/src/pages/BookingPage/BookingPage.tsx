@@ -421,6 +421,12 @@ const BookingPage: React.FC = () => {
                 const isWorking = isEmployeeWorkingAtHour(emp.id, currentDate, hour);
                 const isOff = !isWorking;
 
+                // Kiểm tra xem giờ này đã qua chưa
+                const slotTime = currentDate.hour(hour).minute(0).second(0);
+                const isPast = slotTime.isBefore(dayjs());
+
+                const isDisabled = isOff || isBusy || isPast;
+
                 return (
                   <Box
                     key={`${hour}-${emp.id}`}
@@ -434,12 +440,14 @@ const BookingPage: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       position: 'relative',
-                      cursor: isOff ? 'not-allowed' : isBusy ? 'default' : 'pointer',
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
                       bgcolor: isOff
                         ? '#f5f5f5'
                         : isBusy
                           ? 'rgba(244, 67, 54, 0.06)'
-                          : 'transparent',
+                          : isPast
+                            ? 'rgba(0, 0, 0, 0.03)'
+                            : 'transparent',
                       backgroundImage: isOff
                         ? 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px)'
                         : 'none',
@@ -449,11 +457,13 @@ const BookingPage: React.FC = () => {
                           ? '#f5f5f5'
                           : isBusy
                             ? 'rgba(244, 67, 54, 0.08)'
-                            : 'rgba(76, 175, 80, 0.06)',
+                            : isPast
+                              ? 'rgba(0, 0, 0, 0.03)'
+                              : 'rgba(76, 175, 80, 0.06)',
                       },
                     }}
                     onClick={() => {
-                      if (!isOff && !isBusy) {
+                      if (!isDisabled) {
                         openModal({
                           employeeId: emp.id,
                           date: currentDate.format('YYYY-MM-DD'),
@@ -505,6 +515,13 @@ const BookingPage: React.FC = () => {
                           </Box>
                         </Tooltip>
                       </Fade>
+                    ) : isPast ? (
+                      <Typography
+                        variant="caption"
+                        sx={{ color: '#bdbdbd', fontStyle: 'italic', fontSize: '0.6rem' }}
+                      >
+                        Hết hạn
+                      </Typography>
                     ) : (
                       <Tooltip title="Nhấn để đặt lịch" arrow>
                         <Box
@@ -816,6 +833,20 @@ const BookingPage: React.FC = () => {
         />
         <Typography variant="caption" color="text.secondary">
           Nghỉ
+        </Typography>
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: 0.5,
+            bgcolor: 'rgba(0, 0, 0, 0.03)',
+            border: '1px solid #e0e0e0',
+          }}
+        />
+        <Typography variant="caption" color="text.secondary">
+          Hết hạn
         </Typography>
       </Box>
     </Box>

@@ -2,13 +2,8 @@
 // Services API Service
 // ==========================================
 
-import { apiClient } from "./index";
-import type {
-  ApiResponse,
-  Service,
-  CreateServiceRequest,
-  UpdateServiceRequest,
-} from "./types";
+import { apiClient } from './index';
+import type { ApiResponse, Service, CreateServiceRequest, UpdateServiceRequest } from './types';
 
 export interface ServicesFilters {
   [key: string]: string | number | boolean | undefined;
@@ -18,18 +13,18 @@ export interface ServicesFilters {
 export const servicesApi = {
   /**
    * Lấy danh sách tất cả dịch vụ
-   * GET /api/admin/services
+   * GET /api/services
    */
   getAll(filters?: ServicesFilters): Promise<ApiResponse<Service[]>> {
-    return apiClient.get("/admin/services", { params: filters });
+    return apiClient.get('/services', { params: filters });
   },
 
   /**
    * Lấy thông tin dịch vụ theo ID
-   * GET /api/admin/services/:id
+   * GET /api/services/:id
    */
   getById(id: string): Promise<ApiResponse<Service>> {
-    return apiClient.get(`/admin/services/${id}`);
+    return apiClient.get(`/services/${id}`);
   },
 
   /**
@@ -37,17 +32,14 @@ export const servicesApi = {
    * POST /api/admin/services
    */
   create(data: CreateServiceRequest): Promise<ApiResponse<Service>> {
-    return apiClient.post("/admin/services", data);
+    return apiClient.post('/admin/services', data);
   },
 
   /**
    * Cập nhật dịch vụ
    * PATCH /api/admin/services/:id
    */
-  update(
-    id: string,
-    data: UpdateServiceRequest,
-  ): Promise<ApiResponse<Service>> {
+  update(id: string, data: UpdateServiceRequest): Promise<ApiResponse<Service>> {
     return apiClient.patch(`/admin/services/${id}`, data);
   },
 

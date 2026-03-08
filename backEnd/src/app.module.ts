@@ -23,6 +23,8 @@ import { EmployeesModule } from './admin/employees/employees.module';
 import { CustomersModule } from './customer/customers/customers.module';
 import { BookingsModule } from './customer/bookings/bookings.module';
 import { EmployeeSchedulesModule } from './admin/employee-schedules/employee-schedules.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { PublicServicesModule } from './customer/services/services.module';
 
 @Module({
   imports: [
@@ -69,6 +71,8 @@ import { EmployeeSchedulesModule } from './admin/employee-schedules/employee-sch
     CustomersModule,
     BookingsModule,
     EmployeeSchedulesModule,
+    NotificationsModule,
+    PublicServicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

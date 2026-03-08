@@ -150,7 +150,9 @@ export function useBookings() {
           serviceId: primaryServiceId,
           employeeIds: employeeIds.length > 0 ? employeeIds : undefined,
           totalPrice:
-            formData.totalPrice || bookingsInSlot.reduce((sum, b) => sum + (b.price || 0), 0),
+            formData.totalPrice !== undefined
+              ? Number(formData.totalPrice)
+              : bookingsInSlot.reduce((sum, b) => sum + Number(b.price || 0), 0),
           notes: extendedNotes,
         };
 

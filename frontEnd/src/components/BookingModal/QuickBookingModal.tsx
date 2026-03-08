@@ -129,7 +129,7 @@ const QuickBookingModal = ({
         email: contact.email,
         numberOfGuests: 1,
         note: contact.note,
-        totalPrice: selectedService?.price || 0,
+        totalPrice: Number(selectedService?.price || 0),
         bookings: [
           {
             guestNumber: 1,
@@ -137,7 +137,7 @@ const QuickBookingModal = ({
             employeeId: params.employeeId,
             date: params.date || dayjs().format('YYYY-MM-DD'),
             time: timeSlotId || params.timeLabel || '',
-            price: selectedService?.price,
+            price: Number(selectedService?.price || 0),
           },
         ],
       });

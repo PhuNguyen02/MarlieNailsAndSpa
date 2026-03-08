@@ -60,11 +60,15 @@ async function request<T>(
     const json = await response.json();
 
     if (!response.ok) {
-      // Auto-logout khi token hết hạn hoặc không hợp lệ
+      // Auto-logout khi token hết hạn hoặc không hợp lệ (chỉ áp dụng cho trang admin)
       if (response.status === 401 && !endpoint.includes('/auth/login')) {
         localStorage.removeItem('admin_token');
         localStorage.removeItem('admin_info');
-        window.location.href = '/admin/login';
+
+        // Chỉ redirect nếu đang ở trang admin
+        if (window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/admin/login';
+        }
       }
       throw {
         statusCode: response.status,

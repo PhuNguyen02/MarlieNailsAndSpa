@@ -90,8 +90,17 @@ const TimeSlotPicker = ({
         isBooked: !slot.isAvailable || isNotEnoughSpace,
         isPast: (() => {
           if (!selectedDate) return false;
+          // Tạo đối tượng Date cho thời gian hiện tại
           const now = new Date();
-          const slotDateTime = new Date(`${selectedDate}T${slot.timeSlot.startTime}`);
+
+          // Tạo đối tượng Date cho khung giờ slot
+          // selectedDate ở định dạng YYYY-MM-DD
+          // slot.timeSlot.startTime ở định dạng HH:mm:ss
+          const [year, month, day] = selectedDate.split('-').map(Number);
+          const [hours, minutes, seconds] = slot.timeSlot.startTime.split(':').map(Number);
+
+          const slotDateTime = new Date(year, month - 1, day, hours, minutes, seconds || 0);
+
           return slotDateTime < now;
         })(),
         hasConflict,
