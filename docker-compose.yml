@@ -3,8 +3,6 @@
 # Services: MySQL + Backend (NestJS) + Frontend (React/Nginx)
 # ==========================================
 
-version: '3.8'
-
 services:
   # ---- MySQL Database ----
   mysql:
