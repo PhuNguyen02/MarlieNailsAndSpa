@@ -336,7 +336,7 @@ const WorkingHoursSection = () => {
                 </Typography>
                 <Button
                   variant="contained"
-                  onClick={() => openModal("")}
+                  onClick={() => openModal()}
                   sx={{
                     backgroundColor: "white",
                     color: "primary.dark",

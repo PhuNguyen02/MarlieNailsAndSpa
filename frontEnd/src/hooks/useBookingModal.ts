@@ -25,6 +25,7 @@ export const useBookingModal = () => {
   return {
     isOpen,
     params,
+    selectedService: params.serviceId,
     openModal,
     closeModal,
   };

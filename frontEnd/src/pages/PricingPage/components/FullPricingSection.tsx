@@ -280,7 +280,7 @@ const FullPricingSection = () => {
                         <Button
                           variant="contained"
                           fullWidth
-                          onClick={() => openModal(combo.id)}
+                          onClick={() => openModal({ serviceId: combo.id })}
                           sx={{
                             mt: 2,
                             py: 1.5,
@@ -359,7 +359,7 @@ const FullPricingSection = () => {
                             <Button
                               variant="outlined"
                               size="small"
-                              onClick={() => openModal(service.id || "")}
+                              onClick={() => openModal({ serviceId: service.id || "" })}
                               sx={{
                                 minWidth: "auto",
                                 px: 2,
@@ -429,7 +429,7 @@ const FullPricingSection = () => {
                             <Button
                               variant="outlined"
                               size="small"
-                              onClick={() => openModal(service.id || "")}
+                              onClick={() => openModal({ serviceId: service.id || "" })}
                               sx={{
                                 minWidth: "auto",
                                 px: 2,
@@ -570,7 +570,7 @@ const FullPricingSection = () => {
                         <Button
                           variant="contained"
                           fullWidth
-                          onClick={() => openModal(service.id)}
+                          onClick={() => openModal({ serviceId: service.id })}
                           sx={{
                             mt:
                               service.steps || SKIN_CARE_STEPS[service.name]
@@ -658,7 +658,7 @@ const FullPricingSection = () => {
                         <Button
                           variant="contained"
                           fullWidth
-                          onClick={() => openModal(service.id)}
+                          onClick={() => openModal({ serviceId: service.id })}
                           sx={{
                             mt: 3,
                             py: 1.5,

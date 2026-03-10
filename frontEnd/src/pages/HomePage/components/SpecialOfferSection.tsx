@@ -278,7 +278,7 @@ const SpecialOfferSection = () => {
                       <Button
                         variant="contained"
                         fullWidth
-                        onClick={() => openModal(service.id)}
+                        onClick={() => openModal({ serviceId: service.id })}
                         startIcon={<StarIcon />}
                         sx={{
                           py: 1.5,

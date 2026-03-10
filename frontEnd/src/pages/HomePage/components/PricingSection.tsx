@@ -220,7 +220,7 @@ const PricingSection = () => {
                         <Button
                           variant={isFeatured ? "contained" : "outlined"}
                           fullWidth
-                          onClick={() => openModal(combo.id)}
+                          onClick={() => openModal({ serviceId: combo.id })}
                           sx={{
                             ...(isFeatured
                               ? {
