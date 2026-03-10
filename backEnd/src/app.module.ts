@@ -24,6 +24,13 @@ import { CustomersModule } from './customer/customers/customers.module';
 import { BookingsModule } from './customer/bookings/bookings.module';
 import { EmployeeSchedulesModule } from './admin/employee-schedules/employee-schedules.module';
 
+// Import migrations
+import { InitialSchema1768831183415 } from './migrations/1768831183415-InitialSchema';
+import { CreateBookingEmployeesTable1769005813189 } from './migrations/1769005813189-CreateBookingEmployeesTable';
+import { CreateCMSTables1769008354276 } from './migrations/1769008354276-CreateCMSTables';
+import { UpdateServiceStructure1769100000000 } from './migrations/1769100000000-UpdateServiceStructure';
+import { CreateEmployeeSchedulesTable1769200000000 } from './migrations/1769200000000-CreateEmployeeSchedulesTable';
+
 @Module({
   imports: [
     // Config Module
@@ -55,7 +62,14 @@ import { EmployeeSchedulesModule } from './admin/employee-schedules/employee-sch
           BookingEmployee,
           BookingNotification,
         ],
-        synchronize: false, // Tắt tạm để tránh conflict với bảng đã tồn tại
+        migrations: [
+          InitialSchema1768831183415,
+          CreateBookingEmployeesTable1769005813189,
+          CreateCMSTables1769008354276,
+          UpdateServiceStructure1769100000000,
+          CreateEmployeeSchedulesTable1769200000000,
+        ],
+        synchronize: false,
         logging: true,
         charset: 'utf8mb4',
       }),
