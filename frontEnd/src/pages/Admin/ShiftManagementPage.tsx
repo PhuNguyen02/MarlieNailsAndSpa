@@ -23,10 +23,7 @@ import {
   Switch,
   CircularProgress,
 } from '@mui/material';
-import {
-  SaveOutlined as SaveIcon,
-  Refresh as RefreshIcon,
-} from '@mui/icons-material';
+import { SaveOutlined as SaveIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { apiClient } from '@/api';
 
 // Mapping DayOfWeek BE -> FE

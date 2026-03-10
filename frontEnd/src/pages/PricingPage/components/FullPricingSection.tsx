@@ -14,128 +14,128 @@ import {
   ListItem,
   ListItemText,
   Button,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { pricingStyles } from "../../HomePage/styles";
-import { formatPrice } from "../../../utils";
-import BookingModal from "../../../components/BookingModal";
-import { useBookingModal } from "../../../hooks/useBookingModal";
-import { useServices } from "../../../hooks";
-import { Skeleton } from "@mui/material";
-import PromotionPricing from "./PromotionPricing";
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { pricingStyles } from '../../HomePage/styles';
+import { formatPrice } from '../../../utils';
+import BookingModal from '../../../components/BookingModal';
+import { useBookingModal } from '../../../hooks/useBookingModal';
+import { useServices } from '../../../hooks';
+import { Skeleton } from '@mui/material';
+import PromotionPricing from './PromotionPricing';
 
 const SKIN_CARE_STEPS: Record<string, string[]> = {
-  "Lấy Nhân Mụn Cơ bản": [
-    "Soi da",
-    "Tẩy trang",
-    "Rửa mặt",
-    "Tẩy tế bào da chết",
-    "Massage mặt",
-    "Xông hơi + Cà sủi",
-    "Hút bã nhờn",
-    "Sát khuẩn lần 1",
-    "Lấy nhân mụn",
-    "Sát khuẩn lần 2",
-    "Điện tím",
-    "Đắp mặt nạ + Chiếu đèn sinh học",
-    "Massage đầu",
+  'Lấy Nhân Mụn Cơ bản': [
+    'Soi da',
+    'Tẩy trang',
+    'Rửa mặt',
+    'Tẩy tế bào da chết',
+    'Massage mặt',
+    'Xông hơi + Cà sủi',
+    'Hút bã nhờn',
+    'Sát khuẩn lần 1',
+    'Lấy nhân mụn',
+    'Sát khuẩn lần 2',
+    'Điện tím',
+    'Đắp mặt nạ + Chiếu đèn sinh học',
+    'Massage đầu',
   ],
-  "Lấy Nhân Mụn Cấp độ 2": [
-    "Soi da",
-    "Tẩy trang",
-    "Rửa mặt",
-    "Tẩy tế bào da chết",
-    "Massage mặt",
-    "Xông hơi + Cà sủi",
-    "Ủ mụn",
-    "Hút bã nhờn",
-    "Sát khuẩn lần 1",
-    "Lấy nhân mụn",
-    "Sát khuẩn lần 2",
-    "Điện tím",
-    "Đắp mặt nạ + Chiếu đèn",
-    "Massage đầu",
+  'Lấy Nhân Mụn Cấp độ 2': [
+    'Soi da',
+    'Tẩy trang',
+    'Rửa mặt',
+    'Tẩy tế bào da chết',
+    'Massage mặt',
+    'Xông hơi + Cà sủi',
+    'Ủ mụn',
+    'Hút bã nhờn',
+    'Sát khuẩn lần 1',
+    'Lấy nhân mụn',
+    'Sát khuẩn lần 2',
+    'Điện tím',
+    'Đắp mặt nạ + Chiếu đèn',
+    'Massage đầu',
   ],
-  "Thải Độc Da": [
-    "Soi da",
-    "Tẩy trang",
-    "Rửa mặt",
-    "Tẩy tế bào da chết",
-    "Massage mặt nâng cơ",
-    "Xông hơi + Cà sủi",
-    "Aqua Peel",
-    "Đắp mask",
-    "Chiếu đèn sinh học",
-    "Massage đầu",
-    "Thoa Serum",
-    "Điện di",
+  'Thải Độc Da': [
+    'Soi da',
+    'Tẩy trang',
+    'Rửa mặt',
+    'Tẩy tế bào da chết',
+    'Massage mặt nâng cơ',
+    'Xông hơi + Cà sủi',
+    'Aqua Peel',
+    'Đắp mask',
+    'Chiếu đèn sinh học',
+    'Massage đầu',
+    'Thoa Serum',
+    'Điện di',
   ],
-  "Cấy trắng NANO": [
-    "Tẩy trang",
-    "Rửa mặt",
-    "Tẩy tế bào chết da",
-    "Massage mặt",
-    "Xông hơi + Cà sủi",
-    "Phun Oxyjet",
-    "Cấy trắng bằng máy DOCTORPEN",
-    "Chiếu ánh sáng",
-    "Đắp mask",
-    "Massage đầu",
-    "Thoa Serum",
-    "Điện di",
-    "Thoa kem chống nắng",
+  'Cấy trắng NANO': [
+    'Tẩy trang',
+    'Rửa mặt',
+    'Tẩy tế bào chết da',
+    'Massage mặt',
+    'Xông hơi + Cà sủi',
+    'Phun Oxyjet',
+    'Cấy trắng bằng máy DOCTORPEN',
+    'Chiếu ánh sáng',
+    'Đắp mask',
+    'Massage đầu',
+    'Thoa Serum',
+    'Điện di',
+    'Thoa kem chống nắng',
   ],
-  "Lấy nhân mụn chuyên sâu": [
-    "Soi da",
-    "Tẩy trang",
-    "Rửa mặt",
-    "Tẩy tế bào da chết",
-    "Massage Mặt",
-    "Xông hơi + Cà sủi",
-    "Ủ mụn",
-    "Hút bã nhờn",
-    "Sát khuẩn lần 1",
-    "Lấy nhân mụn",
-    "Sát khuẩn lần 2",
-    "Đắp mặt nạ chiếu đèn",
-    "Đi tinh chất",
-    "Đùa nóng lạnh",
-    "Massage đầu",
-    "Đi điện tím",
+  'Lấy nhân mụn chuyên sâu': [
+    'Soi da',
+    'Tẩy trang',
+    'Rửa mặt',
+    'Tẩy tế bào da chết',
+    'Massage Mặt',
+    'Xông hơi + Cà sủi',
+    'Ủ mụn',
+    'Hút bã nhờn',
+    'Sát khuẩn lần 1',
+    'Lấy nhân mụn',
+    'Sát khuẩn lần 2',
+    'Đắp mặt nạ chiếu đèn',
+    'Đi tinh chất',
+    'Đùa nóng lạnh',
+    'Massage đầu',
+    'Đi điện tím',
   ],
-  "Thải Độc CO2": [
-    "Soi da",
-    "Tẩy trang",
-    "Rửa mặt",
-    "Tẩy tế bào da chết",
-    "Massage mặt (Đối với da không có mụn viêm)",
-    "Xông hơi + Cà sủi",
-    "Hút bã nhờn",
-    "Sát khuẩn lần 1",
-    "Lấy nhân mụn nếu có ít",
-    "Sát khuẩn lần 2",
-    "Điện tím",
-    "Thải độc CO2",
-    "Chiếu đèn sinh học",
-    "Massage đầu",
-    "Đắp mask",
-    "Thoa Serum",
-    "Điện di",
-    "Thoa Kem chống nắng",
+  'Thải Độc CO2': [
+    'Soi da',
+    'Tẩy trang',
+    'Rửa mặt',
+    'Tẩy tế bào da chết',
+    'Massage mặt (Đối với da không có mụn viêm)',
+    'Xông hơi + Cà sủi',
+    'Hút bã nhờn',
+    'Sát khuẩn lần 1',
+    'Lấy nhân mụn nếu có ít',
+    'Sát khuẩn lần 2',
+    'Điện tím',
+    'Thải độc CO2',
+    'Chiếu đèn sinh học',
+    'Massage đầu',
+    'Đắp mask',
+    'Thoa Serum',
+    'Điện di',
+    'Thoa Kem chống nắng',
   ],
-  "PEEL DA": [
-    "Soi da",
-    "Tẩy trang",
-    "Rửa mặt",
-    "Tẩy tế bào chết",
-    "Xông hơi + Cà sủi",
-    "Hút bã nhờn",
-    "Sát khuẩn lần 1",
-    "Lấy nhân mụn nếu có ít",
-    "Sát khuẩn lần 2",
-    "Điện tím",
-    "Peel da",
-    "Điện di",
+  'PEEL DA': [
+    'Soi da',
+    'Tẩy trang',
+    'Rửa mặt',
+    'Tẩy tế bào chết',
+    'Xông hơi + Cà sủi',
+    'Hút bã nhờn',
+    'Sát khuẩn lần 1',
+    'Lấy nhân mụn nếu có ít',
+    'Sát khuẩn lần 2',
+    'Điện tím',
+    'Peel da',
+    'Điện di',
   ],
 };
 
@@ -153,8 +153,8 @@ const FullPricingSection = () => {
             Dịch Vụ Spa
           </Typography>
           <Typography variant="body1" sx={pricingStyles.description}>
-            Khám phá các gói dịch vụ chăm sóc sức khỏe và sắc đẹp với giá cả hợp
-            lý và chất lượng cao.
+            Khám phá các gói dịch vụ chăm sóc sức khỏe và sắc đẹp với giá cả hợp lý và chất lượng
+            cao.
           </Typography>
         </Box>
 
@@ -166,16 +166,12 @@ const FullPricingSection = () => {
           <Grid
             container
             spacing={3}
-            sx={{ mt: 2, alignItems: { xs: "stretch", md: "flex-start" } }}
+            sx={{ mt: 2, alignItems: { xs: 'stretch', md: 'flex-start' } }}
           >
             {loading
               ? Array.from({ length: 4 }).map((_, index) => (
                   <Grid item xs={12} sm={6} md={3} key={index}>
-                    <Skeleton
-                      variant="rectangular"
-                      height={200}
-                      sx={{ borderRadius: 2 }}
-                    />
+                    <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
                   </Grid>
                 ))
               : servicesByCategory.goi_dau_duong_sinh.map((combo) => (
@@ -183,32 +179,29 @@ const FullPricingSection = () => {
                     <Card
                       sx={{
                         ...pricingStyles.card,
-                        height: { xs: "100%", md: "auto" },
-                        minHeight: { md: "100%" },
-                        display: "flex",
-                        flexDirection: "column",
+                        height: { xs: '100%', md: 'auto' },
+                        minHeight: { md: '100%' },
+                        display: 'flex',
+                        flexDirection: 'column',
                       }}
                     >
                       <CardContent
                         sx={{
                           ...pricingStyles.cardContent,
-                          display: "flex",
-                          flexDirection: "column",
+                          display: 'flex',
+                          flexDirection: 'column',
                           flex: 1,
                         }}
                       >
                         <Box
                           sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
                             mb: 2,
                           }}
                         >
-                          <Typography
-                            variant="h6"
-                            sx={{ fontWeight: 600, fontSize: "1.25rem" }}
-                          >
+                          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
                             {combo.name}
                           </Typography>
                           {combo.duration && (
@@ -216,8 +209,8 @@ const FullPricingSection = () => {
                               label={combo.duration}
                               size="small"
                               sx={{
-                                backgroundColor: "primary.light",
-                                color: "primary.dark",
+                                backgroundColor: 'primary.light',
+                                color: 'primary.dark',
                                 fontWeight: 500,
                               }}
                             />
@@ -230,10 +223,10 @@ const FullPricingSection = () => {
                           <Accordion
                             sx={{
                               mt: 2,
-                              boxShadow: "none",
-                              "&:before": { display: "none" },
-                              "&.Mui-expanded": {
-                                margin: "16px 0",
+                              boxShadow: 'none',
+                              '&:before': { display: 'none' },
+                              '&.Mui-expanded': {
+                                margin: '16px 0',
                               },
                             }}
                           >
@@ -241,15 +234,15 @@ const FullPricingSection = () => {
                               expandIcon={<ExpandMoreIcon />}
                               sx={{
                                 px: 0,
-                                minHeight: "auto",
-                                "& .MuiAccordionSummary-content": { my: 1 },
+                                minHeight: 'auto',
+                                '& .MuiAccordionSummary-content': { my: 1 },
                               }}
                             >
                               <Typography
                                 variant="body2"
                                 sx={{
-                                  fontSize: "0.85rem",
-                                  color: "text.secondary",
+                                  fontSize: '0.85rem',
+                                  color: 'text.secondary',
                                 }}
                               >
                                 Xem chi tiết các bước
@@ -262,12 +255,12 @@ const FullPricingSection = () => {
                                     <ListItemText
                                       primary={step}
                                       primaryTypographyProps={{
-                                        variant: "body2",
-                                        fontSize: "0.85rem",
+                                        variant: 'body2',
+                                        fontSize: '0.85rem',
                                       }}
                                       sx={{
-                                        "& .MuiListItemText-primary": {
-                                          color: "text.secondary",
+                                        '& .MuiListItemText-primary': {
+                                          color: 'text.secondary',
                                         },
                                       }}
                                     />
@@ -284,15 +277,15 @@ const FullPricingSection = () => {
                           sx={{
                             mt: 2,
                             py: 1.5,
-                            backgroundColor: "primary.main",
-                            color: "white",
+                            backgroundColor: 'primary.main',
+                            color: 'white',
                             fontWeight: 600,
-                            textTransform: "none",
+                            textTransform: 'none',
                             borderRadius: 2,
-                            "&:hover": {
-                              backgroundColor: "primary.dark",
-                              transform: "translateY(-2px)",
-                              boxShadow: "0 4px 12px rgba(212, 175, 140, 0.4)",
+                            '&:hover': {
+                              backgroundColor: 'primary.dark',
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 4px 12px rgba(212, 175, 140, 0.4)',
                             },
                           }}
                         >
@@ -314,10 +307,7 @@ const FullPricingSection = () => {
             <Grid item xs={12} md={6}>
               <Card sx={pricingStyles.card}>
                 <CardContent sx={pricingStyles.cardContent}>
-                  <Typography
-                    variant="h6"
-                    sx={{ mb: 2, fontWeight: 600, color: "primary.dark" }}
-                  >
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'primary.dark' }}>
                     Sơn Gel & Chăm Sóc
                   </Typography>
                   <List>
@@ -333,23 +323,20 @@ const FullPricingSection = () => {
                             sx={{
                               px: 0,
                               py: 1.5,
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              flexWrap: "wrap",
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
                               gap: 1,
                             }}
                           >
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <ListItemText
                                 primary={service.name}
-                                secondary={formatPrice(
-                                  service.price,
-                                  service.price_range,
-                                )}
+                                secondary={formatPrice(service.price, service.price_range)}
                                 secondaryTypographyProps={{
                                   sx: {
-                                    color: "primary.main",
+                                    color: 'primary.main',
                                     fontWeight: 600,
                                     mt: 0.5,
                                   },
@@ -359,20 +346,20 @@ const FullPricingSection = () => {
                             <Button
                               variant="outlined"
                               size="small"
-                              onClick={() => openModal({ serviceId: service.id || "" })}
+                              onClick={() => openModal({ serviceId: service.id || '' })}
                               sx={{
-                                minWidth: "auto",
+                                minWidth: 'auto',
                                 px: 2,
                                 py: 0.75,
-                                fontSize: "0.75rem",
+                                fontSize: '0.75rem',
                                 fontWeight: 600,
-                                textTransform: "none",
-                                borderColor: "primary.main",
-                                color: "primary.main",
-                                "&:hover": {
-                                  borderColor: "primary.dark",
-                                  backgroundColor: "primary.light",
-                                  color: "primary.dark",
+                                textTransform: 'none',
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': {
+                                  borderColor: 'primary.dark',
+                                  backgroundColor: 'primary.light',
+                                  color: 'primary.dark',
                                 },
                               }}
                             >
@@ -387,10 +374,7 @@ const FullPricingSection = () => {
             <Grid item xs={12} md={6}>
               <Card sx={pricingStyles.card}>
                 <CardContent sx={pricingStyles.cardContent}>
-                  <Typography
-                    variant="h6"
-                    sx={{ mb: 2, fontWeight: 600, color: "primary.dark" }}
-                  >
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'primary.dark' }}>
                     Nối Móng & Tạo Form
                   </Typography>
                   <List>
@@ -406,10 +390,10 @@ const FullPricingSection = () => {
                             sx={{
                               px: 0,
                               py: 1.5,
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              flexWrap: "wrap",
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
                               gap: 1,
                             }}
                           >
@@ -419,7 +403,7 @@ const FullPricingSection = () => {
                                 secondary={formatPrice(service.price)}
                                 secondaryTypographyProps={{
                                   sx: {
-                                    color: "primary.main",
+                                    color: 'primary.main',
                                     fontWeight: 600,
                                     mt: 0.5,
                                   },
@@ -429,20 +413,20 @@ const FullPricingSection = () => {
                             <Button
                               variant="outlined"
                               size="small"
-                              onClick={() => openModal({ serviceId: service.id || "" })}
+                              onClick={() => openModal({ serviceId: service.id || '' })}
                               sx={{
-                                minWidth: "auto",
+                                minWidth: 'auto',
                                 px: 2,
                                 py: 0.75,
-                                fontSize: "0.75rem",
+                                fontSize: '0.75rem',
                                 fontWeight: 600,
-                                textTransform: "none",
-                                borderColor: "primary.main",
-                                color: "primary.main",
-                                "&:hover": {
-                                  borderColor: "primary.dark",
-                                  backgroundColor: "primary.light",
-                                  color: "primary.dark",
+                                textTransform: 'none',
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
+                                '&:hover': {
+                                  borderColor: 'primary.dark',
+                                  backgroundColor: 'primary.light',
+                                  color: 'primary.dark',
                                 },
                               }}
                             >
@@ -466,11 +450,7 @@ const FullPricingSection = () => {
             {loading
               ? Array.from({ length: 3 }).map((_, index) => (
                   <Grid item xs={12} sm={6} md={4} key={index}>
-                    <Skeleton
-                      variant="rectangular"
-                      height={150}
-                      sx={{ borderRadius: 2 }}
-                    />
+                    <Skeleton variant="rectangular" height={150} sx={{ borderRadius: 2 }} />
                   </Grid>
                 ))
               : servicesByCategory.cham_soc_da.map((service) => (
@@ -479,7 +459,7 @@ const FullPricingSection = () => {
                       <CardContent sx={pricingStyles.cardContent}>
                         <Typography
                           variant="h6"
-                          sx={{ fontWeight: 600, mb: 1, fontSize: "1.1rem" }}
+                          sx={{ fontWeight: 600, mb: 1, fontSize: '1.1rem' }}
                         >
                           {service.name}
                         </Typography>
@@ -491,10 +471,10 @@ const FullPricingSection = () => {
                           <Accordion
                             sx={{
                               mt: 2,
-                              boxShadow: "none",
-                              "&:before": { display: "none" },
-                              "&.Mui-expanded": {
-                                margin: "12px 0",
+                              boxShadow: 'none',
+                              '&:before': { display: 'none' },
+                              '&.Mui-expanded': {
+                                margin: '12px 0',
                               },
                             }}
                           >
@@ -502,67 +482,61 @@ const FullPricingSection = () => {
                               expandIcon={<ExpandMoreIcon />}
                               sx={{
                                 px: 0,
-                                minHeight: "auto",
-                                "& .MuiAccordionSummary-content": { my: 1 },
+                                minHeight: 'auto',
+                                '& .MuiAccordionSummary-content': { my: 1 },
                               }}
                             >
                               <Typography
                                 variant="body2"
                                 sx={{
-                                  fontSize: "0.85rem",
-                                  color: "text.secondary",
+                                  fontSize: '0.85rem',
+                                  color: 'text.secondary',
                                   fontWeight: 500,
                                 }}
                               >
-                                Xem chi tiết{" "}
-                                {
-                                  (
-                                    service.steps ||
-                                    SKIN_CARE_STEPS[service.name]
-                                  ).length
-                                }{" "}
-                                bước
+                                Xem chi tiết{' '}
+                                {(service.steps || SKIN_CARE_STEPS[service.name]).length} bước
                               </Typography>
                             </AccordionSummary>
                             <AccordionDetails sx={{ px: 0, pt: 0 }}>
                               <List dense sx={{ py: 0 }}>
-                                {(
-                                  service.steps || SKIN_CARE_STEPS[service.name]
-                                ).map((step: string, idx: number) => (
-                                  <ListItem
-                                    key={idx}
-                                    sx={{
-                                      py: 0.25,
-                                      px: 0,
-                                      alignItems: "flex-start",
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="caption"
+                                {(service.steps || SKIN_CARE_STEPS[service.name]).map(
+                                  (step: string, idx: number) => (
+                                    <ListItem
+                                      key={idx}
                                       sx={{
-                                        mr: 1,
-                                        color: "primary.main",
-                                        fontWeight: 700,
+                                        py: 0.25,
+                                        px: 0,
+                                        alignItems: 'flex-start',
                                       }}
                                     >
-                                      {idx + 1}.
-                                    </Typography>
-                                    <ListItemText
-                                      primary={step}
-                                      primaryTypographyProps={{
-                                        variant: "body2",
-                                        fontSize: "0.8rem",
-                                        lineHeight: 1.4,
-                                      }}
-                                      sx={{
-                                        m: 0,
-                                        "& .MuiListItemText-primary": {
-                                          color: "text.secondary",
-                                        },
-                                      }}
-                                    />
-                                  </ListItem>
-                                ))}
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          mr: 1,
+                                          color: 'primary.main',
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        {idx + 1}.
+                                      </Typography>
+                                      <ListItemText
+                                        primary={step}
+                                        primaryTypographyProps={{
+                                          variant: 'body2',
+                                          fontSize: '0.8rem',
+                                          lineHeight: 1.4,
+                                        }}
+                                        sx={{
+                                          m: 0,
+                                          '& .MuiListItemText-primary': {
+                                            color: 'text.secondary',
+                                          },
+                                        }}
+                                      />
+                                    </ListItem>
+                                  ),
+                                )}
                               </List>
                             </AccordionDetails>
                           </Accordion>
@@ -572,20 +546,17 @@ const FullPricingSection = () => {
                           fullWidth
                           onClick={() => openModal({ serviceId: service.id })}
                           sx={{
-                            mt:
-                              service.steps || SKIN_CARE_STEPS[service.name]
-                                ? 1
-                                : 2,
+                            mt: service.steps || SKIN_CARE_STEPS[service.name] ? 1 : 2,
                             py: 1.5,
-                            backgroundColor: "primary.main",
-                            color: "white",
+                            backgroundColor: 'primary.main',
+                            color: 'white',
                             fontWeight: 600,
-                            textTransform: "none",
+                            textTransform: 'none',
                             borderRadius: 2,
-                            "&:hover": {
-                              backgroundColor: "primary.dark",
-                              transform: "translateY(-2px)",
-                              boxShadow: "0 4px 12px rgba(212, 175, 140, 0.4)",
+                            '&:hover': {
+                              backgroundColor: 'primary.dark',
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 4px 12px rgba(212, 175, 140, 0.4)',
                             },
                           }}
                         >
@@ -607,11 +578,7 @@ const FullPricingSection = () => {
             {loading
               ? Array.from({ length: 3 }).map((_, index) => (
                   <Grid item xs={12} md={4} key={index}>
-                    <Skeleton
-                      variant="rectangular"
-                      height={250}
-                      sx={{ borderRadius: 2 }}
-                    />
+                    <Skeleton variant="rectangular" height={250} sx={{ borderRadius: 2 }} />
                   </Grid>
                 ))
               : servicesByCategory.triet_long.map((service) => (
@@ -620,7 +587,7 @@ const FullPricingSection = () => {
                       <CardContent sx={pricingStyles.cardContent}>
                         <Typography
                           variant="h6"
-                          sx={{ fontWeight: 600, mb: 2, fontSize: "1.2rem" }}
+                          sx={{ fontWeight: 600, mb: 2, fontSize: '1.2rem' }}
                         >
                           {service.name}
                         </Typography>
@@ -639,19 +606,18 @@ const FullPricingSection = () => {
                           </Typography>
                           <Typography
                             variant="h6"
-                            sx={{ ...pricingStyles.price, color: "#2e7d32" }}
+                            sx={{ ...pricingStyles.price, color: '#2e7d32' }}
                           >
                             {formatPrice(service.package_10_sessions)}
                           </Typography>
                           <Typography
                             variant="caption"
                             color="text.secondary"
-                            sx={{ display: "block", mt: 0.5 }}
+                            sx={{ display: 'block', mt: 0.5 }}
                           >
-                            Tiết kiệm{" "}
+                            Tiết kiệm{' '}
                             {formatPrice(
-                              (service.single_price || 0) * 10 -
-                                (service.package_10_sessions || 0),
+                              (service.single_price || 0) * 10 - (service.package_10_sessions || 0),
                             )}
                           </Typography>
                         </Box>
@@ -662,15 +628,15 @@ const FullPricingSection = () => {
                           sx={{
                             mt: 3,
                             py: 1.5,
-                            backgroundColor: "primary.main",
-                            color: "white",
+                            backgroundColor: 'primary.main',
+                            color: 'white',
                             fontWeight: 600,
-                            textTransform: "none",
+                            textTransform: 'none',
                             borderRadius: 2,
-                            "&:hover": {
-                              backgroundColor: "primary.dark",
-                              transform: "translateY(-2px)",
-                              boxShadow: "0 4px 12px rgba(212, 175, 140, 0.4)",
+                            '&:hover': {
+                              backgroundColor: 'primary.dark',
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 4px 12px rgba(212, 175, 140, 0.4)',
                             },
                           }}
                         >
@@ -684,11 +650,7 @@ const FullPricingSection = () => {
         </Box>
         <PromotionPricing />
       </Container>
-      <BookingModal
-        open={isOpen}
-        onClose={closeModal}
-        initialService={selectedService}
-      />
+      <BookingModal open={isOpen} onClose={closeModal} initialService={selectedService} />
     </Box>
   );
 };
