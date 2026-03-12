@@ -1,59 +1,167 @@
-import { Box, Container, Typography, Grid, Card, CardContent } from '@mui/material'
-import { testimonialsStyles } from '../styles'
-
-const testimonials = [
-  {
-    text: 'Lorem ipsum dolor sit amet, ut zril eirmod cotidieque eum. Vis dico enim in, sit feugiat vocibus at, ne doctus ullum labores dolorem ut, ex pro discere philosophia delicatissimi his.',
-    author: 'Malia Bourne',
-    service: 'Relax massage',
-  },
-  {
-    text: 'Lorem ipsum dolor sit amet, ut zril eirmod cotidieque eum. Vis dico enim in, sit feugiat vocibus at, ne doctus ullum labores dolorem ut, ex pro discere philosophia delicatissimi his.',
-    author: 'Alyce Charlton',
-    service: 'Relax massage',
-  },
-  {
-    text: 'Lorem ipsum dolor sit amet, ut zril eirmod cotidieque eum. Vis dico enim in, sit feugiat vocibus at, ne doctus ullum labores dolorem ut, ex pro discere philosophia delicatissimi his.',
-    author: 'Alexia Mason',
-    service: 'Relax massage',
-  },
-]
+import { useState, useEffect } from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Avatar,
+  Rating,
+  Skeleton,
+  alpha,
+} from '@mui/material';
+import { publicTestimonialsApi } from '../../../api/testimonialsApi';
+import type { Testimonial } from '../../../api/types';
 
 const TestimonialsSection = () => {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const res = await publicTestimonialsApi.getActive();
+        const data = Array.isArray(res) ? res : (res as any)?.data || [];
+        setTestimonials(data);
+      } catch (err) {
+        console.error('Failed to fetch testimonials:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, []);
+
+  if (!loading && testimonials.length === 0) return null;
+
   return (
-    <Box sx={testimonialsStyles.container}>
+    <Box
+      sx={{
+        py: { xs: 8, md: 10 },
+        bgcolor: '#f8fafc',
+        backgroundImage:
+          'radial-gradient(circle at 10% 20%, rgba(212, 175, 140, 0.05) 0%, transparent 40%)',
+      }}
+    >
       <Container maxWidth="lg">
-        <Typography variant="h3" align="center" sx={testimonialsStyles.title}>
-          A Place of True Splendor
+        <Typography
+          variant="h3"
+          align="center"
+          sx={{
+            fontWeight: 800,
+            mb: 2,
+            fontFamily: '"Playfair Display", serif',
+            color: '#1e293b',
+          }}
+        >
+          Khách Hàng Nói Gì Về Marlie
         </Typography>
-        <Typography variant="body1" align="center" sx={testimonialsStyles.subtitle}>
-          Vide epicurei repudiare qui eu. Quo ea omnium voluptaria dolorum, mandamus vitae comprehensam nec eu option.
+        <Typography
+          variant="h6"
+          align="center"
+          sx={{
+            color: 'text.secondary',
+            mb: 6,
+            maxWidth: '600px',
+            mx: 'auto',
+            fontWeight: 400,
+          }}
+        >
+          Sự hài lòng của khách hàng là động lực lớn nhất để chúng tôi hoàn thiện mỗi ngày.
         </Typography>
-        <Grid container spacing={4} sx={{ mt: 4 }}>
-          {testimonials.map((testimonial, index) => (
-            <Grid item xs={12} md={4} key={index}>
-              <Card sx={testimonialsStyles.card}>
-                <CardContent>
-                  <Typography variant="body1" sx={testimonialsStyles.text}>
-                    {testimonial.text}
-                  </Typography>
-                  <Box sx={{ mt: 3 }}>
-                    <Typography variant="subtitle1" sx={testimonialsStyles.author}>
-                      {testimonial.author}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      - {testimonial.service}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+
+        <Grid container spacing={3}>
+          {loading
+            ? [1, 2, 3].map((i) => (
+                <Grid item xs={12} md={4} key={i}>
+                  <Card sx={{ p: 4, borderRadius: 4 }}>
+                    <Skeleton variant="circular" width={60} height={60} sx={{ mb: 2 }} />
+                    <Skeleton variant="text" height={30} width="60%" />
+                    <Skeleton variant="text" height={100} />
+                  </Card>
+                </Grid>
+              ))
+            : testimonials.map((t) => (
+                <Grid item xs={12} md={4} key={t.id}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      borderRadius: 4,
+                      p: 1,
+                      bgcolor: 'white',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 12px 40px rgba(212, 175, 140, 0.15)',
+                        borderColor: alpha('#d4af8c', 0.5),
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ p: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                        <Avatar
+                          src={t.avatarUrl}
+                          sx={{
+                            width: 56,
+                            height: 56,
+                            border: '2px solid #d4af8c',
+                            p: 0.2,
+                          }}
+                        >
+                          {t.customerName[0]}
+                        </Avatar>
+                        <Box>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ fontWeight: 700, color: '#1e293b' }}
+                          >
+                            {t.customerName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {t.customerTitle || 'Khách hàng'}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Rating
+                        value={t.rating}
+                        readOnly
+                        size="small"
+                        sx={{ color: '#d4af8c', mb: 2 }}
+                      />
+
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: '#475569',
+                          lineHeight: 1.8,
+                          fontStyle: 'italic',
+                          position: 'relative',
+                          '&::before': {
+                            content: '"\\201C"',
+                            fontSize: '3rem',
+                            color: alpha('#d4af8c', 0.2),
+                            position: 'absolute',
+                            top: -20,
+                            left: -10,
+                            fontFamily: 'serif',
+                          },
+                        }}
+                      >
+                        {t.content}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
         </Grid>
       </Container>
     </Box>
-  )
-}
+  );
+};
 
-export default TestimonialsSection
-
+export default TestimonialsSection;

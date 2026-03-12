@@ -12,3 +12,11 @@ export {
   NotificationType,
   NotificationStatus,
 } from './booking-notification.entity';
+export { BlogPost, PostStatus } from './blog-post.entity';
+export { BlogCategory } from './blog-category.entity';
+export { BlogTag } from './blog-tag.entity';
+export { BlogComment } from './blog-comment.entity';
+export { MediaFile } from './media-file.entity';
+export { ContactMessage } from './contact-message.entity';
+export { Promotion } from './promotion.entity';
+export { Testimonial } from './testimonial.entity';

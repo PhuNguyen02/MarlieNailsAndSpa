@@ -77,7 +77,7 @@ export class AuthService {
     admin.lastLogin = new Date();
     await this.adminRepository.save(admin);
 
-    const payload = { email: admin.email, sub: admin.id };
+    const payload = { email: admin.email, sub: admin.id, role: admin.role };
 
     return {
       status: 200,
@@ -86,6 +86,7 @@ export class AuthService {
         email: admin.email,
         username: admin.username,
         fullName: admin.fullName,
+        role: admin.role,
         access_token: this.jwtService.sign(payload),
       },
       message: 'Đăng nhập thành công',

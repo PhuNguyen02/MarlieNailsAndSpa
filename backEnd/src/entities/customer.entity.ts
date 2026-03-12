@@ -19,8 +19,17 @@ export class Customer {
   @Column({ unique: true, length: 255, nullable: true })
   email: string;
 
-  @Column({ length: 20 })
+  @Column({ unique: true, length: 20 })
   phone: string;
+
+  @Column({ nullable: true, select: false }) // Hide password by default
+  password: string;
+
+  @Column({ default: 'customer' })
+  role: string;
+
+  @Column({ default: true })
+  isActive: boolean;
 
   @Column({ type: 'date', nullable: true })
   dateOfBirth: Date;

@@ -15,6 +15,14 @@ import {
   Booking,
   BookingEmployee,
   BookingNotification,
+  BlogPost,
+  BlogCategory,
+  BlogTag,
+  BlogComment,
+  MediaFile,
+  ContactMessage,
+  Promotion,
+  Testimonial,
 } from './entities';
 import { AuthModule } from './admin/auth/auth.module';
 import { ServicesModule } from './admin/services/services.module';
@@ -25,6 +33,14 @@ import { BookingsModule } from './customer/bookings/bookings.module';
 import { EmployeeSchedulesModule } from './admin/employee-schedules/employee-schedules.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PublicServicesModule } from './customer/services/services.module';
+import { AdminBlogModule } from './admin/blog/blog.module';
+import { PublicBlogModule } from './customer/blog/blog.module';
+import { ContactModule } from './customer/contact/contact.module';
+import { AdminContactModule } from './admin/contact/admin-contact.module';
+import { PromotionsModule } from './admin/promotions/promotions.module';
+import { TestimonialsModule } from './admin/testimonials/testimonials.module';
+import { CustomerAuthModule } from './customer/auth/customer-auth.module';
+import { CustomerProfileModule } from './customer/profile/customer-profile.module';
 
 @Module({
   imports: [
@@ -56,6 +72,14 @@ import { PublicServicesModule } from './customer/services/services.module';
           Booking,
           BookingEmployee,
           BookingNotification,
+          BlogPost,
+          BlogCategory,
+          BlogTag,
+          BlogComment,
+          MediaFile,
+          ContactMessage,
+          Promotion,
+          Testimonial,
         ],
         synchronize: false, // Tắt tạm để tránh conflict với bảng đã tồn tại
         logging: true,
@@ -73,6 +97,16 @@ import { PublicServicesModule } from './customer/services/services.module';
     EmployeeSchedulesModule,
     NotificationsModule,
     PublicServicesModule,
+
+    // Blog Modules
+    AdminBlogModule,
+    PublicBlogModule,
+    ContactModule,
+    AdminContactModule,
+    PromotionsModule,
+    TestimonialsModule,
+    CustomerAuthModule,
+    CustomerProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

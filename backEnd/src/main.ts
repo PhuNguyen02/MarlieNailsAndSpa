@@ -1,19 +1,26 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setGlobalPrefix('api');
-  
+
+  // Serve static files (uploads)
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads/',
+  });
+
   // Enable CORS với config cho production
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
   app.enableCors({
     origin: [
-      frontendUrl, 
-      'http://localhost:5174', 
+      frontendUrl,
+      'http://localhost:5174',
       'http://localhost:3000',
-      'https://marlienailsandspa.onrender.com'  // Production frontend URL
+      'https://marlienailsandspa.onrender.com', // Production frontend URL
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],

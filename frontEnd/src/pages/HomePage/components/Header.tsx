@@ -14,7 +14,7 @@ import {
   Collapse,
   Divider,
   alpha,
-} from "@mui/material";
+} from '@mui/material';
 import {
   Menu as MenuIcon,
   Close as CloseIcon,
@@ -22,19 +22,23 @@ import {
   Spa as SpaIcon,
   Phone as PhoneIcon,
   Schedule as ScheduleIcon,
-} from "@mui/icons-material";
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import BookingModal from "../../../components/BookingModal";
-import { useBookingModal } from "../../../hooks/useBookingModal";
+  AccountCircle,
+  Logout,
+  Dashboard as DashboardIcon,
+} from '@mui/icons-material';
+import { Menu, MenuItem, ListItemIcon, Avatar as MuiAvatar } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import BookingModal from '../../../components/BookingModal';
+import { useBookingModal } from '../../../hooks/useBookingModal';
 
 // Service dropdown items
 const serviceItems = [
-  { label: "Nail Art", path: "/services/nail-art" },
-  { label: "Manicure & Pedicure", path: "/services/manicure-pedicure" },
-  { label: "Spa Treatment", path: "/services/spa" },
-  { label: "Waxing", path: "/services/waxing" },
-  { label: "Eyelash Extensions", path: "/services/eyelash" },
+  { label: 'Nail Art', path: '/services/nail-art' },
+  { label: 'Manicure & Pedicure', path: '/services/manicure-pedicure' },
+  { label: 'Spa Treatment', path: '/services/spa' },
+  { label: 'Waxing', path: '/services/waxing' },
+  { label: 'Eyelash Extensions', path: '/services/eyelash' },
 ];
 
 const Header = () => {
@@ -43,10 +47,41 @@ const Header = () => {
   const [servicesOpen, setServicesOpen] = useState(false);
   const [serviceHover, setServiceHover] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { isOpen, openModal, closeModal } = useBookingModal();
 
+  const [customer, setCustomer] = useState<any>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  useEffect(() => {
+    const info = localStorage.getItem('customer_info');
+    if (info) {
+      try {
+        setCustomer(JSON.parse(info));
+      } catch (e) {
+        console.error('Error parsing customer info', e);
+      }
+    }
+  }, [location.pathname]);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('customer_token');
+    localStorage.removeItem('customer_info');
+    setCustomer(null);
+    handleMenuClose();
+    navigate('/');
+  };
+
   // Check if we're on homepage - only homepage has transparent header with white text
-  const isHomePage = location.pathname === "/";
+  const isHomePage = location.pathname === '/';
 
   // Use solid header style when scrolled OR when not on homepage
   const useSolidHeader = scrolled || !isHomePage;
@@ -55,8 +90,8 @@ const Header = () => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Close mobile drawer on route change
@@ -65,16 +100,18 @@ const Header = () => {
   }, [location.pathname]);
 
   const menuItems = [
-    { label: "TRANG CHỦ", path: "/", hasDropdown: false },
-    { label: "BẢNG GIÁ", path: "/pricing", hasDropdown: false },
-    { label: "ĐẶT LỊCH", path: "/booking", hasDropdown: false },
+    { label: 'TRANG CHỦ', path: '/', hasDropdown: false },
+    { label: 'GIỚI THIỆU', path: '/about', hasDropdown: false },
+    { label: 'BẢNG GIÁ', path: '/pricing', hasDropdown: false },
+    { label: 'ĐẶT LỊCH', path: '/booking', hasDropdown: false },
     {
-      label: "DỊCH VỤ",
-      path: "/services",
+      label: 'DỊCH VỤ',
+      path: '/services',
       hasDropdown: true,
       dropdownItems: serviceItems,
     },
-    { label: "LIÊN HỆ", path: "/contact", hasDropdown: false },
+    { label: 'BLOG', path: '/blog', hasDropdown: false },
+    { label: 'LIÊN HỆ', path: '/contact', hasDropdown: false },
   ];
 
   const handleDrawerToggle = () => {
@@ -92,7 +129,7 @@ const Header = () => {
         <Box
           onMouseEnter={() => setServiceHover(true)}
           onMouseLeave={() => setServiceHover(false)}
-          sx={{ position: "relative" }}
+          sx={{ position: 'relative' }}
         >
           <Button
             component={Link}
@@ -100,38 +137,38 @@ const Header = () => {
             endIcon={
               <ExpandMoreIcon
                 sx={{
-                  transition: "transform 0.3s ease",
-                  transform: serviceHover ? "rotate(180deg)" : "rotate(0deg)",
-                  fontSize: "18px !important",
+                  transition: 'transform 0.3s ease',
+                  transform: serviceHover ? 'rotate(180deg)' : 'rotate(0deg)',
+                  fontSize: '18px !important',
                 }}
               />
             }
             sx={{
-              color: "inherit",
-              fontSize: "13px",
+              color: 'inherit',
+              fontSize: '13px',
               fontWeight: isActive ? 600 : 500,
-              letterSpacing: "1.5px",
+              letterSpacing: '1.5px',
               px: 2.5,
               py: 1.5,
               borderRadius: 0,
-              position: "relative",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              "&::after": {
+              position: 'relative',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&::after': {
                 content: '""',
-                position: "absolute",
+                position: 'absolute',
                 bottom: 0,
-                left: "50%",
-                width: isActive ? "100%" : "0%",
-                height: "2px",
-                background: "linear-gradient(90deg, #d4af8c, #b8956f)",
-                transform: "translateX(-50%)",
-                transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                borderRadius: "2px",
+                left: '50%',
+                width: isActive ? '100%' : '0%',
+                height: '2px',
+                background: 'linear-gradient(90deg, #d4af8c, #b8956f)',
+                transform: 'translateX(-50%)',
+                transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                borderRadius: '2px',
               },
-              "&:hover": {
-                backgroundColor: "transparent",
-                "&::after": {
-                  width: "100%",
+              '&:hover': {
+                backgroundColor: 'transparent',
+                '&::after': {
+                  width: '100%',
                 },
               },
             }}
@@ -142,32 +179,31 @@ const Header = () => {
           {/* Dropdown Menu */}
           <Box
             sx={{
-              position: "absolute",
-              top: "100%",
-              left: "50%",
-              minWidth: "220px",
-              backgroundColor: "rgba(255, 255, 255, 0.98)",
-              backdropFilter: "blur(20px)",
-              borderRadius: "12px",
-              boxShadow:
-                "0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255,255,255,0.1)",
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              minWidth: '220px',
+              backgroundColor: 'rgba(255, 255, 255, 0.98)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '12px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255,255,255,0.1)',
               opacity: serviceHover ? 1 : 0,
-              visibility: serviceHover ? "visible" : "hidden",
+              visibility: serviceHover ? 'visible' : 'hidden',
               transform: serviceHover
-                ? "translateX(-50%) translateY(8px)"
-                : "translateX(-50%) translateY(20px)",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                ? 'translateX(-50%) translateY(8px)'
+                : 'translateX(-50%) translateY(20px)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               py: 1.5,
               zIndex: 1000,
               // Invisible bridge to connect button and dropdown for smooth hover
-              "&::before": {
+              '&::before': {
                 content: '""',
-                position: "absolute",
-                top: "-20px",
+                position: 'absolute',
+                top: '-20px',
                 left: 0,
-                width: "100%",
-                height: "20px",
-                backgroundColor: "transparent",
+                width: '100%',
+                height: '20px',
+                backgroundColor: 'transparent',
               },
             }}
           >
@@ -177,55 +213,53 @@ const Header = () => {
                 component={Link}
                 to={subItem.path}
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 1.5,
                   px: 2.5,
                   py: 1.5,
-                  color: "#333",
-                  textDecoration: "none",
-                  fontSize: "14px",
+                  color: '#333',
+                  textDecoration: 'none',
+                  fontSize: '14px',
                   fontWeight: 500,
-                  letterSpacing: "0.3px",
-                  transition: "all 0.2s ease",
-                  position: "relative",
-                  overflow: "hidden",
-                  animation: serviceHover
-                    ? `fadeInUp 0.3s ease forwards ${index * 0.05}s`
-                    : "none",
+                  letterSpacing: '0.3px',
+                  transition: 'all 0.2s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  animation: serviceHover ? `fadeInUp 0.3s ease forwards ${index * 0.05}s` : 'none',
                   opacity: serviceHover ? 1 : 0,
-                  "@keyframes fadeInUp": {
+                  '@keyframes fadeInUp': {
                     from: {
                       opacity: 0,
-                      transform: "translateY(10px)",
+                      transform: 'translateY(10px)',
                     },
                     to: {
                       opacity: 1,
-                      transform: "translateY(0)",
+                      transform: 'translateY(0)',
                     },
                   },
-                  "&::before": {
+                  '&::before': {
                     content: '""',
-                    position: "absolute",
+                    position: 'absolute',
                     left: 0,
                     top: 0,
-                    height: "100%",
-                    width: "3px",
-                    background: "linear-gradient(180deg, #d4af8c, #b8956f)",
-                    transform: "scaleY(0)",
-                    transition: "transform 0.2s ease",
+                    height: '100%',
+                    width: '3px',
+                    background: 'linear-gradient(180deg, #d4af8c, #b8956f)',
+                    transform: 'scaleY(0)',
+                    transition: 'transform 0.2s ease',
                   },
-                  "&:hover": {
-                    backgroundColor: alpha("#d4af8c", 0.1),
-                    color: "#b8956f",
+                  '&:hover': {
+                    backgroundColor: alpha('#d4af8c', 0.1),
+                    color: '#b8956f',
                     pl: 3.5,
-                    "&::before": {
-                      transform: "scaleY(1)",
+                    '&::before': {
+                      transform: 'scaleY(1)',
                     },
                   },
                 }}
               >
-                <SpaIcon sx={{ fontSize: "16px", opacity: 0.7 }} />
+                <SpaIcon sx={{ fontSize: '16px', opacity: 0.7 }} />
                 {subItem.label}
               </Box>
             ))}
@@ -239,31 +273,31 @@ const Header = () => {
         component={Link}
         to={item.path}
         sx={{
-          color: "inherit",
-          fontSize: "13px",
+          color: 'inherit',
+          fontSize: '13px',
           fontWeight: isActive ? 600 : 500,
-          letterSpacing: "1.5px",
+          letterSpacing: '1.5px',
           px: 2.5,
           py: 1.5,
           borderRadius: 0,
-          position: "relative",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          "&::after": {
+          position: 'relative',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&::after': {
             content: '""',
-            position: "absolute",
+            position: 'absolute',
             bottom: 0,
-            left: "50%",
-            width: isActive ? "100%" : "0%",
-            height: "2px",
-            background: "linear-gradient(90deg, #d4af8c, #b8956f)",
-            transform: "translateX(-50%)",
-            transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            borderRadius: "2px",
+            left: '50%',
+            width: isActive ? '100%' : '0%',
+            height: '2px',
+            background: 'linear-gradient(90deg, #d4af8c, #b8956f)',
+            transform: 'translateX(-50%)',
+            transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '2px',
           },
-          "&:hover": {
-            backgroundColor: "transparent",
-            "&::after": {
-              width: "100%",
+          '&:hover': {
+            backgroundColor: 'transparent',
+            '&::after': {
+              width: '100%',
             },
           },
         }}
@@ -277,32 +311,32 @@ const Header = () => {
   const drawer = (
     <Box
       sx={{
-        width: "100%",
-        height: "100%",
-        background: "linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%)",
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
+        width: '100%',
+        height: '100%',
+        background: 'linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%)',
+        color: 'white',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {/* Drawer Header */}
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           p: 3,
-          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
         }}
       >
         <Typography
           variant="h5"
           sx={{
             fontWeight: 600,
-            letterSpacing: "3px",
-            background: "linear-gradient(135deg, #d4af8c 0%, #e8d4c0 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+            letterSpacing: '3px',
+            background: 'linear-gradient(135deg, #d4af8c 0%, #e8d4c0 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
           }}
         >
           MARLIE
@@ -310,12 +344,12 @@ const Header = () => {
         <IconButton
           onClick={handleDrawerToggle}
           sx={{
-            color: "white",
-            "&:hover": {
-              backgroundColor: "rgba(255,255,255,0.1)",
-              transform: "rotate(90deg)",
+            color: 'white',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              transform: 'rotate(90deg)',
             },
-            transition: "all 0.3s ease",
+            transition: 'all 0.3s ease',
           }}
         >
           <CloseIcon />
@@ -334,8 +368,8 @@ const Header = () => {
                     sx={{
                       py: 2.5,
                       px: 4,
-                      "&:hover": {
-                        backgroundColor: "rgba(212, 175, 140, 0.1)",
+                      '&:hover': {
+                        backgroundColor: 'rgba(212, 175, 140, 0.1)',
                       },
                     }}
                   >
@@ -343,18 +377,16 @@ const Header = () => {
                       primary={item.label}
                       primaryTypographyProps={{
                         sx: {
-                          fontSize: "16px",
+                          fontSize: '16px',
                           fontWeight: 500,
-                          letterSpacing: "2px",
+                          letterSpacing: '2px',
                         },
                       }}
                     />
                     <ExpandMoreIcon
                       sx={{
-                        transition: "transform 0.3s ease",
-                        transform: servicesOpen
-                          ? "rotate(180deg)"
-                          : "rotate(0deg)",
+                        transition: 'transform 0.3s ease',
+                        transform: servicesOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                       }}
                     />
                   </ListItemButton>
@@ -370,22 +402,20 @@ const Header = () => {
                           py: 1.5,
                           pl: 6,
                           pr: 4,
-                          "&:hover": {
-                            backgroundColor: "rgba(212, 175, 140, 0.15)",
+                          '&:hover': {
+                            backgroundColor: 'rgba(212, 175, 140, 0.15)',
                           },
                         }}
                       >
-                        <SpaIcon
-                          sx={{ fontSize: "16px", mr: 2, color: "#d4af8c" }}
-                        />
+                        <SpaIcon sx={{ fontSize: '16px', mr: 2, color: '#d4af8c' }} />
                         <ListItemText
                           primary={subItem.label}
                           primaryTypographyProps={{
                             sx: {
-                              fontSize: "14px",
+                              fontSize: '14px',
                               fontWeight: 400,
-                              letterSpacing: "0.5px",
-                              color: "rgba(255,255,255,0.8)",
+                              letterSpacing: '0.5px',
+                              color: 'rgba(255,255,255,0.8)',
                             },
                           }}
                         />
@@ -400,14 +430,14 @@ const Header = () => {
                 sx={{
                   animation: `slideInLeft 0.4s ease forwards ${index * 0.1}s`,
                   opacity: 0,
-                  "@keyframes slideInLeft": {
+                  '@keyframes slideInLeft': {
                     from: {
                       opacity: 0,
-                      transform: "translateX(-20px)",
+                      transform: 'translateX(-20px)',
                     },
                     to: {
                       opacity: 1,
-                      transform: "translateX(0)",
+                      transform: 'translateX(0)',
                     },
                   },
                 }}
@@ -419,30 +449,27 @@ const Header = () => {
                   sx={{
                     py: 2.5,
                     px: 4,
-                    position: "relative",
-                    overflow: "hidden",
-                    "&::before": {
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::before': {
                       content: '""',
-                      position: "absolute",
+                      position: 'absolute',
                       left: 0,
                       top: 0,
-                      height: "100%",
-                      width: "3px",
-                      background: "linear-gradient(180deg, #d4af8c, #b8956f)",
-                      transform:
-                        location.pathname === item.path
-                          ? "scaleY(1)"
-                          : "scaleY(0)",
-                      transition: "transform 0.3s ease",
+                      height: '100%',
+                      width: '3px',
+                      background: 'linear-gradient(180deg, #d4af8c, #b8956f)',
+                      transform: location.pathname === item.path ? 'scaleY(1)' : 'scaleY(0)',
+                      transition: 'transform 0.3s ease',
                     },
-                    "&:hover": {
-                      backgroundColor: "rgba(212, 175, 140, 0.1)",
-                      "&::before": {
-                        transform: "scaleY(1)",
+                    '&:hover': {
+                      backgroundColor: 'rgba(212, 175, 140, 0.1)',
+                      '&::before': {
+                        transform: 'scaleY(1)',
                       },
                     },
-                    "&.Mui-selected": {
-                      backgroundColor: "rgba(212, 175, 140, 0.15)",
+                    '&.Mui-selected': {
+                      backgroundColor: 'rgba(212, 175, 140, 0.15)',
                     },
                   }}
                 >
@@ -450,9 +477,9 @@ const Header = () => {
                     primary={item.label}
                     primaryTypographyProps={{
                       sx: {
-                        fontSize: "16px",
+                        fontSize: '16px',
                         fontWeight: 500,
-                        letterSpacing: "2px",
+                        letterSpacing: '2px',
                       },
                     }}
                   />
@@ -463,19 +490,19 @@ const Header = () => {
         ))}
       </List>
 
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
 
       {/* Contact Info */}
       <Box sx={{ p: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-          <PhoneIcon sx={{ fontSize: "18px", color: "#d4af8c" }} />
-          <Typography variant="body2" sx={{ letterSpacing: "0.5px" }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <PhoneIcon sx={{ fontSize: '18px', color: '#d4af8c' }} />
+          <Typography variant="body2" sx={{ letterSpacing: '0.5px' }}>
             0905 969 063
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-          <ScheduleIcon sx={{ fontSize: "18px", color: "#d4af8c" }} />
-          <Typography variant="body2" sx={{ letterSpacing: "0.5px" }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+          <ScheduleIcon sx={{ fontSize: '18px', color: '#d4af8c' }} />
+          <Typography variant="body2" sx={{ letterSpacing: '0.5px' }}>
             Mở cửa: 9:00 - 20:00
           </Typography>
         </Box>
@@ -490,18 +517,18 @@ const Header = () => {
           }}
           sx={{
             py: 2,
-            background: "linear-gradient(135deg, #d4af8c 0%, #b8956f 100%)",
-            color: "white",
-            fontSize: "14px",
+            background: 'linear-gradient(135deg, #d4af8c 0%, #b8956f 100%)',
+            color: 'white',
+            fontSize: '14px',
             fontWeight: 600,
-            letterSpacing: "2px",
-            borderRadius: "50px",
-            boxShadow: "0 8px 30px rgba(212, 175, 140, 0.3)",
-            transition: "all 0.3s ease",
-            "&:hover": {
-              background: "linear-gradient(135deg, #e8d4c0 0%, #d4af8c 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 12px 40px rgba(212, 175, 140, 0.4)",
+            letterSpacing: '2px',
+            borderRadius: '50px',
+            boxShadow: '0 8px 30px rgba(212, 175, 140, 0.3)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #e8d4c0 0%, #d4af8c 100%)',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 12px 40px rgba(212, 175, 140, 0.4)',
             },
           }}
         >
@@ -518,54 +545,52 @@ const Header = () => {
         elevation={0}
         sx={{
           backgroundColor: useSolidHeader
-            ? "rgba(255, 255, 255, 0.98)"
-            : "rgba(255, 252, 249, 0.8)",
-          backdropFilter: "blur(20px)",
-          boxShadow: useSolidHeader ? "0 4px 30px rgba(0, 0, 0, 0.05)" : "none",
-          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-          color: "text.primary",
-          borderBottom: useSolidHeader
-            ? "1px solid rgba(0, 0, 0, 0.05)"
-            : "none",
+            ? 'rgba(255, 255, 255, 0.98)'
+            : 'rgba(255, 252, 249, 0.8)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: useSolidHeader ? '0 4px 30px rgba(0, 0, 0, 0.05)' : 'none',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          color: 'text.primary',
+          borderBottom: useSolidHeader ? '1px solid rgba(0, 0, 0, 0.05)' : 'none',
         }}
       >
         {/* Top Bar - Contact Info (Desktop Only) */}
         <Box
           sx={{
-            display: { xs: "none", lg: "block" },
-            backgroundColor: "rgba(26, 26, 26, 0.05)",
-            backdropFilter: "blur(10px)",
-            transition: "all 0.4s ease",
+            display: { xs: 'none', lg: 'block' },
+            backgroundColor: 'rgba(26, 26, 26, 0.05)',
+            backdropFilter: 'blur(10px)',
+            transition: 'all 0.4s ease',
             py: 0.8,
           }}
         >
           <Container maxWidth="xl">
             <Box
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
-              <Box sx={{ display: "flex", gap: 4 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <PhoneIcon sx={{ fontSize: "14px", opacity: 0.8 }} />
+              <Box sx={{ display: 'flex', gap: 4 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PhoneIcon sx={{ fontSize: '14px', opacity: 0.8 }} />
                   <Typography
                     variant="caption"
                     sx={{
-                      letterSpacing: "0.5px",
+                      letterSpacing: '0.5px',
                       fontWeight: 500,
                     }}
                   >
                     0905 969 063
                   </Typography>
                 </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <ScheduleIcon sx={{ fontSize: "14px", opacity: 0.8 }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ScheduleIcon sx={{ fontSize: '14px', opacity: 0.8 }} />
                   <Typography
                     variant="caption"
                     sx={{
-                      letterSpacing: "0.5px",
+                      letterSpacing: '0.5px',
                       fontWeight: 500,
                     }}
                   >
@@ -576,7 +601,7 @@ const Header = () => {
               <Typography
                 variant="caption"
                 sx={{
-                  letterSpacing: "0.5px",
+                  letterSpacing: '0.5px',
                   fontWeight: 500,
                 }}
               >
@@ -590,10 +615,10 @@ const Header = () => {
         <Container maxWidth="xl">
           <Toolbar
             sx={{
-              justifyContent: "space-between",
+              justifyContent: 'space-between',
               py: scrolled ? 1 : 2,
-              transition: "padding 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-              minHeight: { xs: "64px", md: "72px" },
+              transition: 'padding 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              minHeight: { xs: '64px', md: '72px' },
             }}
           >
             {/* Logo */}
@@ -602,17 +627,17 @@ const Header = () => {
               to="/"
               sx={{
                 fontWeight: 700,
-                letterSpacing: "4px",
-                fontSize: { xs: "1.3rem", md: "1.6rem" },
-                textDecoration: "none",
-                position: "relative",
-                color: "inherit",
-                transition: "all 0.3s ease",
-                background: "linear-gradient(135deg, #d4af8c 0%, #b8956f 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                "&:hover": {
-                  transform: "scale(1.02)",
+                letterSpacing: '4px',
+                fontSize: { xs: '1.3rem', md: '1.6rem' },
+                textDecoration: 'none',
+                position: 'relative',
+                color: 'inherit',
+                transition: 'all 0.3s ease',
+                background: 'linear-gradient(135deg, #d4af8c 0%, #b8956f 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                '&:hover': {
+                  transform: 'scale(1.02)',
                 },
               }}
             >
@@ -620,13 +645,13 @@ const Header = () => {
               <Box
                 component="span"
                 sx={{
-                  display: "block",
-                  fontSize: "8px",
-                  letterSpacing: "3px",
-                  textTransform: "uppercase",
+                  display: 'block',
+                  fontSize: '8px',
+                  letterSpacing: '3px',
+                  textTransform: 'uppercase',
                   opacity: 0.7,
-                  WebkitTextFillColor: "#8b6f47",
-                  textAlign: "center",
+                  WebkitTextFillColor: '#8b6f47',
+                  textAlign: 'center',
                   mt: -0.5,
                 }}
               >
@@ -637,9 +662,9 @@ const Header = () => {
             {/* Desktop Navigation */}
             <Box
               sx={{
-                display: { xs: "none", md: "flex" },
+                display: { xs: 'none', md: 'flex' },
                 gap: 0.5,
-                alignItems: "center",
+                alignItems: 'center',
               }}
             >
               {menuItems.map((item) => (
@@ -648,38 +673,120 @@ const Header = () => {
             </Box>
 
             {/* Right Section */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {/* Customer Account or Login */}
+              {customer ? (
+                <>
+                  <IconButton
+                    onClick={handleMenuOpen}
+                    sx={{
+                      p: 0,
+                      border: '2px solid',
+                      borderColor: '#d4af8c',
+                      transition: 'all 0.3s ease',
+                      '&:hover': { transform: 'scale(1.05)' },
+                    }}
+                  >
+                    <MuiAvatar
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        bgcolor: '#d4af8c',
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {customer.fullName?.charAt(0)}
+                    </MuiAvatar>
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                    onClick={handleMenuClose}
+                    PaperProps={{
+                      elevation: 0,
+                      sx: {
+                        overflow: 'visible',
+                        filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
+                        mt: 1.5,
+                        borderRadius: 3,
+                        minWidth: 180,
+                        '& .MuiAvatar-root': {
+                          width: 32,
+                          height: 32,
+                          ml: -0.5,
+                          mr: 1,
+                        },
+                      },
+                    }}
+                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                  >
+                    <MenuItem component={Link} to="/my-account">
+                      <ListItemIcon>
+                        <DashboardIcon fontSize="small" />
+                      </ListItemIcon>
+                      Dashboard
+                    </MenuItem>
+                    <MenuItem component={Link} to="/my-account/profile">
+                      <ListItemIcon>
+                        <AccountCircle fontSize="small" />
+                      </ListItemIcon>
+                      Tài khoản
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem onClick={handleLogout}>
+                      <ListItemIcon>
+                        <Logout fontSize="small" />
+                      </ListItemIcon>
+                      Đăng xuất
+                    </MenuItem>
+                  </Menu>
+                </>
+              ) : (
+                <Button
+                  component={Link}
+                  to="/login"
+                  sx={{
+                    display: { xs: 'none', md: 'flex' },
+                    color: '#4a3728',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    letterSpacing: '1px',
+                    '&:hover': { backgroundColor: alpha('#d4af8c', 0.1) },
+                  }}
+                >
+                  ĐĂNG NHẬP
+                </Button>
+              )}
+
               {/* Book Now Button - Desktop */}
               <Button
                 variant="contained"
                 onClick={() => openModal()}
                 sx={{
-                  display: { xs: "none", sm: "flex" },
+                  display: { xs: 'none', sm: 'flex' },
                   px: 4,
                   py: 1.5,
-                  fontSize: "13px",
+                  fontSize: '13px',
                   fontWeight: 600,
-                  letterSpacing: "1.5px",
-                  borderRadius: "50px",
-                  background:
-                    "linear-gradient(135deg, #d4af8c 0%, #b8956f 100%)",
-                  backdropFilter: "blur(10px)",
-                  border: useSolidHeader
-                    ? "none"
-                    : "1px solid rgba(212, 175, 140, 0.3)",
-                  color: "white",
-                  boxShadow: useSolidHeader
-                    ? "0 4px 20px rgba(212, 175, 140, 0.35)"
-                    : "none",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  "&:hover": {
+                  letterSpacing: '1.5px',
+                  borderRadius: '50px',
+                  background: 'linear-gradient(135deg, #d4af8c 0%, #b8956f 100%)',
+                  backdropFilter: 'blur(10px)',
+                  border: useSolidHeader ? 'none' : '1px solid rgba(212, 175, 140, 0.3)',
+                  color: 'white',
+                  boxShadow: useSolidHeader ? '0 4px 20px rgba(212, 175, 140, 0.35)' : 'none',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
                     background: useSolidHeader
-                      ? "linear-gradient(135deg, #e8d4c0 0%, #d4af8c 100%)"
-                      : "rgba(255, 255, 255, 0.25)",
-                    transform: "translateY(-2px)",
+                      ? 'linear-gradient(135deg, #e8d4c0 0%, #d4af8c 100%)'
+                      : 'rgba(255, 255, 255, 0.25)',
+                    transform: 'translateY(-2px)',
                     boxShadow: useSolidHeader
-                      ? "0 8px 30px rgba(212, 175, 140, 0.45)"
-                      : "0 8px 30px rgba(255, 255, 255, 0.1)",
+                      ? '0 8px 30px rgba(212, 175, 140, 0.45)'
+                      : '0 8px 30px rgba(255, 255, 255, 0.1)',
                   },
                 }}
               >
@@ -691,24 +798,24 @@ const Header = () => {
                 onClick={handleDrawerToggle}
                 aria-label="Toggle navigation menu"
                 sx={{
-                  display: { xs: "flex", md: "none" },
-                  color: "inherit",
+                  display: { xs: 'flex', md: 'none' },
+                  color: 'inherit',
                   width: 44,
                   height: 44,
-                  borderRadius: "12px",
+                  borderRadius: '12px',
                   backgroundColor: useSolidHeader
-                    ? "rgba(212, 175, 140, 0.1)"
-                    : "rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(10px)",
+                    ? 'rgba(212, 175, 140, 0.1)'
+                    : 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
                   border: useSolidHeader
-                    ? "1px solid rgba(212, 175, 140, 0.2)"
-                    : "1px solid rgba(255, 255, 255, 0.2)",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
+                    ? '1px solid rgba(212, 175, 140, 0.2)'
+                    : '1px solid rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
                     backgroundColor: useSolidHeader
-                      ? "rgba(212, 175, 140, 0.2)"
-                      : "rgba(255, 255, 255, 0.2)",
-                    transform: "scale(1.05)",
+                      ? 'rgba(212, 175, 140, 0.2)'
+                      : 'rgba(255, 255, 255, 0.2)',
+                    transform: 'scale(1.05)',
                   },
                 }}
               >
@@ -729,15 +836,15 @@ const Header = () => {
         }}
         PaperProps={{
           sx: {
-            width: { xs: "100%", sm: "360px" },
-            background: "transparent",
+            width: { xs: '100%', sm: '360px' },
+            background: 'transparent',
           },
         }}
         sx={{
-          display: { xs: "block", md: "none" },
-          "& .MuiBackdrop-root": {
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
-            backdropFilter: "blur(5px)",
+          display: { xs: 'block', md: 'none' },
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(5px)',
           },
         }}
       >

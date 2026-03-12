@@ -32,6 +32,16 @@ import {
   AccessTimeOutlined as TimeIcon,
   NotificationsNoneOutlined as NotificationsIcon,
   Circle as CircleIcon,
+  ArticleOutlined as ArticleIcon,
+  CategoryOutlined as CategoryIcon,
+  LocalOfferOutlined as TagIcon,
+  ChatBubbleOutlineOutlined as ChatIcon,
+  PhotoLibraryOutlined as MediaIcon,
+  EditNoteOutlined as EditNoteIcon,
+  MailOutline as MailIcon,
+  SpaOutlined as SpaIcon,
+  PersonOutlined as PersonIcon,
+  RateReviewOutlined as CommentIcon,
 } from '@mui/icons-material';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -94,12 +104,103 @@ const AdminLayout: React.FC = () => {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
-    { text: 'Lịch Hẹn', icon: <CalendarIcon />, path: '/admin/calendar' },
-    { text: 'Nhân Viên', icon: <PeopleIcon />, path: '/admin/staff' },
-    { text: 'Xếp Lịch', icon: <TimeIcon />, path: '/admin/time-slots' },
-    { text: 'Cài Đặt', icon: <SettingsIcon />, path: '/admin/settings' },
+    {
+      text: 'Dashboard',
+      icon: <DashboardIcon />,
+      path: '/admin/dashboard',
+      roles: ['admin', 'super_admin', 'staff'],
+    },
+    {
+      text: 'Lịch Hẹn',
+      icon: <CalendarIcon />,
+      path: '/admin/calendar',
+      roles: ['admin', 'super_admin', 'staff'],
+    },
+    { text: 'Nhân Viên', icon: <PeopleIcon />, path: '/admin/staff', roles: ['super_admin'] },
+    {
+      text: 'Xếp Lịch',
+      icon: <TimeIcon />,
+      path: '/admin/time-slots',
+      roles: ['admin', 'super_admin', 'staff'],
+    },
+    {
+      text: 'Tin Nhắn Liên Hệ',
+      icon: <MailIcon />,
+      path: '/admin/contact-messages',
+      roles: ['admin', 'super_admin', 'staff'],
+    },
+    {
+      text: 'Dịch Vụ',
+      icon: <SpaIcon />,
+      path: '/admin/services',
+      roles: ['admin', 'super_admin'],
+    },
+    {
+      text: 'Khách Hàng',
+      icon: <PersonIcon />,
+      path: '/admin/customers',
+      roles: ['admin', 'super_admin', 'staff'],
+    },
+    {
+      text: 'Khuyến Mãi',
+      icon: <TagIcon />,
+      path: '/admin/promotions',
+      roles: ['admin', 'super_admin'],
+    },
+    {
+      text: 'Đánh Giá',
+      icon: <CommentIcon />,
+      path: '/admin/testimonials',
+      roles: ['admin', 'super_admin'],
+    },
+    {
+      text: 'Cài Đặt',
+      icon: <SettingsIcon />,
+      path: '/admin/settings',
+      roles: ['admin', 'super_admin'],
+    },
   ];
+
+  const blogMenuItems = [
+    {
+      text: 'Blog Overview',
+      icon: <ArticleIcon />,
+      path: '/admin/blog',
+      roles: ['admin', 'super_admin'],
+    },
+    {
+      text: 'Bài viết',
+      icon: <EditNoteIcon />,
+      path: '/admin/blog/posts',
+      roles: ['admin', 'super_admin'],
+    },
+    {
+      text: 'Chuyên mục',
+      icon: <CategoryIcon />,
+      path: '/admin/blog/categories',
+      roles: ['admin', 'super_admin'],
+    },
+    { text: 'Thẻ', icon: <TagIcon />, path: '/admin/blog/tags', roles: ['admin', 'super_admin'] },
+    {
+      text: 'Bình luận',
+      icon: <ChatIcon />,
+      path: '/admin/blog/comments',
+      roles: ['admin', 'super_admin', 'staff'],
+    },
+    {
+      text: 'Media',
+      icon: <MediaIcon />,
+      path: '/admin/blog/media',
+      roles: ['admin', 'super_admin'],
+    },
+  ];
+
+  const filteredMenuItems = menuItems.filter(
+    (item) => !item.roles || item.roles.includes(admin?.role || 'staff'),
+  );
+  const filteredBlogMenuItems = blogMenuItems.filter(
+    (item) => !item.roles || item.roles.includes(admin?.role || 'staff'),
+  );
 
   const drawer = (
     <Box
@@ -145,7 +246,7 @@ const AdminLayout: React.FC = () => {
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', mb: 2 }} />
 
       <List sx={{ px: 2, flexGrow: 1 }}>
-        {menuItems.map((item) => {
+        {filteredMenuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
@@ -183,6 +284,67 @@ const AdminLayout: React.FC = () => {
                       borderRadius: '50%',
                       bgcolor: '#10b981',
                       boxShadow: '0 0 8px #10b981',
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+
+        <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', my: 2 }} />
+        <Typography
+          variant="caption"
+          sx={{
+            px: 2,
+            color: '#64748b',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            display: 'block',
+            mb: 1,
+          }}
+        >
+          Blog
+        </Typography>
+        {filteredBlogMenuItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }}
+                sx={{
+                  borderRadius: '12px',
+                  py: 1.2,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  backgroundColor: isActive ? alpha('#6366f1', 0.1) : 'transparent',
+                  color: isActive ? '#818cf8' : '#94a3b8',
+                  '&:hover': {
+                    backgroundColor: alpha('#6366f1', 0.05),
+                    color: '#f8fafc',
+                    transform: 'translateX(4px)',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>{item.icon}</ListItemIcon>
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    fontWeight: isActive ? 600 : 500,
+                    fontSize: '0.88rem',
+                  }}
+                />
+                {isActive && (
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      bgcolor: '#6366f1',
+                      boxShadow: '0 0 8px #6366f1',
                     }}
                   />
                 )}
@@ -252,7 +414,9 @@ const AdminLayout: React.FC = () => {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
-              {menuItems.find((item) => item.path === location.pathname)?.text || 'Bảng Điều Khiển'}
+              {menuItems.find((item) => item.path === location.pathname)?.text ||
+                blogMenuItems.find((item) => item.path === location.pathname)?.text ||
+                'Bảng Điều Khiển'}
             </Typography>
           </Box>
 
