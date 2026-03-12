@@ -13,26 +13,17 @@ import {
   TableHead,
   TableRow,
   Chip,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControl,
   alpha,
   TextField,
   FormControlLabel,
   Switch,
-  Tooltip,
   CircularProgress,
 } from '@mui/material';
-import {
-  CalendarMonthOutlined as CalendarIcon,
-  SaveOutlined as SaveIcon,
-  AccessTime as TimeIcon,
-  EventBusyOutlined as OffIcon,
-  Refresh as RefreshIcon,
-} from '@mui/icons-material';
+import { SaveOutlined as SaveIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { apiClient } from '@/api';
 
 // Mapping DayOfWeek BE -> FE

@@ -51,11 +51,15 @@ const SpecialOfferSection = () => {
         position: 'relative',
         overflow: 'hidden',
         background: 'linear-gradient(135deg, #fff5e6 0%, #ffe8cc 50%, #fff5e6 100%)',
+        position: 'relative',
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, #fff5e6 0%, #ffe8cc 50%, #fff5e6 100%)',
       }}
     >
       {/* Decorative elements */}
       <Box
         sx={{
+          position: 'absolute',
           position: 'absolute',
           top: -100,
           right: -100,
@@ -68,157 +72,165 @@ const SpecialOfferSection = () => {
       />
 
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-        {/* Promotional Banner */}
-        <Box
-          sx={{
-            background: 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ff6b35 100%)',
-            borderRadius: { xs: 3, md: 4 },
-            p: { xs: 3, md: 4 },
-            mb: { xs: 4, md: 5 },
-            boxShadow: '0 8px 32px rgba(255, 107, 53, 0.3)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1.5,
-                mb: 2,
-              }}
-            >
-              <WhatshotIcon sx={{ fontSize: { xs: '2.5rem', md: '3rem' }, color: 'white' }} />
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 800,
-                  color: 'white',
-                  fontSize: { xs: '2rem', md: '2.75rem' },
-                  fontFamily: '"Playfair Display", serif',
-                }}
-              >
-                KHUYẾN MÃI ĐANG DIỄN RA
-              </Typography>
-            </Box>
-            <Typography variant="h6" sx={{ color: 'white', opacity: 0.9 }}>
-              Khám phá các ưu đãi đặc biệt dành riêng cho bạn tại Marlie Nails & Spa
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Promotions Grid */}
-        <Grid container spacing={3}>
-          {loadingPromos
-            ? [1, 2, 3].map((i) => (
-                <Grid item xs={12} sm={6} md={4} key={i}>
-                  <Card sx={{ height: '100%', borderRadius: 3, p: 3 }}>
-                    <Skeleton variant="text" height={40} />
-                    <Skeleton variant="rectangular" height={100} sx={{ my: 2 }} />
-                    <Skeleton variant="rectangular" height={40} />
-                  </Card>
-                </Grid>
-              ))
-            : promotions.map((p) => (
-                <Grid item xs={12} sm={6} md={4} key={p.id}>
-                  <Card
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          {/* Promotional Banner */}
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ff6b35 100%)',
+              background: 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ff6b35 100%)',
+              borderRadius: { xs: 3, md: 4 },
+              p: { xs: 3, md: 4 },
+              mb: { xs: 4, md: 5 },
+              boxShadow: '0 8px 32px rgba(255, 107, 53, 0.3)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+              <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1.5,
+                    mb: 2,
+                  }}
+                >
+                  <WhatshotIcon sx={{ fontSize: { xs: '2.5rem', md: '3rem' }, color: 'white' }} />
+                  <Typography
+                    variant="h3"
                     sx={{
-                      height: '100%',
-                      background: 'white',
-                      borderRadius: 3,
-                      border: '2px solid',
-                      borderColor: 'rgba(255, 107, 53, 0.1)',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                      transition: 'all 0.3s ease',
-                      position: 'relative',
-                      overflow: 'visible',
-                      '&:hover': {
-                        transform: 'translateY(-8px)',
-                        boxShadow: '0 12px 40px rgba(255, 107, 53, 0.15)',
-                        borderColor: '#ff6b35',
-                      },
+                      fontWeight: 800,
+                      color: 'white',
+                      fontSize: { xs: '2rem', md: '2.75rem' },
+                      color: 'white',
+                      fontSize: { xs: '2rem', md: '2.75rem' },
+                      fontFamily: '"Playfair Display", serif',
                     }}
                   >
-                    {/* Badge */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 12,
-                        right: -10,
-                        bgcolor: '#ff6b35',
-                        color: 'white',
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: '4px 0 0 4px',
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        zIndex: 2,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      }}
-                    >
-                      {p.badge || 'HOT'}
-                    </Box>
-
-                    <CardContent sx={{ p: 4 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                        <LocalOfferIcon sx={{ color: '#ff6b35' }} />
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                          {p.title}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ bgcolor: alpha('#ff6b35', 0.05), p: 2, borderRadius: 2, mb: 2 }}>
-                        <Typography variant="h5" sx={{ color: '#ff6b35', fontWeight: 800 }}>
-                          {formatDiscount(p)}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {p.description}
-                        </Typography>
-                      </Box>
-
-                      {p.validUntil && (
-                        <Typography
-                          variant="caption"
-                          sx={{ display: 'block', mb: 2, color: 'text.secondary' }}
-                        >
-                          Hết hạn: {new Date(p.validUntil).toLocaleDateString('vi-VN')}
-                        </Typography>
-                      )}
-
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={() => openModal()}
-                        startIcon={<StarIcon />}
-                        sx={{
-                          bgcolor: '#ff6b35',
-                          '&:hover': { bgcolor: '#e55a2b' },
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          borderRadius: 2,
-                        }}
-                      >
-                        Nhận Ưu Đãi Ngay
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-          {!loadingPromos && promotions.length === 0 && (
-            <Grid item xs={12}>
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography variant="h6" color="text.secondary">
-                  Hiện chưa có chương trình khuyến mãi nào. Hãy quay lại sau nhé!
+                    KHUYẾN MÃI ĐANG DIỄN RA
+                  </Typography>
+                </Box>
+                <Typography variant="h6" sx={{ color: 'white', opacity: 0.9 }}>
+                  Khám phá các ưu đãi đặc biệt dành riêng cho bạn tại Marlie Nails & Spa
                 </Typography>
               </Box>
-            </Grid>
-          )}
-        </Grid>
-      </Container>
+            </Box>
 
-      <BookingModal open={isOpen} onClose={closeModal} />
+            {/* Promotions Grid */}
+            <Grid container spacing={3}>
+              {loadingPromos
+                ? [1, 2, 3].map((i) => (
+                  <Grid item xs={12} sm={6} md={4} key={i}>
+                    <Card sx={{ height: '100%', borderRadius: 3, p: 3 }}>
+                      <Skeleton variant="text" height={40} />
+                      <Skeleton variant="rectangular" height={100} sx={{ my: 2 }} />
+                      <Skeleton variant="rectangular" height={40} />
+                    </Card>
+                  </Grid>
+                ))
+                : promotions.map((p) => (
+                  <Grid item xs={12} sm={6} md={4} key={p.id}>
+                    <Card
+                      sx={{
+                        height: '100%',
+                        background: 'white',
+                        borderRadius: 3,
+                        border: '2px solid',
+                        borderColor: 'rgba(255, 107, 53, 0.1)',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                        transition: 'all 0.3s ease',
+                        position: 'relative',
+                        overflow: 'visible',
+                        '&:hover': {
+                          transform: 'translateY(-8px)',
+                          boxShadow: '0 12px 40px rgba(255, 107, 53, 0.15)',
+                          borderColor: '#ff6b35',
+                        },
+                      }}
+                    >
+                      {/* Badge */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 12,
+                          right: -10,
+                          bgcolor: '#ff6b35',
+                          color: 'white',
+                          px: 2,
+                          py: 0.5,
+                          borderRadius: '4px 0 0 4px',
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          zIndex: 2,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        }}
+                      >
+                        {p.badge || 'HOT'}
+                      </Box>
+
+                      <CardContent sx={{ p: 4 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                          <LocalOfferIcon sx={{ color: '#ff6b35' }} />
+                          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                            {p.title}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ bgcolor: alpha('#ff6b35', 0.05), p: 2, borderRadius: 2, mb: 2 }}>
+                          <Typography variant="h5" sx={{ color: '#ff6b35', fontWeight: 800 }}>
+                            {formatDiscount(p)}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                            {p.description}
+                          </Typography>
+                        </Box>
+
+                        {p.validUntil && (
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', mb: 2, color: 'text.secondary' }}
+                          >
+                            Hết hạn: {new Date(p.validUntil).toLocaleDateString('vi-VN')}
+                          </Typography>
+                        )}
+
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          onClick={() => openModal()}
+                          startIcon={<StarIcon />}
+                          sx={{
+                            bgcolor: '#ff6b35',
+                            '&:hover': { bgcolor: '#e55a2b' },
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            borderRadius: 2,
+                          }}
+                        >
+                          Nhận Ưu Đãi Ngay
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              {!loadingPromos && promotions.length === 0 && (
+                <Grid item xs={12}>
+                  <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <Typography variant="h6" color="text.secondary">
+                      Hiện chưa có chương trình khuyến mãi nào. Hãy quay lại sau nhé!
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+        </Container>
+
+        <BookingModal open={isOpen} onClose={closeModal} />
     </Box>
   );
 };
