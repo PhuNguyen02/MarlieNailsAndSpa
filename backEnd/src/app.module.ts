@@ -23,6 +23,8 @@ import {
   ContactMessage,
   Promotion,
   Testimonial,
+  Banner,
+  HomepageSection,
 } from './entities';
 import { AuthModule } from './admin/auth/auth.module';
 import { ServicesModule } from './admin/services/services.module';
@@ -41,6 +43,9 @@ import { PromotionsModule } from './admin/promotions/promotions.module';
 import { TestimonialsModule } from './admin/testimonials/testimonials.module';
 import { CustomerAuthModule } from './customer/auth/customer-auth.module';
 import { CustomerProfileModule } from './customer/profile/customer-profile.module';
+import { HomepageModule } from './admin/homepage/homepage.module';
+import { BannersModule } from './admin/banners/banners.module';
+import { DashboardModule } from './admin/dashboard/dashboard.module';
 
 // Import migrations
 import { InitialSchema1768831183415 } from './migrations/1768831183415-InitialSchema';
@@ -48,6 +53,8 @@ import { CreateBookingEmployeesTable1769005813189 } from './migrations/176900581
 import { CreateCMSTables1769008354276 } from './migrations/1769008354276-CreateCMSTables';
 import { UpdateServiceStructure1769100000000 } from './migrations/1769100000000-UpdateServiceStructure';
 import { CreateEmployeeSchedulesTable1769200000000 } from './migrations/1769200000000-CreateEmployeeSchedulesTable';
+import { AddBannersTable1773430803218 } from './migrations/1773430803218-AddBannersTable';
+import { CreateHomepageSectionsTable1773432000000 } from './migrations/1773432000001-CreateHomepageSectionsTable';
 
 @Module({
   imports: [
@@ -87,6 +94,8 @@ import { CreateEmployeeSchedulesTable1769200000000 } from './migrations/17692000
           ContactMessage,
           Promotion,
           Testimonial,
+          Banner,
+          HomepageSection,
         ],
         migrations: [
           InitialSchema1768831183415,
@@ -94,6 +103,8 @@ import { CreateEmployeeSchedulesTable1769200000000 } from './migrations/17692000
           CreateCMSTables1769008354276,
           UpdateServiceStructure1769100000000,
           CreateEmployeeSchedulesTable1769200000000,
+          AddBannersTable1773430803218,
+          CreateHomepageSectionsTable1773432000000,
         ],
         synchronize: false,
         logging: true,
@@ -121,6 +132,11 @@ import { CreateEmployeeSchedulesTable1769200000000 } from './migrations/17692000
     TestimonialsModule,
     CustomerAuthModule,
     CustomerProfileModule,
+
+    // Additional Admin Modules
+    HomepageModule,
+    BannersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

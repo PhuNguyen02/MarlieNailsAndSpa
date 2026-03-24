@@ -3,10 +3,6 @@ import {
   Box,
   Container,
   Typography,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActionArea,
   Chip,
   Grid,
   Pagination,
@@ -20,15 +16,18 @@ import {
 } from '@mui/material';
 import {
   AccessTime,
-  Visibility,
   Search as SearchIcon,
   ArrowForward,
-  CalendarMonth,
 } from '@mui/icons-material';
 import { useNavigate, Link } from 'react-router-dom';
 import { publicBlogApi } from '@/api/blogApi';
 import type { BlogPost, BlogCategory, BlogTag } from '@/api/blogTypes';
+import BlogPostCard from '@/components/Blog/BlogPostCard';
+import MainLayout from '@/components/MainLayout/MainLayout';
 
+// ==========================================
+// Featured Slider Component
+// ==========================================
 // ==========================================
 // Featured Slider Component
 // ==========================================
@@ -42,7 +41,7 @@ const FeaturedSlider: React.FC<{ posts: BlogPost[] }> = ({ posts }) => {
     if (posts.length <= 1) return;
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % posts.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(interval);
   }, [posts.length]);
 
@@ -53,99 +52,149 @@ const FeaturedSlider: React.FC<{ posts: BlogPost[] }> = ({ posts }) => {
     <Box
       sx={{
         position: 'relative',
-        height: isMobile ? 400 : 520,
-        borderRadius: 4,
+        height: isMobile ? 450 : 600,
+        borderRadius: 6,
         overflow: 'hidden',
-        mb: 6,
+        mb: 8,
         cursor: 'pointer',
-        '&:hover .slider-overlay': { opacity: 0.85 },
+        boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
+        '&:hover .slider-image': { transform: 'scale(1.05)' },
+        '&:hover .slider-overlay': { bgcolor: alpha('#000', 0.45) },
       }}
       onClick={() => navigate(`/blog/${post.slug}`)}
     >
       <Box
         component="img"
-        src={post.thumbnailUrl || '/placeholder-blog.jpg'}
+        className="slider-image"
+        src={post.thumbnailUrl || '/images/blog-placeholder-1.png'}
         alt={post.title}
         sx={{
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          transition: 'transform 0.6s ease',
-          '&:hover': { transform: 'scale(1.03)' },
+          transition: 'transform 10s ease-out',
         }}
       />
       <Box
         className="slider-overlay"
         sx={{
           position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-          p: isMobile ? 3 : 5,
-          transition: 'opacity 0.3s ease',
+          inset: 0,
+          background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          p: isMobile ? 4 : 8,
+          transition: 'background-color 0.4s ease',
         }}
       >
-        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-          {post.categories?.map((cat) => (
-            <Chip
-              key={cat.id}
-              label={cat.name}
-              size="small"
-              sx={{
-                bgcolor: alpha(theme.palette.primary.main, 0.9),
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: '0.7rem',
-              }}
-            />
-          ))}
-          <Chip
-            icon={<AccessTime sx={{ fontSize: 14, color: '#fff !important' }} />}
-            label={`${post.readingTime} min read`}
-            size="small"
-            sx={{ bgcolor: alpha('#fff', 0.2), color: '#fff', fontSize: '0.7rem' }}
-          />
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 1.5, mb: 3, flexWrap: 'wrap' }}>
+            {post.categories?.map((cat) => (
+              <Chip
+                key={cat.id}
+                label={cat.name}
+                size="small"
+                sx={{
+                  bgcolor: theme.palette.primary.main,
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  px: 1,
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                }}
+              />
+            ))}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: alpha('#fff', 0.8) }}>
+              <AccessTime sx={{ fontSize: 16 }} />
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                {post.readingTime} min read
+              </Typography>
+            </Box>
+          </Box>
+          
+          <Typography
+            variant={isMobile ? 'h4' : 'h2'}
+            sx={{ 
+              color: '#fff', 
+              fontWeight: 800, 
+              mb: 2.5, 
+              lineHeight: 1.1,
+              maxWidth: 900,
+              textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+            }}
+          >
+            {post.title}
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{ 
+              color: alpha('#fff', 0.9), 
+              maxWidth: 700, 
+              lineHeight: 1.6,
+              fontWeight: 400,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {post.excerpt}
+          </Typography>
         </Box>
-        <Typography
-          variant={isMobile ? 'h5' : 'h3'}
-          sx={{ color: '#fff', fontWeight: 700, mb: 1, lineHeight: 1.2 }}
-        >
-          {post.title}
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ color: alpha('#fff', 0.85), maxWidth: 600, lineHeight: 1.6 }}
-        >
-          {post.excerpt}
-        </Typography>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+          <Box 
+            sx={{ 
+              width: 40, 
+              height: 2, 
+              bgcolor: theme.palette.primary.main,
+              mr: 1
+            }} 
+          />
+          <Typography 
+            variant="button" 
+            sx={{ 
+              color: '#fff', 
+              fontWeight: 700, 
+              letterSpacing: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            ĐỌC THÊM <ArrowForward sx={{ fontSize: 18 }} />
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Dots indicator */}
+      {/* Modern Progress Indicators */}
       {posts.length > 1 && (
         <Box
           sx={{
             position: 'absolute',
-            bottom: 16,
-            right: 24,
+            bottom: 40,
+            right: 40,
             display: 'flex',
-            gap: 1,
+            gap: 1.5,
           }}
         >
           {posts.map((_, i) => (
             <Box
               key={i}
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                 e.stopPropagation();
                 setActiveIndex(i);
               }}
               sx={{
-                width: activeIndex === i ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                bgcolor: activeIndex === i ? '#fff' : alpha('#fff', 0.4),
-                transition: 'all 0.3s ease',
+                width: activeIndex === i ? 40 : 10,
+                height: 4,
+                borderRadius: 2,
+                bgcolor: activeIndex === i ? theme.palette.primary.main : alpha('#fff', 0.3),
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                 cursor: 'pointer',
+                '&:hover': { bgcolor: activeIndex === i ? theme.palette.primary.main : alpha('#fff', 0.6) }
               }}
             />
           ))}
@@ -155,142 +204,7 @@ const FeaturedSlider: React.FC<{ posts: BlogPost[] }> = ({ posts }) => {
   );
 };
 
-// ==========================================
-// Blog Post Card Component
-// ==========================================
-const BlogPostCard: React.FC<{ post: BlogPost }> = ({ post }) => {
-  const theme = useTheme();
-
-  return (
-    <Card
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        border: '1px solid',
-        borderColor: alpha(theme.palette.divider, 0.1),
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-        transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': {
-          transform: 'translateY(-6px)',
-          boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
-          '& .card-image': { transform: 'scale(1.05)' },
-        },
-      }}
-    >
-      <CardActionArea
-        component={Link}
-        to={`/blog/${post.slug}`}
-        sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
-      >
-        <Box sx={{ position: 'relative', overflow: 'hidden', height: 200 }}>
-          <CardMedia
-            className="card-image"
-            component="img"
-            height="200"
-            image={post.thumbnailUrl || '/placeholder-blog.jpg'}
-            alt={post.title}
-            sx={{ transition: 'transform 0.5s ease', objectFit: 'cover' }}
-          />
-          {post.isFeatured && (
-            <Chip
-              label="Featured"
-              size="small"
-              sx={{
-                position: 'absolute',
-                top: 12,
-                right: 12,
-                bgcolor: theme.palette.primary.main,
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '0.65rem',
-              }}
-            />
-          )}
-        </Box>
-        <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2.5 }}>
-          <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, flexWrap: 'wrap' }}>
-            {post.categories?.slice(0, 2).map((cat) => (
-              <Chip
-                key={cat.id}
-                label={cat.name}
-                size="small"
-                sx={{
-                  fontSize: '0.65rem',
-                  height: 22,
-                  bgcolor: alpha(theme.palette.primary.main, 0.1),
-                  color: theme.palette.primary.dark,
-                  fontWeight: 600,
-                }}
-              />
-            ))}
-          </Box>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 700,
-              fontSize: '1rem',
-              lineHeight: 1.4,
-              mb: 1,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {post.title}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              flex: 1,
-              lineHeight: 1.6,
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              mb: 2,
-            }}
-          >
-            {post.excerpt}
-          </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mt: 'auto',
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CalendarMonth sx={{ fontSize: 14, color: 'text.secondary' }} />
-                <Typography variant="caption" color="text.secondary">
-                  {post.publishedAt
-                    ? new Date(post.publishedAt).toLocaleDateString('vi-VN')
-                    : 'Draft'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <AccessTime sx={{ fontSize: 14, color: 'text.secondary' }} />
-                <Typography variant="caption" color="text.secondary">
-                  {post.readingTime} min
-                </Typography>
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Visibility sx={{ fontSize: 14, color: 'text.secondary' }} />
-              <Typography variant="caption" color="text.secondary">
-                {post.viewCount}
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
-      </CardActionArea>
-    </Card>
-  );
-};
+// BlogPostCard is now imported from '@/components/Blog/BlogPostCard'
 
 // ==========================================
 // Blog Home Page
@@ -350,65 +264,127 @@ const BlogHomePage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+    <MainLayout>
       {/* Hero Header */}
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
-          py: isMobile ? 6 : 10,
+          position: 'relative',
+          background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/images/blog-hero.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          py: isMobile ? 12 : 18,
           px: 3,
-          mb: 4,
+          mb: 0,
+          textAlign: 'center',
+          color: '#fff',
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="md">
           <Typography
-            variant="h2"
+            variant="overline"
             sx={{
-              color: '#fff',
+              color: theme.palette.primary.light,
               fontWeight: 800,
+              letterSpacing: 4,
               mb: 2,
-              fontSize: isMobile ? '2rem' : '3rem',
+              display: 'block',
+              animation: 'fadeInUp 0.8s ease'
             }}
           >
-            Blog
+            KHÁM PHÁ THẾ GIỚI LÀM ĐẸP
+          </Typography>
+          <Typography
+            variant="h1"
+            sx={{
+              color: '#fff',
+              fontWeight: 900,
+              mb: 3,
+              fontSize: isMobile ? '2.5rem' : '4.5rem',
+              lineHeight: 1.1,
+              textShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              animation: 'fadeInUp 1s ease'
+            }}
+          >
+            Marlie <span style={{ color: theme.palette.primary.light }}>Insights</span>
           </Typography>
           <Typography
             variant="h6"
             sx={{
-              color: alpha('#fff', 0.8),
+              color: alpha('#fff', 0.9),
               fontWeight: 400,
-              mb: 4,
-              maxWidth: 500,
+              mb: 6,
+              maxWidth: 600,
+              mx: 'auto',
+              lineHeight: 1.6,
+              fontSize: '1.2rem',
+              animation: 'fadeInUp 1.2s ease'
             }}
           >
-            Tips chăm sóc sắc đẹp, xu hướng nail mới nhất và những chia sẻ từ Marlie Nails & Spa.
+            Nơi chia sẻ những bí quyết chăm sóc sắc đẹp, xu hướng nail thời thượng và nguồn cảm hứng bất tận cho phái đẹp.
           </Typography>
 
-          {/* Search Bar */}
+          {/* Glassmorphism Search Bar */}
           <Paper
             component="form"
             onSubmit={handleSearch}
             sx={{
               display: 'flex',
               alignItems: 'center',
-              maxWidth: 500,
-              borderRadius: 50,
-              px: 2.5,
-              py: 0.5,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              maxWidth: 600,
+              mx: 'auto',
+              borderRadius: 100,
+              px: 3,
+              py: 1,
+              bgcolor: alpha('#fff', 0.15),
+              backdropFilter: 'blur(20px)',
+              border: '1px solid',
+              borderColor: alpha('#fff', 0.2),
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              animation: 'fadeInUp 1.4s ease',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                bgcolor: alpha('#fff', 0.2),
+                transform: 'translateY(-2px)'
+              }
             }}
           >
-            <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+            <SearchIcon sx={{ color: alpha('#fff', 0.8), mr: 2, fontSize: 24 }} />
             <InputBase
-              placeholder="Tìm kiếm bài viết..."
+              placeholder="Bạn đang tìm kiếm điều gì?"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ flex: 1, fontSize: '0.95rem' }}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+              sx={{ 
+                flex: 1, 
+                fontSize: '1.1rem',
+                color: '#fff',
+                '& input::placeholder': { color: alpha('#fff', 0.6) }
+              }}
             />
-            <IconButton type="submit" size="small">
+            <IconButton 
+              type="submit" 
+              sx={{ 
+                bgcolor: theme.palette.primary.main, 
+                color: '#fff',
+                p: 1.2,
+                '&:hover': { bgcolor: theme.palette.primary.dark }
+              }}
+            >
               <ArrowForward />
             </IconButton>
           </Paper>
+        </Container>
+      </Box>
+
+      {/* Elegant Sub-navigation / Featured Label */}
+      <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: alpha(theme.palette.divider, 0.08), mb: 8 }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2, gap: 4 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>TẤT CẢ</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>XU HƯỚNG</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>SKINCARE</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: 1, color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>NAIL ART</Typography>
+          </Box>
         </Container>
       </Box>
 
@@ -454,7 +430,7 @@ const BlogHomePage: React.FC = () => {
                     <Pagination
                       count={totalPages}
                       page={page}
-                      onChange={(_, value) => setPage(value)}
+                      onChange={(_: React.ChangeEvent<unknown>, value: number) => setPage(value)}
                       color="primary"
                       size={isMobile ? 'small' : 'medium'}
                     />
@@ -546,7 +522,7 @@ const BlogHomePage: React.FC = () => {
           </Grid>
         </Grid>
       </Container>
-    </Box>
+    </MainLayout>
   );
 };
 

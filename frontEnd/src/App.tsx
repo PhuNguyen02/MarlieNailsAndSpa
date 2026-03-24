@@ -40,6 +40,8 @@ import RegisterPage from '@/pages/Customer/RegisterPage';
 import CustomerDashboard from '@/pages/Customer/Dashboard';
 import CustomerProfilePage from '@/pages/Customer/ProfilePage';
 import CustomerProtectedRoute from '@/components/Customer/CustomerProtectedRoute';
+import BannersManager from '@/pages/Admin/BannersManager';
+import HomepageManager from '@/pages/Admin/HomepageManager';
 
 function App() {
   return (
@@ -97,6 +99,8 @@ function App() {
           <Route path="customers" element={<CustomersManager />} />
           <Route path="promotions" element={<PromotionsManager />} />
           <Route path="testimonials" element={<TestimonialsManager />} />
+          <Route path="banners" element={<BannersManager />} />
+          <Route path="homepage" element={<HomepageManager />} />
         </Route>
       </Route>
 

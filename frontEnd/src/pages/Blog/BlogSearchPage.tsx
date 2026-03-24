@@ -6,26 +6,20 @@ import {
   Grid,
   Pagination,
   Skeleton,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActionArea,
-  Chip,
   Breadcrumbs,
   useTheme,
   useMediaQuery,
   alpha,
 } from '@mui/material';
 import {
-  AccessTime,
-  Visibility,
-  CalendarMonth,
   NavigateNext,
   SearchOff,
 } from '@mui/icons-material';
 import { useSearchParams, Link } from 'react-router-dom';
 import { publicBlogApi } from '@/api/blogApi';
 import type { BlogPost } from '@/api/blogTypes';
+import BlogPostCard from '@/components/Blog/BlogPostCard';
+import MainLayout from '@/components/MainLayout/MainLayout';
 
 const BlogSearchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -65,20 +59,26 @@ const BlogSearchPage: React.FC = () => {
   }, [page, fetchResults]);
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+    <MainLayout>
       {/* Header */}
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
-          py: isMobile ? 5 : 8,
+          position: 'relative',
+          background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/images/blog-hero.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          py: isMobile ? 8 : 12,
           px: 3,
-          mb: 4,
+          mb: 6,
+          textAlign: 'center',
+          color: '#fff',
         }}
       >
         <Container maxWidth="lg">
           <Breadcrumbs
             separator={<NavigateNext sx={{ fontSize: 16, color: alpha('#fff', 0.6) }} />}
-            sx={{ mb: 2 }}
+            sx={{ mb: 2, justifyContent: 'center', display: 'flex' }}
           >
             <Link
               to="/blog"
@@ -91,12 +91,17 @@ const BlogSearchPage: React.FC = () => {
             </Typography>
           </Breadcrumbs>
           <Typography
-            variant="h3"
-            sx={{ color: '#fff', fontWeight: 800, fontSize: isMobile ? '1.8rem' : '2.5rem' }}
+            variant="h2"
+            sx={{ 
+              color: '#fff', 
+              fontWeight: 900, 
+              fontSize: isMobile ? '2.5rem' : '4rem',
+              textShadow: '0 4px 20px rgba(0,0,0,0.4)'
+            }}
           >
             Kết quả tìm kiếm
           </Typography>
-          <Typography variant="body1" sx={{ color: alpha('#fff', 0.8), mt: 1 }}>
+          <Typography variant="h6" sx={{ color: alpha('#fff', 0.9), mt: 2, fontWeight: 400 }}>
             {loading ? 'Đang tìm kiếm...' : `Tìm thấy ${total} kết quả cho "${query}"`}
           </Typography>
         </Container>
@@ -123,117 +128,10 @@ const BlogSearchPage: React.FC = () => {
           </Box>
         ) : (
           <>
-            <Grid container spacing={3}>
+            <Grid container spacing={4}>
               {posts.map((post) => (
                 <Grid item xs={12} sm={6} md={4} key={post.id}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      border: '1px solid',
-                      borderColor: alpha(theme.palette.divider, 0.1),
-                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                      transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-                      '&:hover': {
-                        transform: 'translateY(-6px)',
-                        boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
-                      },
-                    }}
-                  >
-                    <CardActionArea
-                      component={Link}
-                      to={`/blog/${post.slug}`}
-                      sx={{
-                        flex: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'stretch',
-                      }}
-                    >
-                      <Box sx={{ overflow: 'hidden', height: 200 }}>
-                        <CardMedia
-                          component="img"
-                          height="200"
-                          image={post.thumbnailUrl || '/placeholder-blog.jpg'}
-                          alt={post.title}
-                          sx={{ objectFit: 'cover', transition: 'transform 0.5s ease' }}
-                        />
-                      </Box>
-                      <CardContent
-                        sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2.5 }}
-                      >
-                        <Box sx={{ display: 'flex', gap: 0.5, mb: 1, flexWrap: 'wrap' }}>
-                          {post.categories?.slice(0, 2).map((cat) => (
-                            <Chip
-                              key={cat.id}
-                              label={cat.name}
-                              size="small"
-                              sx={{
-                                fontSize: '0.65rem',
-                                height: 22,
-                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                color: theme.palette.primary.dark,
-                                fontWeight: 600,
-                              }}
-                            />
-                          ))}
-                        </Box>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: 700,
-                            fontSize: '1rem',
-                            mb: 1,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {post.title}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            flex: 1,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            mb: 2,
-                          }}
-                        >
-                          {post.excerpt}
-                        </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <CalendarMonth sx={{ fontSize: 14, color: 'text.secondary' }} />
-                              <Typography variant="caption" color="text.secondary">
-                                {post.publishedAt
-                                  ? new Date(post.publishedAt).toLocaleDateString('vi-VN')
-                                  : 'Draft'}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <AccessTime sx={{ fontSize: 14, color: 'text.secondary' }} />
-                              <Typography variant="caption" color="text.secondary">
-                                {post.readingTime} min
-                              </Typography>
-                            </Box>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Visibility sx={{ fontSize: 14, color: 'text.secondary' }} />
-                            <Typography variant="caption" color="text.secondary">
-                              {post.viewCount}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
+                  <BlogPostCard post={post} />
                 </Grid>
               ))}
             </Grid>
@@ -251,7 +149,7 @@ const BlogSearchPage: React.FC = () => {
           </>
         )}
       </Container>
-    </Box>
+    </MainLayout>
   );
 };
 

@@ -20,3 +20,5 @@ export { MediaFile } from './media-file.entity';
 export { ContactMessage } from './contact-message.entity';
 export { Promotion } from './promotion.entity';
 export { Testimonial } from './testimonial.entity';
+export { Banner } from './banner.entity';
+export { HomepageSection, SectionType } from './homepage-section.entity';

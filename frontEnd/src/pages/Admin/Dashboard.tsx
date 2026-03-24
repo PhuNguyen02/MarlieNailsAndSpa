@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Grid,
   Paper,
@@ -7,6 +7,7 @@ import {
   alpha,
   LinearProgress,
   Avatar,
+  Skeleton,
 } from "@mui/material";
 import {
   TrendingUp,
@@ -15,13 +16,15 @@ import {
   AttachMoneyOutlined,
   BoltOutlined,
 } from "@mui/icons-material";
+import { adminDashboardApi, DashboardStats } from "../../api/dashboardApi";
 
 interface StatCardProps {
   title: string;
-  value: string;
+  value: string | number;
   icon: React.ReactNode;
   color: string;
   trend?: string;
+  loading?: boolean;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -30,6 +33,7 @@ const StatCard: React.FC<StatCardProps> = ({
   icon,
   color,
   trend,
+  loading,
 }) => (
   <Paper
     elevation={0}
@@ -96,16 +100,45 @@ const StatCard: React.FC<StatCardProps> = ({
     >
       {title}
     </Typography>
-    <Typography
-      variant="h4"
-      sx={{ fontWeight: 800, color: "#1e293b", letterSpacing: "-1px" }}
-    >
-      {value}
-    </Typography>
+    {loading ? (
+      <Skeleton width="60%" height={40} />
+    ) : (
+      <Typography
+        variant="h4"
+        sx={{ fontWeight: 800, color: "#1e293b", letterSpacing: "-1px" }}
+      >
+        {value}
+      </Typography>
+    )}
   </Paper>
 );
 
 const Dashboard: React.FC = () => {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await adminDashboardApi.getStats();
+        setStats(data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
   return (
     <Box sx={{ animation: "fadeIn 0.5s ease" }}>
       <Box sx={{ mb: 4 }}>
@@ -116,48 +149,51 @@ const Dashboard: React.FC = () => {
           Chào buổi sáng, Marlie 👋
         </Typography>
         <Typography variant="body1" sx={{ color: "#64748b" }}>
-          Đứng sau một thương hiệu spa thành công là một người quản lý tài ba.
+          Hệ thống đang hoạt động ổn định với các dữ liệu thực tế từ Database.
         </Typography>
       </Box>
 
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Sức Chứa Hiện Tại"
-            value="85%"
+            title="Sức Chứa Hôm Nay"
+            value={stats ? `${stats.occupancyRate}%` : "0%"}
             icon={<BoltOutlined />}
             color="#f59e0b"
+            loading={loading}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Lịch Hẹn Hôm Nay"
-            value="12"
+            value={stats?.todayBookings || 0}
             icon={<CalendarMonthOutlined />}
             color="#3b82f6"
             trend="+5%"
+            loading={loading}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Tổng Doanh Thu"
-            value="₫5.2M"
+            value={stats ? formatCurrency(stats.totalRevenue) : "₫0"}
             icon={<AttachMoneyOutlined />}
             color="#10b981"
             trend="+12%"
+            loading={loading}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Khách Hàng Mới"
-            value="24"
+            title="Khách Hàng Mới (30d)"
+            value={stats?.newCustomers || 0}
             icon={<PeopleAltOutlined />}
             color="#8b5cf6"
             trend="+18%"
+            loading={loading}
           />
         </Grid>
 
-        {/* Placeholder cho Charts hoặc Recent Activities */}
         <Grid item xs={12} md={8}>
           <Paper
             elevation={0}
@@ -180,23 +216,27 @@ const Dashboard: React.FC = () => {
               Tăng trưởng doanh thu
             </Typography>
             <Box sx={{ width: "100%", maxWidth: 400, my: 3 }}>
-              <LinearProgress
-                variant="determinate"
-                value={70}
-                sx={{
-                  height: 12,
-                  borderRadius: 6,
-                  bgcolor: "#f1f5f9",
-                  "& .MuiLinearProgress-bar": {
+              {loading ? (
+                <Skeleton variant="rectangular" width="100%" height={12} sx={{ borderRadius: 6 }} />
+              ) : (
+                <LinearProgress
+                  variant="determinate"
+                  value={stats ? stats.occupancyRate : 0}
+                  sx={{
+                    height: 12,
                     borderRadius: 6,
-                    background: "linear-gradient(to right, #10b981, #3b82f6)",
-                  },
-                }}
-              />
+                    bgcolor: "#f1f5f9",
+                    "& .MuiLinearProgress-bar": {
+                      borderRadius: 6,
+                      background: "linear-gradient(to right, #10b981, #3b82f6)",
+                    },
+                  }}
+                />
+              )}
             </Box>
             <Typography variant="body2" color="text.secondary" align="center">
-              Dữ liệu đang được phân tích từ hệ thống Booking theo thời gian
-              thực...
+              Dữ liệu được tổng hợp từ các giao dịch đã hoàn thành theo thời gian
+              thực.
             </Typography>
           </Paper>
         </Grid>
@@ -216,35 +256,51 @@ const Dashboard: React.FC = () => {
               Hoạt động gần đây
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              {[1, 2, 3, 4].map((i) => (
-                <Box key={i} sx={{ display: "flex", gap: 2 }}>
-                  <Avatar
-                    sx={{
-                      width: 44,
-                      height: 44,
-                      bgcolor: "#f8fafc",
-                      color: "#64748b",
-                      border: "1px solid #e2e8f0",
-                    }}
-                  >
-                    <CalendarMonthOutlined sx={{ fontSize: "1.2rem" }} />
-                  </Avatar>
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: 700, color: "#1e293b" }}
-                    >
-                      Đặt lịch Nail Pro #{i + 2500}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "#64748b", display: "block" }}
-                    >
-                      Khách hàng mới - 2 giờ trước
-                    </Typography>
-                  </Box>
-                </Box>
-              ))}
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <Box key={i} sx={{ display: "flex", gap: 2 }}>
+                      <Skeleton variant="circular" width={44} height={44} />
+                      <Box sx={{ flex: 1 }}>
+                        <Skeleton variant="text" width="80%" />
+                        <Skeleton variant="text" width="40%" />
+                      </Box>
+                    </Box>
+                  ))
+                : stats?.recentActivities.map((act) => (
+                    <Box key={act.id} sx={{ display: "flex", gap: 2 }}>
+                      <Avatar
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          bgcolor: alpha(act.status === 'completed' ? "#10b981" : "#3b82f6", 0.1),
+                          color: act.status === 'completed' ? "#10b981" : "#3b82f6",
+                          border: "1px solid",
+                          borderColor: alpha(act.status === 'completed' ? "#10b981" : "#3b82f6", 0.1),
+                        }}
+                      >
+                        <CalendarMonthOutlined sx={{ fontSize: "1.2rem" }} />
+                      </Avatar>
+                      <Box>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 700, color: "#1e293b" }}
+                        >
+                          {act.customerName} - {act.serviceName}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "#64748b", display: "block" }}
+                        >
+                          {new Date(act.createdAt).toLocaleString('vi-VN')} - Trạng thái: {act.status}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+              {!loading && stats?.recentActivities.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 4 }}>
+                  Chưa có hoạt động nào gần đây.
+                </Typography>
+              )}
             </Box>
           </Paper>
         </Grid>

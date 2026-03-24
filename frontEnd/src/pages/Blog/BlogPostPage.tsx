@@ -41,6 +41,7 @@ import type {
   BlogComment as BlogCommentType,
   CreateCommentRequest,
 } from '@/api/blogTypes';
+import MainLayout from '@/components/MainLayout/MainLayout';
 
 // ==========================================
 // Table of Contents Component
@@ -57,8 +58,6 @@ const TableOfContents: React.FC<{ content: string }> = ({ content }) => {
 
   const items = useMemo(() => {
     const result: TOCItem[] = [];
-
-    // Parse headings without IDs by generating them
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = content;
     const headings = tempDiv.querySelectorAll('h2, h3');
@@ -70,7 +69,6 @@ const TableOfContents: React.FC<{ content: string }> = ({ content }) => {
         level: parseInt(heading.tagName[1]),
       });
     });
-
     return result;
   }, [content]);
 
@@ -78,9 +76,7 @@ const TableOfContents: React.FC<{ content: string }> = ({ content }) => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
+          if (entry.isIntersecting) setActiveId(entry.target.id);
         });
       },
       { rootMargin: '-20% 0% -75% 0%' },
@@ -97,20 +93,27 @@ const TableOfContents: React.FC<{ content: string }> = ({ content }) => {
   if (items.length < 2) return null;
 
   return (
-    <Paper
+    <Box
       sx={{
-        p: 3,
-        borderRadius: 3,
         position: 'sticky',
         top: 100,
-        border: '1px solid',
-        borderColor: alpha(theme.palette.divider, 0.08),
+        pl: 2,
+        borderLeft: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
       }}
     >
-      <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
-        📑 Mục lục
+      <Typography
+        variant="overline"
+        sx={{
+          fontWeight: 800,
+          color: 'text.secondary',
+          mb: 2,
+          display: 'block',
+          letterSpacing: 2,
+        }}
+      >
+        MỤC LỤC
       </Typography>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {items.map((item) => (
           <Box
             key={item.id}
@@ -119,19 +122,17 @@ const TableOfContents: React.FC<{ content: string }> = ({ content }) => {
             sx={{
               textDecoration: 'none',
               color: activeId === item.id ? theme.palette.primary.main : 'text.secondary',
-              fontSize: '0.8rem',
-              lineHeight: 1.6,
+              fontSize: '0.85rem',
+              lineHeight: 1.4,
               pl: item.level === 3 ? 2 : 0,
               py: 0.5,
-              px: 1.5,
-              borderRadius: 1,
+              fontWeight: activeId === item.id ? 700 : 400,
+              transition: 'all 0.2s ease',
               borderLeft: '2px solid',
               borderColor: activeId === item.id ? theme.palette.primary.main : 'transparent',
-              fontWeight: activeId === item.id ? 600 : 400,
-              transition: 'all 0.2s ease',
+              ml: '-18px',
               '&:hover': {
                 color: theme.palette.primary.main,
-                bgcolor: alpha(theme.palette.primary.main, 0.04),
               },
             }}
           >
@@ -139,7 +140,7 @@ const TableOfContents: React.FC<{ content: string }> = ({ content }) => {
           </Box>
         ))}
       </Box>
-    </Paper>
+    </Box>
   );
 };
 
@@ -371,38 +372,100 @@ const BlogPostPage: React.FC = () => {
   const currentUrl = window.location.href;
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
-      {/* Hero Image */}
-      {post.thumbnailUrl && (
+    <MainLayout>
+      {/* Hero Header */}
+      <Box
+        sx={{
+          position: 'relative',
+          height: isMobile ? '60vh' : '70vh',
+          display: 'flex',
+          alignItems: 'flex-end',
+          color: '#fff',
+          overflow: 'hidden',
+          mb: 6,
+        }}
+      >
+        <Box
+          component="img"
+          src={post.thumbnailUrl || '/images/blog-hero.png'}
+          alt={post.title}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: -1,
+            transform: 'scale(1.05)',
+            filter: 'brightness(0.7)',
+          }}
+        />
         <Box
           sx={{
-            position: 'relative',
-            height: isMobile ? 300 : 450,
-            overflow: 'hidden',
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(transparent 50%, rgba(0,0,0,0.8) 100%)',
+            zIndex: -1,
           }}
-        >
-          <Box
-            component="img"
-            src={post.thumbnailUrl}
-            alt={post.title}
-            sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: '50%',
-              background: 'linear-gradient(transparent, rgba(0,0,0,0.6))',
-            }}
-          />
-        </Box>
-      )}
+        />
+        <Container maxWidth="lg" sx={{ pb: 8 }}>
+          <Box sx={{ maxWidth: 800 }}>
+            <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+              {post.categories?.map((cat) => (
+                <Chip
+                  key={cat.id}
+                  label={cat.name}
+                  size="small"
+                  sx={{
+                    bgcolor: theme.palette.primary.main,
+                    color: '#fff',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    fontSize: '0.7rem',
+                    letterSpacing: 1,
+                  }}
+                />
+              ))}
+            </Box>
+            <Typography
+              variant="h1"
+              sx={{
+                fontWeight: 900,
+                fontSize: isMobile ? '2.5rem' : '4rem',
+                lineHeight: 1.1,
+                mb: 4,
+                textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              }}
+            >
+              {post.title}
+            </Typography>
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', opacity: 0.9 }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.primary.main }}>
+                  {post.author?.fullName[0]}
+                </Avatar>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  {post.author?.fullName}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CalendarMonth sx={{ fontSize: 18 }} />
+                <Typography variant="body2">
+                  {post.publishedAt
+                    ? new Date(post.publishedAt).toLocaleDateString('vi-VN')
+                    : 'Mới'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AccessTime sx={{ fontSize: 18 }} />
+                <Typography variant="body2">{post.readingTime} phút đọc</Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
 
       <Container maxWidth="lg" sx={{ py: 5 }}>
         <Grid container spacing={4}>
@@ -521,89 +584,61 @@ const BlogPostPage: React.FC = () => {
               dangerouslySetInnerHTML={{ __html: processedContent }}
               sx={{
                 '& h2': {
-                  fontSize: '1.75rem',
-                  fontWeight: 700,
-                  mt: 5,
-                  mb: 2,
-                  lineHeight: 1.3,
-                  scrollMarginTop: '100px',
+                  fontSize: '2.2rem',
+                  fontWeight: 800,
+                  mt: 8,
+                  mb: 3,
+                  lineHeight: 1.2,
+                  color: 'text.primary',
+                  scrollMarginTop: '120px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  '&:before': {
+                    content: '""',
+                    width: '4px',
+                    height: '1.5em',
+                    bgcolor: theme.palette.primary.main,
+                    mr: 2,
+                    borderRadius: 1,
+                  },
                 },
                 '& h3': {
-                  fontSize: '1.35rem',
-                  fontWeight: 600,
-                  mt: 4,
-                  mb: 1.5,
-                  lineHeight: 1.4,
-                  scrollMarginTop: '100px',
+                  fontSize: '1.6rem',
+                  fontWeight: 700,
+                  mt: 6,
+                  mb: 2,
+                  lineHeight: 1.3,
+                  color: 'text.primary',
+                  scrollMarginTop: '120px',
                 },
                 '& p': {
-                  fontSize: '1.05rem',
-                  lineHeight: 1.85,
-                  mb: 2.5,
-                  color: 'text.primary',
+                  fontSize: '1.15rem',
+                  lineHeight: 1.9,
+                  mb: 4,
+                  color: alpha(theme.palette.text.primary, 0.85),
                 },
                 '& img': {
                   maxWidth: '100%',
                   height: 'auto',
-                  borderRadius: 2,
-                  my: 3,
-                },
-                '& a': {
-                  color: theme.palette.primary.main,
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                  '&:hover': { textDecoration: 'underline' },
+                  borderRadius: 4,
+                  my: 6,
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
                 },
                 '& blockquote': {
-                  borderLeft: `4px solid ${theme.palette.primary.main}`,
-                  pl: 3,
-                  py: 1,
-                  my: 3,
-                  bgcolor: alpha(theme.palette.primary.main, 0.04),
-                  borderRadius: '0 8px 8px 0',
+                  borderLeft: `6px solid ${theme.palette.primary.main}`,
+                  pl: 4,
+                  py: 2,
+                  my: 6,
+                  bgcolor: alpha(theme.palette.primary.main, 0.05),
+                  borderRadius: '0 12px 12px 0',
                   fontStyle: 'italic',
-                  color: 'text.secondary',
-                },
-                '& code': {
-                  bgcolor: alpha(theme.palette.text.primary, 0.06),
-                  px: 1,
-                  py: 0.3,
-                  borderRadius: 1,
-                  fontSize: '0.9em',
-                  fontFamily: "'Fira Code', monospace",
-                },
-                '& pre': {
-                  bgcolor: '#1e1e1e',
-                  color: '#d4d4d4',
-                  p: 3,
-                  borderRadius: 2,
-                  overflow: 'auto',
-                  my: 3,
-                  '& code': {
-                    bgcolor: 'transparent',
-                    p: 0,
-                    color: 'inherit',
-                  },
+                  color: theme.palette.secondary.dark,
+                  '& p': { mb: 0, fontSize: '1.3rem', fontWeight: 500, lineHeight: 1.6 },
                 },
                 '& ul, & ol': {
                   pl: 4,
-                  mb: 2.5,
-                  '& li': { mb: 1, lineHeight: 1.7 },
-                },
-                '& table': {
-                  width: '100%',
-                  borderCollapse: 'collapse',
-                  my: 3,
-                  '& th, & td': {
-                    border: '1px solid',
-                    borderColor: theme.palette.divider,
-                    p: 1.5,
-                    textAlign: 'left',
-                  },
-                  '& th': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.06),
-                    fontWeight: 600,
-                  },
+                  mb: 4,
+                  '& li': { mb: 2, lineHeight: 1.8, fontSize: '1.15rem' },
                 },
               }}
             />
@@ -834,7 +869,7 @@ const BlogPostPage: React.FC = () => {
           </Grid>
         </Grid>
       </Container>
-    </Box>
+    </MainLayout>
   );
 };
 

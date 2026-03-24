@@ -42,6 +42,7 @@ import {
   SpaOutlined as SpaIcon,
   PersonOutlined as PersonIcon,
   RateReviewOutlined as CommentIcon,
+  GridView as GridViewIcon,
 } from '@mui/icons-material';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -111,6 +112,18 @@ const AdminLayout: React.FC = () => {
       roles: ['admin', 'super_admin', 'staff'],
     },
     {
+      text: 'Trang Chủ',
+      icon: <GridViewIcon />,
+      path: '/admin/homepage',
+      roles: ['admin', 'super_admin', 'staff'],
+    },
+    {
+      text: 'Hero Section',
+      icon: <MediaIcon />,
+      path: '/admin/banners',
+      roles: ['admin', 'super_admin', 'staff'],
+    },
+    {
       text: 'Lịch Hẹn',
       icon: <CalendarIcon />,
       path: '/admin/calendar',
@@ -133,7 +146,7 @@ const AdminLayout: React.FC = () => {
       text: 'Dịch Vụ',
       icon: <SpaIcon />,
       path: '/admin/services',
-      roles: ['admin', 'super_admin'],
+      roles: ['admin', 'super_admin', 'staff'],
     },
     {
       text: 'Khách Hàng',
@@ -145,7 +158,7 @@ const AdminLayout: React.FC = () => {
       text: 'Khuyến Mãi',
       icon: <TagIcon />,
       path: '/admin/promotions',
-      roles: ['admin', 'super_admin'],
+      roles: ['admin', 'super_admin', 'staff'],
     },
     {
       text: 'Đánh Giá',

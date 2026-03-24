@@ -13,8 +13,9 @@ import {
 } from '@mui/material';
 import { publicTestimonialsApi } from '../../../api/testimonialsApi';
 import type { Testimonial } from '../../../api/types';
+import { HomepageSection } from '../../../api/homepageApi';
 
-const TestimonialsSection = () => {
+const TestimonialsSection = ({ data }: { data?: HomepageSection }) => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,21 +56,27 @@ const TestimonialsSection = () => {
             color: '#1e293b',
           }}
         >
-          Khách Hàng Nói Gì Về Marlie
+          {data?.title || 'Khách Hàng Nói Gì Về Marlie'}
         </Typography>
         <Typography
           variant="h6"
           align="center"
           sx={{
             color: 'text.secondary',
-            mb: 6,
-            maxWidth: '600px',
+            mb: 4,
+            maxWidth: '800px',
             mx: 'auto',
             fontWeight: 400,
           }}
         >
-          Sự hài lòng của khách hàng là động lực lớn nhất để chúng tôi hoàn thiện mỗi ngày.
+          {data?.subtitle || 'Sự hài lòng của khách hàng là động lực lớn nhất để chúng tôi hoàn thiện mỗi ngày.'}
         </Typography>
+        {data?.content && (
+          <Box 
+            sx={{ mb: 6, textAlign: 'center', color: 'text.secondary' }} 
+            dangerouslySetInnerHTML={{ __html: data.content }} 
+          />
+        )}
 
         <Grid container spacing={3}>
           {loading
