@@ -55,6 +55,7 @@ import { UpdateServiceStructure1769100000000 } from './migrations/1769100000000-
 import { CreateEmployeeSchedulesTable1769200000000 } from './migrations/1769200000000-CreateEmployeeSchedulesTable';
 import { AddBannersTable1773430803218 } from './migrations/1773430803218-AddBannersTable';
 import { CreateHomepageSectionsTable1773432000000 } from './migrations/1773432000001-CreateHomepageSectionsTable';
+import { AddHomepageSectionTypes1773432000002 } from './migrations/1773432000002-AddHomepageSectionTypes';
 
 @Module({
   imports: [
@@ -105,6 +106,7 @@ import { CreateHomepageSectionsTable1773432000000 } from './migrations/177343200
           CreateEmployeeSchedulesTable1769200000000,
           AddBannersTable1773430803218,
           CreateHomepageSectionsTable1773432000000,
+          AddHomepageSectionTypes1773432000002,
         ],
         synchronize: false,
         logging: true,

@@ -9,6 +9,10 @@ async function bootstrap() {
     await dataSource.initialize();
     console.log('✅ Database connection established');
     
+    // Run pending migrations to keep schema in sync
+    await dataSource.runMigrations();
+    console.log('✅ Migrations executed');
+    
     await seedInitialData(dataSource);
     
     console.log('✅ Seeding completed successfully!');

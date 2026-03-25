@@ -6,7 +6,7 @@ export class CreateHomepageSectionsTable1773432000000 implements MigrationInterf
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS \`homepage_sections\` (
             \`id\` varchar(36) NOT NULL, 
-            \`type\` enum('hero', 'services', 'usp', 'promotion', 'blog', 'about', 'custom') NOT NULL, 
+            \`type\` enum('hero', 'services', 'usp', 'promotion', 'blog', 'about', 'wellness', 'working_hours', 'pricing', 'testimonials', 'custom') NOT NULL, 
             \`title\` varchar(255) NOT NULL, 
             \`subtitle\` text NULL, 
             \`content\` longtext NULL, 
