@@ -29,6 +29,9 @@ export class Admin {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ length: 20, default: 'admin' })
+  role: string; // 'super_admin', 'admin', 'staff'
+
   @Column({ nullable: true })
   lastLogin: Date;
 

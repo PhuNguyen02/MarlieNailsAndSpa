@@ -2,15 +2,32 @@ import { Box, Container, Typography, Grid, Paper, Button } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import SpaIcon from '@mui/icons-material/Spa';
 import { useBookingModal } from '../../../hooks/useBookingModal';
+import { HomepageSection } from '../../../api/homepageApi';
 
-const workingHours = [
+interface WorkingHour {
+  day: string;
+  time: string;
+}
+
+const defaultWorkingHours: WorkingHour[] = [
   { day: 'Thứ 2 - Thứ 6', time: '09:00 - 20:00' },
   { day: 'Thứ 7', time: 'Mở cửa cả ngày' },
   { day: 'Chủ Nhật', time: 'Mở cửa cả ngày' },
 ];
 
-const WorkingHoursSection = () => {
+const WorkingHoursSection = ({ data }: { data?: HomepageSection }) => {
   const { openModal } = useBookingModal();
+  const scheduleList = data?.config?.hours || defaultWorkingHours;
+  const leftBoxTitle = data?.title || 'Giờ Mở Cửa';
+  const leftBoxSubtitle =
+    data?.subtitle ||
+    'Chào mừng bạn đến với spa của chúng tôi! Chúng tôi luôn sẵn sàng phục vụ bạn.';
+  const rightBoxTitle = data?.config?.rightBoxTitle || 'Thư Giãn Ngay!';
+  const rightBoxSubtitle =
+    data?.config?.rightBoxSubtitle ||
+    'Hãy để chúng tôi giúp bạn thư giãn và tận hưởng những khoảnh khắc tuyệt vời nhất.';
+  const centerImageUrl = data?.imageUrl || '/images/working-hours.png';
+  const centerImageCaption = data?.config?.centerImageCaption || 'Không gian thư giãn tuyệt vời';
 
   return (
     <Box
@@ -97,22 +114,29 @@ const WorkingHoursSection = () => {
                     letterSpacing: '1px',
                   }}
                 >
-                  Giờ Mở Cửa
+                  {leftBoxTitle}
                 </Typography>
               </Box>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: 'text.secondary',
-                  fontSize: { xs: '0.95rem', md: '1rem' },
-                  lineHeight: 1.8,
-                  mb: 4,
-                }}
-              >
-                Chào mừng bạn đến với spa của chúng tôi! Chúng tôi luôn sẵn sàng phục vụ bạn.
-              </Typography>
+              {data?.content ? (
+                <Box
+                  sx={{ color: 'text.secondary', mb: 4, lineHeight: 1.8 }}
+                  dangerouslySetInnerHTML={{ __html: data.content }}
+                />
+              ) : (
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: { xs: '0.95rem', md: '1rem' },
+                    lineHeight: 1.8,
+                    mb: 4,
+                  }}
+                >
+                  {leftBoxSubtitle}
+                </Typography>
+              )}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                {workingHours.map((schedule, index) => (
+                {scheduleList.map((schedule: WorkingHour, index: number) => (
                   <Box
                     key={index}
                     sx={{
@@ -195,7 +219,7 @@ const WorkingHoursSection = () => {
             >
               <Box
                 component="img"
-                src="/images/working-hours.png"
+                src={centerImageUrl}
                 alt="Relaxing spa"
                 sx={{
                   width: '100%',
@@ -223,7 +247,7 @@ const WorkingHoursSection = () => {
                     textShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
                   }}
                 >
-                  Không gian thư giãn tuyệt vời
+                  {centerImageCaption}
                 </Typography>
               </Box>
             </Box>
@@ -305,7 +329,7 @@ const WorkingHoursSection = () => {
                     textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
                   }}
                 >
-                  Thư Giãn Ngay!
+                  {rightBoxTitle}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -319,7 +343,7 @@ const WorkingHoursSection = () => {
                     mx: 'auto',
                   }}
                 >
-                  Hãy để chúng tôi giúp bạn thư giãn và tận hưởng những khoảnh khắc tuyệt vời nhất.
+                  {rightBoxSubtitle}
                 </Typography>
                 <Button
                   variant="contained"

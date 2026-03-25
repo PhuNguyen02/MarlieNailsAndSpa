@@ -1,17 +1,49 @@
-import { Box, Container, Typography, Grid, Card, CardContent, Button } from '@mui/material';
+import { useState, useEffect } from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Button,
+  alpha,
+  Skeleton,
+} from '@mui/material';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import StarIcon from '@mui/icons-material/Star';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
-import { formatPrice } from '../../../utils';
 import BookingModal from '../../../components/BookingModal';
 import { useBookingModal } from '../../../hooks/useBookingModal';
-import { useServices } from '../../../hooks';
-import { Skeleton } from '@mui/material';
+import { publicPromotionsApi } from '../../../api/promotionsApi';
+import type { Promotion } from '../../../api/types';
+import { HomepageSection } from '../../../api/homepageApi';
 
-const SpecialOfferSection = () => {
-  const { servicesByCategory, loading } = useServices();
-  const specialOffers = servicesByCategory.uu_dai_mua_5_tang_1;
-  const { isOpen, selectedService, openModal, closeModal } = useBookingModal();
+const SpecialOfferSection = ({ data }: { data?: HomepageSection }) => {
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [loadingPromos, setLoadingPromos] = useState(true);
+  const { isOpen, openModal, closeModal } = useBookingModal();
+
+  useEffect(() => {
+    const fetchPromos = async () => {
+      try {
+        const res = await publicPromotionsApi.getActive();
+        const data = Array.isArray(res) ? res : (res as any)?.data || [];
+        setPromotions(data);
+      } catch (err) {
+        console.error('Failed to fetch promotions:', err);
+      } finally {
+        setLoadingPromos(false);
+      }
+    };
+    fetchPromos();
+  }, []);
+
+  const formatDiscount = (p: Promotion) => {
+    if (p.discountType === 'percent') return `Giảm ${p.discountValue}%`;
+    if (p.discountType === 'fixed') return `Giảm ${p.discountValue?.toLocaleString('vi-VN')}đ`;
+    return p.badge || 'Ưu đãi';
+  };
 
   return (
     <Box
@@ -35,18 +67,6 @@ const SpecialOfferSection = () => {
           zIndex: 0,
         }}
       />
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: -150,
-          left: -150,
-          width: '500px',
-          height: '500px',
-          background: 'radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%)',
-          borderRadius: '50%',
-          zIndex: 0,
-        }}
-      />
 
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
         {/* Promotional Banner */}
@@ -59,16 +79,6 @@ const SpecialOfferSection = () => {
             boxShadow: '0 8px 32px rgba(255, 107, 53, 0.3)',
             position: 'relative',
             overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")`,
-              opacity: 0.3,
-            },
           }}
         >
           <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
@@ -79,26 +89,9 @@ const SpecialOfferSection = () => {
                 justifyContent: 'center',
                 gap: 1.5,
                 mb: 2,
-                flexWrap: 'wrap',
               }}
             >
-              <WhatshotIcon
-                sx={{
-                  fontSize: { xs: '2.5rem', md: '3rem' },
-                  color: 'white',
-                  animation: 'pulse 2s ease-in-out infinite',
-                  '@keyframes pulse': {
-                    '0%, 100%': {
-                      transform: 'scale(1)',
-                      opacity: 1,
-                    },
-                    '50%': {
-                      transform: 'scale(1.15)',
-                      opacity: 0.9,
-                    },
-                  },
-                }}
-              />
+              <WhatshotIcon sx={{ fontSize: { xs: '2.5rem', md: '3rem' }, color: 'white' }} />
               <Typography
                 variant="h3"
                 sx={{
@@ -106,179 +99,177 @@ const SpecialOfferSection = () => {
                   color: 'white',
                   fontSize: { xs: '2rem', md: '2.75rem' },
                   fontFamily: '"Playfair Display", serif',
-                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
                 }}
               >
-                MUA 5 TẶNG 1
+                {data?.title || 'KHUYẾN MÃI ĐANG DIỄN RA'}
               </Typography>
             </Box>
+            <Typography variant="h6" sx={{ color: 'white', opacity: 0.9, mb: 4 }}>
+              {data?.subtitle ||
+                'Khám phá các ưu đãi đặc biệt dành riêng cho bạn tại Marlie Nails & Spa'}
+            </Typography>
+
+            <Grid container spacing={2} sx={{ mb: 4, justifyContent: 'center' }}>
+              {[
+                '✨ Giảm ngay 20% cho khách hàng lần đầu trải nghiệm dịch vụ',
+                '✨ Combo tiết kiệm: Gội đầu dưỡng sinh + Massage body chỉ từ 399k',
+                '✨ Ưu đãi theo liệu trình: Mua 5 buổi tặng 1 buổi',
+                '✨ Triệt lông trọn gói – Giá ưu đãi đặc biệt theo từng vùng',
+                '✨ Tặng voucher 100.000đ cho lần sử dụng tiếp theo',
+              ].map((offer, idx) => (
+                <Grid item xs={12} sm={6} md={4} key={idx}>
+                  <Box
+                    sx={{
+                      bgcolor: 'rgba(255, 255, 255, 0.15)',
+                      p: 2,
+                      borderRadius: 2,
+                      height: '100%',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.25)',
+                        transform: 'translateY(-3px)',
+                      },
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ color: 'white', fontWeight: 600 }}>
+                      {offer}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+
+            {data?.content && (
+              <Box
+                sx={{ color: 'white', mt: 2, opacity: 0.8 }}
+                dangerouslySetInnerHTML={{ __html: data.content }}
+              />
+            )}
+
             <Typography
-              variant="h6"
-              sx={{
-                color: 'white',
-                fontWeight: 500,
-                fontSize: { xs: '1rem', md: '1.25rem' },
-                opacity: 0.95,
-                maxWidth: '700px',
-                mx: 'auto',
-                lineHeight: 1.6,
-              }}
+              variant="body2"
+              sx={{ color: 'white', opacity: 0.9, mt: 2, fontStyle: 'italic' }}
             >
-              Chương trình ưu đãi đặc biệt - Mua 5 buổi trị liệu, tặng ngay 1 buổi miễn phí!
-              <br />
-              <Box component="span" sx={{ fontWeight: 700, fontSize: '1.1em' }}>
-                Áp dụng cho tất cả dịch vụ dưới đây
-              </Box>
+              🎉 Số lượng ưu đãi có hạn – áp dụng trong thời gian nhất định. Đặt lịch ngay hôm nay!
             </Typography>
           </Box>
         </Box>
 
-        {/* Services Grid - Horizontal Layout */}
-        <Grid container spacing={{ xs: 2, md: 3 }}>
-          {loading
-            ? Array.from({ length: 3 }).map((_, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
+        {/* Promotions Grid */}
+        <Grid container spacing={3}>
+          {loadingPromos
+            ? [1, 2, 3].map((i) => (
+                <Grid item xs={12} sm={6} md={4} key={i}>
                   <Card sx={{ height: '100%', borderRadius: 3, p: 3 }}>
-                    <Skeleton variant="text" sx={{ fontSize: '1.25rem', mb: 2 }} />
-                    <Skeleton variant="rectangular" height={100} sx={{ mb: 2, borderRadius: 2 }} />
-                    <Skeleton variant="rectangular" height={45} sx={{ borderRadius: 2 }} />
+                    <Skeleton variant="text" height={40} />
+                    <Skeleton variant="rectangular" height={100} sx={{ my: 2 }} />
+                    <Skeleton variant="rectangular" height={40} />
                   </Card>
                 </Grid>
               ))
-            : specialOffers.map((service) => (
-                <Grid item xs={12} sm={6} md={4} key={service.id}>
+            : promotions.map((p) => (
+                <Grid item xs={12} sm={6} md={4} key={p.id}>
                   <Card
                     sx={{
                       height: '100%',
                       background: 'white',
                       borderRadius: 3,
                       border: '2px solid',
-                      borderColor: 'rgba(255, 107, 53, 0.2)',
-                      boxShadow: '0 4px 20px rgba(255, 107, 53, 0.15)',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      borderColor: 'rgba(255, 107, 53, 0.1)',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                      transition: 'all 0.3s ease',
                       position: 'relative',
                       overflow: 'visible',
                       '&:hover': {
                         transform: 'translateY(-8px)',
-                        boxShadow: '0 12px 40px rgba(255, 107, 53, 0.25)',
+                        boxShadow: '0 12px 40px rgba(255, 107, 53, 0.15)',
                         borderColor: '#ff6b35',
                       },
                     }}
                   >
-                    {/* Ribbon Badge */}
+                    {/* Badge */}
                     <Box
                       sx={{
                         position: 'absolute',
                         top: 12,
-                        right: -30,
-                        backgroundColor: '#ff6b35',
+                        right: -10,
+                        bgcolor: '#ff6b35',
                         color: 'white',
-                        px: 4,
+                        px: 2,
                         py: 0.5,
-                        transform: 'rotate(45deg)',
-                        fontSize: '0.7rem',
+                        borderRadius: '4px 0 0 4px',
                         fontWeight: 700,
-                        boxShadow: '0 2px 8px rgba(255, 107, 53, 0.4)',
+                        fontSize: '0.75rem',
                         zIndex: 2,
-                        width: '120px',
-                        textAlign: 'center',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                       }}
                     >
-                      ƯU ĐÃI
+                      {p.badge || 'HOT'}
                     </Box>
 
-                    <CardContent sx={{ p: { xs: 2.5, md: 3 }, pt: { xs: 4, md: 4.5 } }}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          mb: 2,
-                        }}
-                      >
-                        <LocalOfferIcon
-                          sx={{
-                            fontSize: '1.5rem',
-                            color: '#ff6b35',
-                          }}
-                        />
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: 700,
-                            color: 'text.primary',
-                            fontSize: { xs: '1.1rem', md: '1.25rem' },
-                            flex: 1,
-                          }}
-                        >
-                          {service.name}
+                    <CardContent sx={{ p: 4 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <LocalOfferIcon sx={{ color: '#ff6b35' }} />
+                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                          {p.title}
                         </Typography>
                       </Box>
 
-                      <Box
-                        sx={{
-                          background:
-                            'linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 140, 66, 0.1) 100%)',
-                          borderRadius: 2,
-                          p: 2,
-                          mb: 2.5,
-                          border: '1px solid',
-                          borderColor: 'rgba(255, 107, 53, 0.2)',
-                        }}
-                      >
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: 'text.secondary',
-                            mb: 0.5,
-                            fontSize: '0.85rem',
-                          }}
-                        >
-                          Giá ưu đãi
+                      <Box sx={{ bgcolor: alpha('#ff6b35', 0.05), p: 2, borderRadius: 2, mb: 2 }}>
+                        <Typography variant="h5" sx={{ color: '#ff6b35', fontWeight: 800 }}>
+                          {formatDiscount(p)}
                         </Typography>
-                        <Typography
-                          variant="h5"
-                          sx={{
-                            color: '#ff6b35',
-                            fontWeight: 800,
-                            fontSize: { xs: '1.5rem', md: '1.75rem' },
-                            fontFamily: '"Playfair Display", serif',
-                          }}
-                        >
-                          {formatPrice(service.price)}
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          {p.description}
                         </Typography>
                       </Box>
+
+                      {p.validUntil && (
+                        <Typography
+                          variant="caption"
+                          sx={{ display: 'block', mb: 2, color: 'text.secondary' }}
+                        >
+                          Hết hạn: {new Date(p.validUntil).toLocaleDateString('vi-VN')}
+                        </Typography>
+                      )}
 
                       <Button
                         variant="contained"
                         fullWidth
-                        onClick={() => openModal({ serviceId: service.id })}
+                        onClick={() => openModal()}
                         startIcon={<StarIcon />}
                         sx={{
-                          py: 1.5,
-                          backgroundColor: '#ff6b35',
-                          color: 'white',
-                          fontWeight: 700,
-                          fontSize: '0.9375rem',
+                          bgcolor: '#ff6b35',
+                          '&:hover': { bgcolor: '#e55a2b' },
                           textTransform: 'none',
+                          fontWeight: 700,
                           borderRadius: 2,
-                          boxShadow: '0 4px 16px rgba(255, 107, 53, 0.3)',
-                          '&:hover': {
-                            backgroundColor: '#e55a2b',
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 6px 20px rgba(255, 107, 53, 0.4)',
-                          },
                         }}
                       >
-                        Đặt Lịch Ngay
+                        Nhận Ưu Đãi Ngay
                       </Button>
                     </CardContent>
                   </Card>
                 </Grid>
               ))}
+          {!loadingPromos && promotions.length === 0 && (
+            <Grid item xs={12}>
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Typography variant="h6" color="text.secondary">
+                  Hiện chưa có chương trình khuyến mãi nào. Hãy quay lại sau nhé!
+                </Typography>
+              </Box>
+            </Grid>
+          )}
         </Grid>
       </Container>
-      <BookingModal open={isOpen} onClose={closeModal} initialService={selectedService} />
+
+      <BookingModal open={isOpen} onClose={closeModal} />
     </Box>
   );
 };

@@ -2,9 +2,9 @@
 // Custom Hook for Services API
 // ==========================================
 
-import { useState, useEffect, useCallback } from "react";
-import servicesApi from "../api/servicesApi";
-import type { ApiResponse, Service } from "../api/types";
+import { useState, useEffect, useCallback } from 'react';
+import servicesApi from '../api/servicesApi';
+import type { ApiResponse, Service } from '../api/types';
 
 // Interface matching the component expectations (from spaServices.ts)
 export interface ServiceItem {
@@ -42,16 +42,12 @@ const transformService = (service: Service): ServiceItem => {
   };
 
   // Map price based on priceType
-  if (service.priceType === "single" && service.singlePrice) {
+  if (service.priceType === 'single' && service.singlePrice) {
     item.price = service.singlePrice;
-  } else if (
-    service.priceType === "range" &&
-    service.priceRangeMin &&
-    service.priceRangeMax
-  ) {
-    item.price_range = `${service.priceRangeMin.toLocaleString("vi-VN")} - ${service.priceRangeMax.toLocaleString("vi-VN")} VNĐ`;
+  } else if (service.priceType === 'range' && service.priceRangeMin && service.priceRangeMax) {
+    item.price_range = `${service.priceRangeMin.toLocaleString('vi-VN')} - ${service.priceRangeMax.toLocaleString('vi-VN')} VNĐ`;
     item.price = service.priceRangeMin;
-  } else if (service.priceType === "package") {
+  } else if (service.priceType === 'package') {
     item.single_price = service.singlePrice;
     item.package_10_sessions = service.packagePrice;
     item.price = service.singlePrice || 0;
@@ -88,26 +84,17 @@ const groupServicesByCategory = (services: Service[]): ServicesByCategory => {
     const item = transformService(service);
     const category = service.category.toLowerCase();
 
-    if (category.includes("gội đầu") || category.includes("goi dau")) {
+    if (category.includes('gội đầu') || category.includes('goi dau')) {
       result.goi_dau_duong_sinh.push(item);
-    } else if (
-      category.includes("sơn gel") ||
-      category.includes("gel polish")
-    ) {
+    } else if (category.includes('sơn gel') || category.includes('gel polish')) {
       result.nail.gel_polish.push(item);
-    } else if (
-      category.includes("nối móng") ||
-      category.includes("extension")
-    ) {
+    } else if (category.includes('nối móng') || category.includes('extension')) {
       result.nail.extensions.push(item);
-    } else if (category.includes("chăm sóc da") || category.includes("skin")) {
+    } else if (category.includes('chăm sóc da') || category.includes('skin')) {
       result.cham_soc_da.push(item);
-    } else if (
-      category.includes("triệt lông") ||
-      category.includes("hair removal")
-    ) {
+    } else if (category.includes('triệt lông') || category.includes('hair removal')) {
       result.triet_long.push(item);
-    } else if (category.includes("ưu đãi") || category.includes("khuyến mãi")) {
+    } else if (category.includes('ưu đãi') || category.includes('khuyến mãi')) {
       result.uu_dai_mua_5_tang_1.push(item);
     }
   });
@@ -138,8 +125,8 @@ export function useServices(): UseServicesResult {
       });
       setServices(response.data || []);
     } catch (err) {
-      setError("Không thể tải danh sách dịch vụ");
-      console.error("Error fetching services:", err);
+      setError('Không thể tải danh sách dịch vụ');
+      console.error('Error fetching services:', err);
     } finally {
       setLoading(false);
     }
@@ -186,13 +173,12 @@ export function useServicesFlat(): {
           ? `${service.name} - ${service.duration}`
           : service.name,
       category: service.category,
-      price:
-        service.singlePrice || service.priceRangeMin || service.packagePrice,
+      price: Number(service.singlePrice || service.priceRangeMin || service.packagePrice || 0),
       price_range:
-        service.priceType === "range" &&
-        service.priceRangeMin &&
-        service.priceRangeMax
-          ? `${service.priceRangeMin.toLocaleString("vi-VN")} - ${service.priceRangeMax.toLocaleString("vi-VN")} VNĐ`
+        service.priceType === 'range' && service.priceRangeMin && service.priceRangeMax
+          ? `${Number(service.priceRangeMin).toLocaleString('vi-VN')} - ${Number(
+              service.priceRangeMax,
+            ).toLocaleString('vi-VN')} VNĐ`
           : undefined,
     }));
 

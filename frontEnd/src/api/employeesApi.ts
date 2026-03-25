@@ -2,14 +2,14 @@
 // Employees API Service
 // ==========================================
 
-import { apiClient } from "./index";
+import { apiClient } from './index';
 import type {
   ApiResponse,
   Employee,
   EmployeeRole,
   CreateEmployeeRequest,
   UpdateEmployeeRequest,
-} from "./types";
+} from './types';
 
 export interface EmployeesFilters {
   [key: string]: string | number | boolean | undefined;
@@ -19,11 +19,15 @@ export interface EmployeesFilters {
 
 export const employeesApi = {
   /**
-   * Lấy danh sách tất cả nhân viên
-   * GET /api/admin/employees
+   * Lấy danh sách tất cả nhân viên (Sử dụng endpoint public cho customer)
+   * GET /api/bookings/employees
    */
   getAll(filters?: EmployeesFilters): Promise<ApiResponse<Employee[]>> {
-    return apiClient.get("/admin/employees", { params: filters });
+    // Nếu có active=true thì dùng endpoint public của bookings
+    if (filters?.isActive) {
+      return apiClient.get('/bookings/employees', { params: filters });
+    }
+    return apiClient.get('/admin/employees', { params: filters });
   },
 
   /**
@@ -39,17 +43,14 @@ export const employeesApi = {
    * POST /api/admin/employees
    */
   create(data: CreateEmployeeRequest): Promise<ApiResponse<Employee>> {
-    return apiClient.post("/admin/employees", data);
+    return apiClient.post('/admin/employees', data);
   },
 
   /**
    * Cập nhật thông tin nhân viên
    * PATCH /api/admin/employees/:id
    */
-  update(
-    id: string,
-    data: UpdateEmployeeRequest,
-  ): Promise<ApiResponse<Employee>> {
+  update(id: string, data: UpdateEmployeeRequest): Promise<ApiResponse<Employee>> {
     return apiClient.patch(`/admin/employees/${id}`, data);
   },
 

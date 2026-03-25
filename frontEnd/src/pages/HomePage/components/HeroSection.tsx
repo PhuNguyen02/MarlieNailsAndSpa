@@ -1,10 +1,64 @@
-import { Box, Typography, Button, Container, Grid } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Box, Typography, Button, Container, Grid, Skeleton } from "@mui/material";
 import { heroStyles } from "../styles";
 import BookingModal from "../../../components/BookingModal";
 import { useBookingModal } from "../../../hooks/useBookingModal";
+import { publicBannersApi, Banner } from "../../../api/bannersApi";
+import { HomepageSection } from "../../../api/homepageApi";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  data?: HomepageSection;
+}
+
+const HeroSection = ({ data }: HeroSectionProps) => {
   const { isOpen, openModal, closeModal } = useBookingModal();
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [loading, setLoading] = useState(!data); // Don't load if data is provided
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const data = await publicBannersApi.getBanners();
+        setBanners(data);
+      } catch (error) {
+        console.error("Failed to fetch banners", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBanners();
+  }, []);
+
+  // Use the first active banner or fall back to defaults
+  const currentBanner = banners.length > 0 ? banners[0] : null;
+
+  const title = data?.title || currentBanner?.title || "Marlie Nails & Spa";
+  const subtitle = data?.subtitle || currentBanner?.subtitle || "Nâng tầm vẻ đẹp tự nhiên của bạn với các dịch vụ chăm sóc móng và spa chuyên nghiệp. Tại Marlie, chúng tôi kết hợp nghệ thuật tinh tế cùng không gian thư giãn tuyệt đối để mang lại cho bạn trải nghiệm làm đẹp hoàn hảo nhất.";
+  const imageUrl = data?.imageUrl || currentBanner?.imageUrl || "/images/hero-lifestyle.png";
+  const buttonText = data?.config?.buttonText || currentBanner?.buttonText || "ĐẶT LỊCH NGAY";
+
+  if (loading) {
+    return (
+      <Box sx={heroStyles.container}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={7}>
+              <Skeleton variant="text" width="60%" height={80} />
+              <Skeleton variant="text" width="90%" height={24} />
+              <Skeleton variant="text" width="90%" height={24} />
+              <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+                <Skeleton variant="rectangular" width={150} height={50} sx={{ borderRadius: '50px' }} />
+                <Skeleton variant="rectangular" width={150} height={50} sx={{ borderRadius: '50px' }} />
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={5}>
+              <Skeleton variant="circular" width={400} height={400} />
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={heroStyles.container}>
@@ -13,14 +67,17 @@ const HeroSection = () => {
           <Grid item xs={12} md={7}>
             <Box sx={heroStyles.content}>
               <Typography variant="h1" sx={heroStyles.title}>
-                Marlie Nails & Spa
+                {title}
               </Typography>
               <Typography variant="body1" sx={heroStyles.description}>
-                Nâng tầm vẻ đẹp tự nhiên của bạn với các dịch vụ chăm sóc móng
-                và spa chuyên nghiệp. Tại Marlie, chúng tôi kết hợp nghệ thuật
-                tinh tế cùng không gian thư giãn tuyệt đối để mang lại cho bạn
-                trải nghiệm làm đẹp hoàn hảo nhất.
+                {subtitle}
               </Typography>
+              {data?.content && (
+                <Box 
+                  sx={{ color: 'white', opacity: 0.9, mb: 4, textAlign: 'left' }} 
+                  dangerouslySetInnerHTML={{ __html: data.content }} 
+                />
+              )}
               <Box sx={heroStyles.buttonContainer}>
                 <Button
                   variant="contained"
@@ -42,7 +99,7 @@ const HeroSection = () => {
                     },
                   }}
                 >
-                  ĐẶT LỊCH NGAY
+                  {buttonText}
                 </Button>
                 <Button
                   variant="outlined"
@@ -62,6 +119,7 @@ const HeroSection = () => {
                       transform: "translateY(-3px)",
                     },
                   }}
+                  href="#services"
                 >
                   XEM DỊCH VỤ
                 </Button>
@@ -73,8 +131,8 @@ const HeroSection = () => {
               <Box sx={heroStyles.accentCircle} />
               <Box
                 component="img"
-                src="/images/hero-lifestyle.png"
-                alt="Marlie Nails & Spa Lifestyle"
+                src={imageUrl}
+                alt={title}
                 sx={heroStyles.heroImage}
               />
             </Box>

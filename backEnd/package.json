@@ -19,11 +19,14 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-commonjs",
-    "migration:generate": "npm run build && typeorm-ts-node-commonjs migration:generate -d dist/config/typeorm.config.js",
+    "migration:generate": "npm run build && typeorm-ts-node-commonjs migration:generate -d dist/src/config/typeorm.config.js",
     "migration:create": "typeorm-ts-node-commonjs migration:create",
-    "migration:run": "npm run build && typeorm-ts-node-commonjs migration:run -d dist/config/typeorm.config.js",
-    "migration:revert": "npm run build && typeorm-ts-node-commonjs migration:revert -d dist/config/typeorm.config.js",
-    "seed": "ts-node src/seed.ts"
+    "migration:run": "npm run build && typeorm-ts-node-commonjs migration:run -d dist/src/config/typeorm.config.js",
+    "migration:revert": "npm run build && typeorm-ts-node-commonjs migration:revert -d dist/src/config/typeorm.config.js",
+    "seed": "ts-node src/seed.ts",
+    "seed:full": "ts-node src/database/seed.ts",
+    "db:reset": "ts-node scripts/reset-db.ts",
+    "db:fresh": "npm run db:reset && npm run migration:run && npm run seed:full"
   },
   "dependencies": {
     "24": "^0.0.0",
@@ -33,8 +36,10 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/passport": "^11.0.5",
-    "@nestjs/platform-express": "^11.1.12",
+    "@nestjs/platform-express": "^11.1.14",
+    "@nestjs/platform-socket.io": "^11.1.14",
     "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.1.14",
     "@types/bcrypt": "^6.0.0",
     "@types/multer": "^2.0.0",
     "@types/passport-jwt": "^4.0.1",
@@ -50,6 +55,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "slugify": "^1.6.6",
+    "socket.io": "^4.8.3",
     "typeorm": "^0.3.28"
   },
   "devDependencies": {

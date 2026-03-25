@@ -40,6 +40,9 @@ export class Employee {
   @Column({ type: 'text', nullable: true })
   specialization: string; // Chuyên môn
 
+  @Column({ nullable: true })
+  avatarUrl: string;
+
   @Column({ default: true })
   isActive: boolean;
 

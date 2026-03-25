@@ -46,7 +46,7 @@ export interface LoginRequest {
 // ==========================================
 // Service Types
 // ==========================================
-export type PriceType = "single" | "range" | "package" | "custom";
+export type PriceType = 'single' | 'range' | 'package' | 'custom';
 
 export interface Service {
   id: string;
@@ -117,7 +117,7 @@ export interface Treatment {
 // ==========================================
 // Employee Types
 // ==========================================
-export type EmployeeRole = "therapist" | "receptionist" | "manager" | "admin";
+export type EmployeeRole = 'therapist' | 'receptionist' | 'manager' | 'admin';
 
 export interface Employee {
   id: string;
@@ -219,7 +219,7 @@ export interface TimeSlotAvailability {
 // ==========================================
 // Booking Types
 // ==========================================
-export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
+export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
 export interface BookingSummary {
   id: string;
@@ -327,13 +327,13 @@ export interface AvailableEmployeesResponse {
 // Notification Types
 // ==========================================
 export type NotificationType =
-  | "booking_created"
-  | "booking_confirmed"
-  | "booking_cancelled"
-  | "booking_completed"
-  | "booking_reminder";
+  | 'booking_created'
+  | 'booking_confirmed'
+  | 'booking_cancelled'
+  | 'booking_completed'
+  | 'booking_reminder';
 
-export type NotificationStatus = "pending" | "sent" | "read";
+export type NotificationStatus = 'pending' | 'sent' | 'read';
 
 export interface Notification {
   id: string;
@@ -357,4 +357,58 @@ export interface PendingNotification extends Notification {
       email: string;
     };
   };
+}
+
+// ==========================================
+// Contact Types
+// ==========================================
+export interface ContactMessage {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface CreateContactRequest {
+  fullName: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+}
+
+// ==========================================
+// Promotion Types
+// ==========================================
+export interface Promotion {
+  id: string;
+  title: string;
+  description?: string;
+  discountType: 'percent' | 'fixed' | 'gift';
+  discountValue?: number;
+  badge?: string;
+  imageUrl?: string;
+  validFrom?: string;
+  validUntil?: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Testimonial {
+  id: string;
+  customerName: string;
+  customerTitle?: string;
+  avatarUrl?: string;
+  content: string;
+  rating: number;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
 }

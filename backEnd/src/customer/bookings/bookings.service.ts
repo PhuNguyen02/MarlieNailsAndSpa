@@ -21,6 +21,8 @@ import { TimeSlotsService } from '../../admin/time-slots/time-slots.service';
 import { CustomersService } from '../customers/customers.service';
 import { EmployeeSchedulesService } from '../../admin/employee-schedules/employee-schedules.service';
 
+import { NotificationsGateway } from '../../notifications/notifications.gateway';
+
 @Injectable()
 export class BookingsService {
   constructor(
@@ -38,6 +40,7 @@ export class BookingsService {
     private customersService: CustomersService,
     private employeeSchedulesService: EmployeeSchedulesService,
     private dataSource: DataSource,
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(createBookingDto: CreateBookingDto) {
@@ -200,6 +203,9 @@ export class BookingsService {
           'bookingEmployees.employee',
         ],
       });
+
+      // Gửi thông báo real-time tới admin sau khi tạo xong
+      this.notificationsGateway.sendBookingNotification(result);
 
       return {
         status: 200,
@@ -369,6 +375,16 @@ export class BookingsService {
       status: 200,
       data: {},
       message: 'Xóa booking thành công',
+    };
+  }
+
+  // Get active time slots
+  async getTimeSlots() {
+    const slots = await this.timeSlotsService.findActive();
+    return {
+      status: 200,
+      data: slots,
+      message: 'Lấy danh sách khung giờ thành công',
     };
   }
 

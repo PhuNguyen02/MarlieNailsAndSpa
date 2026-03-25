@@ -1,20 +1,28 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "declaration": true,
-    "removeComments": true,
+    // Use CommonJS module system for NestJS compatibility
+    "module": "commonjs",
+
+    // Target a stable Node-compatible ECMAScript version
+    "target": "ES2017",
+
+    // Emit metadata required for decorators (NestJS)
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+
+    // Interop and module resolution
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
+
+    // Output settings
+    "declaration": true,
+    "removeComments": true,
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
+
+    // Type-checking options
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,

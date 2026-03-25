@@ -29,6 +29,11 @@ export class BookingsController {
     return this.bookingsService.findAll({ status, date, startDate, endDate, customerId });
   }
 
+  @Get('time-slots')
+  getTimeSlots() {
+    return this.bookingsService.getTimeSlots();
+  }
+
   @Get('employee-schedules')
   getEmployeeSchedules() {
     return this.employeeSchedulesService.getAllSchedules({ isActive: true });

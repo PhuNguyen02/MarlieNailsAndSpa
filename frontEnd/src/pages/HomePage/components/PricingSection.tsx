@@ -17,8 +17,9 @@ import BookingModal from '../../../components/BookingModal';
 import { useBookingModal } from '../../../hooks/useBookingModal';
 import { useServices, ServiceItem } from '../../../hooks';
 import { Skeleton } from '@mui/material';
+import { HomepageSection } from '../../../api/homepageApi';
 
-const PricingSection = () => {
+const PricingSection = ({ data }: { data?: HomepageSection }) => {
   const { servicesByCategory, loading } = useServices();
 
   // Helper function to find a service by name pattern in specific categories
@@ -83,12 +84,17 @@ const PricingSection = () => {
             }}
           />
           <Typography variant="h2" sx={pricingStyles.featuredTitle}>
-            Dịch Vụ Nổi Bật
+            {data?.title || 'Dịch Vụ Nổi Bật'}
           </Typography>
           <Typography variant="body1" sx={pricingStyles.description}>
-            Khám phá các gói dịch vụ chăm sóc sức khỏe và sắc đẹp được yêu thích nhất với giá cả hợp
-            lý và chất lượng cao.
+            {data?.subtitle || 'Khám phá các gói dịch vụ chăm sóc sức khỏe và sắc đẹp được yêu thích nhất với giá cả hợp lý và chất lượng cao.'}
           </Typography>
+          {data?.content && (
+            <Box 
+              sx={{ color: 'text.secondary', mt: 2 }} 
+              dangerouslySetInnerHTML={{ __html: data.content }} 
+            />
+          )}
         </Box>
 
         {/* Featured combos with enhanced design */}

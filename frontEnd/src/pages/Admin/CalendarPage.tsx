@@ -494,6 +494,12 @@ const CalendarPage: React.FC = () => {
                   const empBookings = slotBookings.filter((b) => isBookingForEmployee(b, emp.id));
                   const working = isEmployeeWorking(emp.id, hour);
 
+                  // Kiểm tra xem giờ này đã qua chưa
+                  const slotTime = currentDate.hour(hour).minute(0).second(0);
+                  const isPast = slotTime.isBefore(dayjs());
+
+                  const showExpired = working && isPast && empBookings.length === 0;
+
                   return (
                     <Box
                       key={`${hour}-${emp.id}`}
@@ -503,15 +509,21 @@ const CalendarPage: React.FC = () => {
                         p: 0.5,
                         borderRight: '1px solid #f0f0f0',
                         position: 'relative',
-                        cursor: working ? 'pointer' : 'not-allowed',
-                        bgcolor: working ? 'inherit' : '#f5f5f5',
+                        cursor: working && !isPast ? 'pointer' : isPast ? 'default' : 'not-allowed',
+                        bgcolor: !working
+                          ? '#f5f5f5'
+                          : isPast && empBookings.length === 0
+                            ? 'rgba(0, 0, 0, 0.03)'
+                            : 'inherit',
                         backgroundImage: working
                           ? 'none'
                           : 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px)',
-                        '&:hover': { backgroundColor: working ? '#e3f2fd' : '#f5f5f5' },
+                        '&:hover': {
+                          backgroundColor: working && !isPast ? '#e3f2fd' : 'inherit',
+                        },
                       }}
                       onClick={() => {
-                        if (!working) return; // Không cho đặt lịch nếu nhân viên nghỉ
+                        if (!working || isPast) return; // Không cho đặt lịch nếu nhân viên nghỉ hoặc giờ đã qua
 
                         const hourStr = hour.toString().padStart(2, '0');
                         const slotBooking = slotBookings[0];
@@ -526,6 +538,14 @@ const CalendarPage: React.FC = () => {
                       }}
                     >
                       {empBookings.map((b) => renderEventCard(b, true))}
+                      {showExpired && (
+                        <Typography
+                          variant="caption"
+                          sx={{ color: '#bdbdbd', fontStyle: 'italic', fontSize: '0.65rem' }}
+                        >
+                          Hết hạn
+                        </Typography>
+                      )}
                       {!working && empBookings.length === 0 && (
                         <Typography
                           variant="caption"
@@ -900,11 +920,15 @@ const CalendarPage: React.FC = () => {
             color="primary"
             sx={{
               textTransform: 'capitalize',
-              minWidth: 200,
+              minWidth: 300,
               textAlign: 'center',
             }}
           >
-            {currentDate.format('MMMM, YYYY')}
+            {view === 'day'
+              ? currentDate.format('dddd, [Ngày] DD/MM/YYYY')
+              : view === 'week'
+                ? `${currentDate.startOf('week').format('DD/MM')} - ${currentDate.endOf('week').format('DD/MM/YYYY')}`
+                : currentDate.format('MMMM, YYYY')}
           </Typography>
 
           <Paper elevation={0} sx={{ bgcolor: '#f5f5f5', borderRadius: 2 }}>
