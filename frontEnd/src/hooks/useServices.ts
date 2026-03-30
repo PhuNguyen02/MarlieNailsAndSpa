@@ -27,7 +27,11 @@ export interface ServicesByCategory {
     gel_polish: ServiceItem[];
     extensions: ServiceItem[];
   };
+  design: ServiceItem[];
+  eye_lash: ServiceItem[];
   cham_soc_da: ServiceItem[];
+  dich_vu_da: ServiceItem[];
+  dich_vu_le: ServiceItem[];
   triet_long: ServiceItem[];
   uu_dai_mua_5_tang_1: ServiceItem[];
 }
@@ -73,7 +77,11 @@ const groupServicesByCategory = (services: Service[]): ServicesByCategory => {
       gel_polish: [],
       extensions: [],
     },
+    design: [],
+    eye_lash: [],
     cham_soc_da: [],
+    dich_vu_da: [],
+    dich_vu_le: [],
     triet_long: [],
     uu_dai_mua_5_tang_1: [],
   };
@@ -86,12 +94,20 @@ const groupServicesByCategory = (services: Service[]): ServicesByCategory => {
 
     if (category.includes('gội đầu') || category.includes('goi dau')) {
       result.goi_dau_duong_sinh.push(item);
+    } else if (category === 'design') {
+      result.design.push(item);
+    } else if (category === 'eye lash') {
+      result.eye_lash.push(item);
     } else if (category.includes('sơn gel') || category.includes('gel polish')) {
       result.nail.gel_polish.push(item);
-    } else if (category.includes('nối móng') || category.includes('extension')) {
+    } else if (category.includes('nối móng') || category.includes('extension') || category.includes('filling')) {
       result.nail.extensions.push(item);
-    } else if (category.includes('chăm sóc da') || category.includes('skin')) {
+    } else if (category === 'chăm sóc da' || category.includes('skin')) {
       result.cham_soc_da.push(item);
+    } else if (category === 'dịch vụ da') {
+      result.dich_vu_da.push(item);
+    } else if (category === 'dịch vụ lẻ') {
+      result.dich_vu_le.push(item);
     } else if (category.includes('triệt lông') || category.includes('hair removal')) {
       result.triet_long.push(item);
     } else if (category.includes('ưu đãi') || category.includes('khuyến mãi')) {

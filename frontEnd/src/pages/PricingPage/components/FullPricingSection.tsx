@@ -24,120 +24,84 @@ import { useServices } from '../../../hooks';
 import { Skeleton } from '@mui/material';
 import PromotionPricing from './PromotionPricing';
 
-const SKIN_CARE_STEPS: Record<string, string[]> = {
-  'Lấy Nhân Mụn Cơ bản': [
-    'Soi da',
-    'Tẩy trang',
-    'Rửa mặt',
-    'Tẩy tế bào da chết',
-    'Massage mặt',
-    'Xông hơi + Cà sủi',
-    'Hút bã nhờn',
-    'Sát khuẩn lần 1',
-    'Lấy nhân mụn',
-    'Sát khuẩn lần 2',
-    'Điện tím',
-    'Đắp mặt nạ + Chiếu đèn sinh học',
-    'Massage đầu',
-  ],
-  'Lấy Nhân Mụn Cấp độ 2': [
-    'Soi da',
-    'Tẩy trang',
-    'Rửa mặt',
-    'Tẩy tế bào da chết',
-    'Massage mặt',
-    'Xông hơi + Cà sủi',
-    'Ủ mụn',
-    'Hút bã nhờn',
-    'Sát khuẩn lần 1',
-    'Lấy nhân mụn',
-    'Sát khuẩn lần 2',
-    'Điện tím',
-    'Đắp mặt nạ + Chiếu đèn',
-    'Massage đầu',
-  ],
-  'Thải Độc Da': [
-    'Soi da',
-    'Tẩy trang',
-    'Rửa mặt',
-    'Tẩy tế bào da chết',
-    'Massage mặt nâng cơ',
-    'Xông hơi + Cà sủi',
-    'Aqua Peel',
-    'Đắp mask',
-    'Chiếu đèn sinh học',
-    'Massage đầu',
-    'Thoa Serum',
-    'Điện di',
-  ],
-  'Cấy trắng NANO': [
-    'Tẩy trang',
-    'Rửa mặt',
-    'Tẩy tế bào chết da',
-    'Massage mặt',
-    'Xông hơi + Cà sủi',
-    'Phun Oxyjet',
-    'Cấy trắng bằng máy DOCTORPEN',
-    'Chiếu ánh sáng',
-    'Đắp mask',
-    'Massage đầu',
-    'Thoa Serum',
-    'Điện di',
-    'Thoa kem chống nắng',
-  ],
-  'Lấy nhân mụn chuyên sâu': [
-    'Soi da',
-    'Tẩy trang',
-    'Rửa mặt',
-    'Tẩy tế bào da chết',
-    'Massage Mặt',
-    'Xông hơi + Cà sủi',
-    'Ủ mụn',
-    'Hút bã nhờn',
-    'Sát khuẩn lần 1',
-    'Lấy nhân mụn',
-    'Sát khuẩn lần 2',
-    'Đắp mặt nạ chiếu đèn',
-    'Đi tinh chất',
-    'Đùa nóng lạnh',
-    'Massage đầu',
-    'Đi điện tím',
-  ],
-  'Thải Độc CO2': [
-    'Soi da',
-    'Tẩy trang',
-    'Rửa mặt',
-    'Tẩy tế bào da chết',
-    'Massage mặt (Đối với da không có mụn viêm)',
-    'Xông hơi + Cà sủi',
-    'Hút bã nhờn',
-    'Sát khuẩn lần 1',
-    'Lấy nhân mụn nếu có ít',
-    'Sát khuẩn lần 2',
-    'Điện tím',
-    'Thải độc CO2',
-    'Chiếu đèn sinh học',
-    'Massage đầu',
-    'Đắp mask',
-    'Thoa Serum',
-    'Điện di',
-    'Thoa Kem chống nắng',
-  ],
-  'PEEL DA': [
-    'Soi da',
-    'Tẩy trang',
-    'Rửa mặt',
-    'Tẩy tế bào chết',
-    'Xông hơi + Cà sủi',
-    'Hút bã nhờn',
-    'Sát khuẩn lần 1',
-    'Lấy nhân mụn nếu có ít',
-    'Sát khuẩn lần 2',
-    'Điện tím',
-    'Peel da',
-    'Điện di',
-  ],
-};
+// Helper component for a simple service list (name + price + book button)
+const ServiceListCard = ({
+  title,
+  services,
+  loading,
+  openModal,
+}: {
+  title: string;
+  services: any[];
+  loading: boolean;
+  openModal: (opts: { serviceId: string }) => void;
+}) => (
+  <Card sx={pricingStyles.card}>
+    <CardContent sx={pricingStyles.cardContent}>
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'primary.dark' }}>
+        {title}
+      </Typography>
+      <List>
+        {loading
+          ? Array.from({ length: 3 }).map((_, index) => (
+              <ListItem key={index}>
+                <Skeleton variant="text" width="100%" />
+              </ListItem>
+            ))
+          : services.map((service) => (
+              <ListItem
+                key={service.id}
+                sx={{
+                  px: 0,
+                  py: 1.5,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <ListItemText
+                    primary={service.name}
+                    secondary={formatPrice(service.price, service.price_range)}
+                    secondaryTypographyProps={{
+                      sx: {
+                        color: 'primary.main',
+                        fontWeight: 600,
+                        mt: 0.5,
+                      },
+                    }}
+                  />
+                </Box>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => openModal({ serviceId: service.id || '' })}
+                  sx={{
+                    minWidth: 'auto',
+                    px: 2,
+                    py: 0.75,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    '&:hover': {
+                      borderColor: 'primary.dark',
+                      backgroundColor: 'primary.light',
+                      color: 'primary.dark',
+                    },
+                  }}
+                >
+                  Đặt Lịch
+                </Button>
+              </ListItem>
+            ))}
+      </List>
+    </CardContent>
+  </Card>
+);
 
 const FullPricingSection = () => {
   const { servicesByCategory, loading } = useServices();
@@ -298,157 +262,31 @@ const FullPricingSection = () => {
           </Grid>
         </Box>
 
-        {/* Nail Services */}
+        {/* Eye Lash */}
         <Box sx={{ mb: 6 }}>
           <Typography variant="h4" sx={pricingStyles.categoryTitle}>
-            Dịch Vụ Nail
+            Eye Lash
           </Typography>
           <Grid container spacing={3} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={6}>
-              <Card sx={pricingStyles.card}>
-                <CardContent sx={pricingStyles.cardContent}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'primary.dark' }}>
-                    Sơn Gel & Chăm Sóc
-                  </Typography>
-                  <List>
-                    {loading
-                      ? Array.from({ length: 3 }).map((_, index) => (
-                        <ListItem key={index}>
-                          <Skeleton variant="text" width="100%" />
-                        </ListItem>
-                      ))
-                      : servicesByCategory.nail.gel_polish.map((service) => (
-                        <ListItem
-                          key={service.id}
-                          sx={{
-                            px: 0,
-                            py: 1.5,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            flexWrap: 'wrap',
-                            gap: 1,
-                          }}
-                        >
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <ListItemText
-                              primary={service.name}
-                              secondary={formatPrice(service.price, service.price_range)}
-                              secondaryTypographyProps={{
-                                sx: {
-                                  color: 'primary.main',
-                                  fontWeight: 600,
-                                  mt: 0.5,
-                                },
-                              }}
-                            />
-                          </Box>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => openModal({ serviceId: service.id || '' })}
-                            sx={{
-                              minWidth: 'auto',
-                              px: 2,
-                              py: 0.75,
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              textTransform: 'none',
-                              borderColor: 'primary.main',
-                              color: 'primary.main',
-                              '&:hover': {
-                                borderColor: 'primary.dark',
-                                backgroundColor: 'primary.light',
-                                color: 'primary.dark',
-                              },
-                            }}
-                          >
-                            Đặt Lịch
-                          </Button>
-                        </ListItem>
-                      ))}
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card sx={pricingStyles.card}>
-                <CardContent sx={pricingStyles.cardContent}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'primary.dark' }}>
-                    Nối Móng & Tạo Form
-                  </Typography>
-                  <List>
-                    {loading
-                      ? Array.from({ length: 3 }).map((_, index) => (
-                        <ListItem key={index}>
-                          <Skeleton variant="text" width="100%" />
-                        </ListItem>
-                      ))
-                      : servicesByCategory.nail.extensions.map((service) => (
-                        <ListItem
-                          key={service.id}
-                          sx={{
-                            px: 0,
-                            py: 1.5,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            flexWrap: 'wrap',
-                            gap: 1,
-                          }}
-                        >
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <ListItemText
-                              primary={service.name}
-                              secondary={formatPrice(service.price)}
-                              secondaryTypographyProps={{
-                                sx: {
-                                  color: 'primary.main',
-                                  fontWeight: 600,
-                                  mt: 0.5,
-                                },
-                              }}
-                            />
-                          </Box>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => openModal({ serviceId: service.id || '' })}
-                            sx={{
-                              minWidth: 'auto',
-                              px: 2,
-                              py: 0.75,
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              textTransform: 'none',
-                              borderColor: 'primary.main',
-                              color: 'primary.main',
-                              '&:hover': {
-                                borderColor: 'primary.dark',
-                                backgroundColor: 'primary.light',
-                                color: 'primary.dark',
-                              },
-                            }}
-                          >
-                            Đặt Lịch
-                          </Button>
-                        </ListItem>
-                      ))}
-                  </List>
-                </CardContent>
-              </Card>
+            <Grid item xs={12}>
+              <ServiceListCard
+                title="Dịch Vụ Nối Mi"
+                services={servicesByCategory.eye_lash}
+                loading={loading}
+                openModal={openModal}
+              />
             </Grid>
           </Grid>
         </Box>
 
-        {/* Chăm sóc da */}
+        {/* Chăm Sóc Da */}
         <Box sx={{ mb: 6 }}>
           <Typography variant="h4" sx={pricingStyles.categoryTitle}>
             Chăm Sóc Da
           </Typography>
           <Grid container spacing={3} sx={{ mt: 2 }}>
             {loading
-              ? Array.from({ length: 3 }).map((_, index) => (
+              ? Array.from({ length: 1 }).map((_, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
                   <Skeleton variant="rectangular" height={150} sx={{ borderRadius: 2 }} />
                 </Grid>
@@ -466,8 +304,7 @@ const FullPricingSection = () => {
                       <Typography variant="h5" sx={pricingStyles.price}>
                         {formatPrice(service.price)}
                       </Typography>
-                      {/* Hiển thị các bước nếu có trong database hoặc trong bản đồ local */}
-                      {(service.steps || SKIN_CARE_STEPS[service.name]) && (
+                      {service.steps && (
                         <Accordion
                           sx={{
                             mt: 2,
@@ -494,49 +331,46 @@ const FullPricingSection = () => {
                                 fontWeight: 500,
                               }}
                             >
-                              Xem chi tiết{' '}
-                              {(service.steps || SKIN_CARE_STEPS[service.name]).length} bước
+                              Xem chi tiết {service.steps.length} bước
                             </Typography>
                           </AccordionSummary>
                           <AccordionDetails sx={{ px: 0, pt: 0 }}>
                             <List dense sx={{ py: 0 }}>
-                              {(service.steps || SKIN_CARE_STEPS[service.name]).map(
-                                (step: string, idx: number) => (
-                                  <ListItem
-                                    key={idx}
+                              {service.steps.map((step: string, idx: number) => (
+                                <ListItem
+                                  key={idx}
+                                  sx={{
+                                    py: 0.25,
+                                    px: 0,
+                                    alignItems: 'flex-start',
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
                                     sx={{
-                                      py: 0.25,
-                                      px: 0,
-                                      alignItems: 'flex-start',
+                                      mr: 1,
+                                      color: 'primary.main',
+                                      fontWeight: 700,
                                     }}
                                   >
-                                    <Typography
-                                      variant="caption"
-                                      sx={{
-                                        mr: 1,
-                                        color: 'primary.main',
-                                        fontWeight: 700,
-                                      }}
-                                    >
-                                      {idx + 1}.
-                                    </Typography>
-                                    <ListItemText
-                                      primary={step}
-                                      primaryTypographyProps={{
-                                        variant: 'body2',
-                                        fontSize: '0.8rem',
-                                        lineHeight: 1.4,
-                                      }}
-                                      sx={{
-                                        m: 0,
-                                        '& .MuiListItemText-primary': {
-                                          color: 'text.secondary',
-                                        },
-                                      }}
-                                    />
-                                  </ListItem>
-                                ),
-                              )}
+                                    {idx + 1}.
+                                  </Typography>
+                                  <ListItemText
+                                    primary={step}
+                                    primaryTypographyProps={{
+                                      variant: 'body2',
+                                      fontSize: '0.8rem',
+                                      lineHeight: 1.4,
+                                    }}
+                                    sx={{
+                                      m: 0,
+                                      '& .MuiListItemText-primary': {
+                                        color: 'text.secondary',
+                                      },
+                                    }}
+                                  />
+                                </ListItem>
+                              ))}
                             </List>
                           </AccordionDetails>
                         </Accordion>
@@ -546,7 +380,7 @@ const FullPricingSection = () => {
                         fullWidth
                         onClick={() => openModal({ serviceId: service.id })}
                         sx={{
-                          mt: service.steps || SKIN_CARE_STEPS[service.name] ? 1 : 2,
+                          mt: service.steps ? 1 : 2,
                           py: 1.5,
                           backgroundColor: 'primary.main',
                           color: 'white',
@@ -566,6 +400,94 @@ const FullPricingSection = () => {
                   </Card>
                 </Grid>
               ))}
+          </Grid>
+        </Box>
+
+        {/* Dịch Vụ Da */}
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h4" sx={pricingStyles.categoryTitle}>
+            Dịch Vụ Da
+          </Typography>
+          <Grid container spacing={3} sx={{ mt: 2 }}>
+            <Grid item xs={12} md={6}>
+              <ServiceListCard
+                title="Dịch Vụ Chăm Sóc Da"
+                services={servicesByCategory.dich_vu_da}
+                loading={loading}
+                openModal={openModal}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Dịch Vụ Lẻ (Mua 5 tặng 1) */}
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h4" sx={pricingStyles.categoryTitle}>
+            Dịch Vụ Lẻ
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: 'error.main', fontWeight: 600, mt: 1, mb: 2 }}
+          >
+            Tất cả các dịch vụ Mua 5 tặng 1
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <ServiceListCard
+                title="Dịch Vụ Lẻ"
+                services={servicesByCategory.dich_vu_le}
+                loading={loading}
+                openModal={openModal}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Nail Services */}
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h4" sx={pricingStyles.categoryTitle}>
+            Dịch Vụ Nail
+          </Typography>
+          <Grid container spacing={3} sx={{ mt: 2 }}>
+            <Grid item xs={12} md={6}>
+              <ServiceListCard
+                title="Sơn Gel & Chăm Sóc"
+                services={servicesByCategory.nail.gel_polish}
+                loading={loading}
+                openModal={openModal}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <ServiceListCard
+                title="Nối Móng & Tạo Form"
+                services={servicesByCategory.nail.extensions}
+                loading={loading}
+                openModal={openModal}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Design (Nail Art) */}
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h4" sx={pricingStyles.categoryTitle}>
+            Design
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: 'text.secondary', mt: 1, mb: 2, fontStyle: 'italic' }}
+          >
+            Vui lòng liên hệ trước, giá sẽ phụ thuộc chi tiết của hình vẽ
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <ServiceListCard
+                title="Nail Art & Trang Trí"
+                services={servicesByCategory.design}
+                loading={loading}
+                openModal={openModal}
+              />
+            </Grid>
           </Grid>
         </Box>
 

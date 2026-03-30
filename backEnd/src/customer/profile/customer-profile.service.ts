@@ -30,7 +30,6 @@ export class CustomerProfileService {
     if (!customer) throw new NotFoundException('Không tìm thấy khách hàng');
 
     // Không cho phép sửa số điện thoại để đảm bảo tính duy nhất và đồng bộ
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { phone, ...allowedData } = updateData;
 
     Object.assign(customer, allowedData);

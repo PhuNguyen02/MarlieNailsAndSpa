@@ -56,7 +56,6 @@ export class CustomerAuthService {
     // 3. Tạo JWT token
     const payload = { sub: customer.id, phone: customer.phone, role: 'customer' };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = customer;
 
     return {
@@ -94,7 +93,6 @@ export class CustomerAuthService {
 
     const payload = { sub: customer.id, phone: customer.phone, role: customer.role || 'customer' };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = customer;
 
     return {

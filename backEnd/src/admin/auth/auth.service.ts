@@ -42,7 +42,6 @@ export class AuthService {
     await this.adminRepository.save(admin);
 
     // Remove password from response
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: adminPassword, ...result } = admin;
     return {
       status: 200,
@@ -98,7 +97,6 @@ export class AuthService {
     if (!admin || !admin.isActive) {
       throw new UnauthorizedException('Tài khoản không tồn tại hoặc đã bị vô hiệu hóa');
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: adminPassword, ...result } = admin;
     return {
       status: 200,

@@ -83,7 +83,6 @@ export function useFetch<T>(
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchFn, ...deps]);
 
   // Auto fetch on mount - caller should use useEffect
