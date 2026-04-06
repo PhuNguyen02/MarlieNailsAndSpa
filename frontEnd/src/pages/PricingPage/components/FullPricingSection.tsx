@@ -443,31 +443,6 @@ const FullPricingSection = () => {
           </Grid>
         </Box>
 
-        {/* Nail Services */}
-        <Box sx={{ mb: 6 }}>
-          <Typography variant="h4" sx={pricingStyles.categoryTitle}>
-            Dịch Vụ Nail
-          </Typography>
-          <Grid container spacing={3} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={6}>
-              <ServiceListCard
-                title="Sơn Gel & Chăm Sóc"
-                services={servicesByCategory.nail.gel_polish}
-                loading={loading}
-                openModal={openModal}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <ServiceListCard
-                title="Nối Móng & Tạo Form"
-                services={servicesByCategory.nail.extensions}
-                loading={loading}
-                openModal={openModal}
-              />
-            </Grid>
-          </Grid>
-        </Box>
-
         {/* Design (Nail Art) */}
         <Box sx={{ mb: 6 }}>
           <Typography variant="h4" sx={pricingStyles.categoryTitle}>
