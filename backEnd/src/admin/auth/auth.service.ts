@@ -41,11 +41,17 @@ export class AuthService {
 
     await this.adminRepository.save(admin);
 
+    // Tạo JWT token để admin có thể auto-login sau đăng ký
+    const payload = { email: admin.email, sub: admin.id, role: admin.role };
+
     // Remove password from response
     const { password: adminPassword, ...result } = admin;
     return {
       status: 200,
-      data: result,
+      data: {
+        ...result,
+        access_token: this.jwtService.sign(payload),
+      },
       message: 'Đăng ký thành công',
     };
   }

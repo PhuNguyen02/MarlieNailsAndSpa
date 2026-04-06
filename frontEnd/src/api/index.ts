@@ -41,7 +41,18 @@ async function request<T>(
 ): Promise<T> {
   const url = buildUrl(endpoint, options?.params);
 
-  const token = localStorage.getItem('admin_token');
+  // Chọn token phù hợp dựa trên endpoint
+  const isCustomerEndpoint = endpoint.startsWith('/customer/');
+  const tokenKey = isCustomerEndpoint ? 'customer_token' : 'admin_token';
+  const token = localStorage.getItem(tokenKey);
+
+  console.log(`[API DEBUG] ${method} ${endpoint}`, {
+    url,
+    isCustomer: isCustomerEndpoint,
+    tokenKey,
+    hasToken: !!token
+  });
+
   const config: RequestInit = {
     method,
     headers: {
@@ -60,14 +71,18 @@ async function request<T>(
     const json = await response.json();
 
     if (!response.ok) {
-      // Auto-logout khi token hết hạn hoặc không hợp lệ (chỉ áp dụng cho trang admin)
       if (response.status === 401 && !endpoint.includes('/auth/login')) {
+        console.warn('[API DEBUG] 401 Unauthorized detected. Clearing tokens.');
         localStorage.removeItem('admin_token');
         localStorage.removeItem('admin_info');
+        localStorage.removeItem('customer_token');
+        localStorage.removeItem('customer_info');
 
-        // Chỉ redirect nếu đang ở trang admin
+        // Redirect appropriately
         if (window.location.pathname.startsWith('/admin')) {
           window.location.href = '/admin/login';
+        } else if (window.location.pathname.startsWith('/my-account')) {
+          window.location.href = '/login';
         }
       }
       throw {

@@ -30,16 +30,20 @@ const CustomerDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profileRes, bookingsRes] = await Promise.all([
+        const [profileRes, bookingsRes]: [any, any] = await Promise.all([
           customerAuthApi.getProfile(),
           customerAuthApi.getMyBookings(),
         ]);
-        setProfile(profileRes.data.data);
-        setBookings(bookingsRes.data.data);
-      } catch (err) {
+        setProfile(profileRes.data);
+        setBookings(bookingsRes.data || []);
+      } catch (err: any) {
         console.error('Failed to fetch dashboard data:', err);
-        // Nếu lỗi 401 thì về login
-        navigate('/login');
+        // Chỉ redirect về login khi lỗi 401 (token hết hạn/không hợp lệ)
+        if (err?.statusCode === 401) {
+          localStorage.removeItem('customer_token');
+          localStorage.removeItem('customer_info');
+          navigate('/login');
+        }
       } finally {
         setLoading(false);
       }

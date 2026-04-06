@@ -44,8 +44,8 @@ const AdminLoginPage: React.FC = () => {
       } else {
         setError(result.message || "Đăng nhập thất bại");
       }
-    } catch (err) {
-      setError("Không thể kết nối đến máy chủ");
+    } catch (err: any) {
+      setError(err?.message || "Không thể kết nối đến máy chủ");
     } finally {
       setLoading(false);
     }

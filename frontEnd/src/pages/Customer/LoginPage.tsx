@@ -39,7 +39,7 @@ const LoginPage = () => {
       localStorage.setItem('customer_info', JSON.stringify(res.data));
       navigate('/my-account');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Số điện thoại hoặc mật khẩu không chính xác');
+      setError(err?.message || 'Số điện thoại hoặc mật khẩu không chính xác');
     } finally {
       setLoading(false);
     }

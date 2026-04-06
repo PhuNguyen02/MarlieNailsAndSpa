@@ -45,7 +45,7 @@ const RegisterPage = () => {
       localStorage.setItem('customer_info', JSON.stringify(res.data));
       navigate('/my-account');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+      setError(err?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }

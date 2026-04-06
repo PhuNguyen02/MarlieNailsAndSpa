@@ -41,6 +41,12 @@ export class CustomerAuthService {
       if (email) customer.email = email;
 
       await this.customerRepository.save(customer);
+      // Reload để lấy dữ liệu mới nhất từ DB
+      const reloaded = await this.customerRepository.findOne({ where: { id: customer.id } });
+      if (!reloaded) {
+        throw new ConflictException('Lỗi hệ thống khi tạo tài khoản');
+      }
+      customer = reloaded;
     } else {
       // 2. Nếu chưa tồn tại khách hàng này: Tạo mới hoàn toàn
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -50,7 +56,7 @@ export class CustomerAuthService {
         fullName,
         email,
       });
-      await this.customerRepository.save(customer);
+      customer = await this.customerRepository.save(customer);
     }
 
     // 3. Tạo JWT token

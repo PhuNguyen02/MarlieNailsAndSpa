@@ -35,8 +35,8 @@ const CustomerProfilePage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await customerAuthApi.getProfile();
-        const data = res.data.data;
+        const res: any = await customerAuthApi.getProfile();
+        const data = res.data;
         setForm({
           fullName: data.fullName || '',
           email: data.email || '',
@@ -69,7 +69,7 @@ const CustomerProfilePage = () => {
       await customerAuthApi.updateProfile(form);
       setMessage({ type: 'success', text: 'Cập nhật thông tin thành công!' });
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Cập nhật thất bại' });
+      setMessage({ type: 'error', text: err?.message || 'Cập nhật thất bại' });
     } finally {
       setSaving(false);
     }
