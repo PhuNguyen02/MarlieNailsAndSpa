@@ -1,7 +1,4 @@
-# ==========================================
-# Docker Compose - Marlie Nails & Spa
-# Services: MySQL + Backend (NestJS) + Frontend (React/Nginx)
-# ==========================================
+version: '3.8'
 
 services:
   # ---- MySQL Database ----
@@ -23,14 +20,14 @@ services:
     healthcheck:
       test:
         [
-          'CMD',
-          'mysqladmin',
-          'ping',
-          '-h',
-          'localhost',
-          '-u',
-          'root',
-          '-p${DB_ROOT_PASSWORD:-rootpassword}',
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${DB_ROOT_PASSWORD:-rootpassword}"
         ]
       interval: 10s
       timeout: 5s
@@ -56,7 +53,7 @@ services:
       - DB_DATABASE=${DB_NAME:-spa_db}
       - JWT_SECRET=${JWT_SECRET:-marlie-spa-secret-key-2026-change-in-production}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
-      - FRONTEND_URL=http://187.77.149.176
+      - FRONTEND_URL=https://marliespa.com
     depends_on:
       mysql:
         condition: service_healthy
@@ -66,28 +63,42 @@ services:
     networks:
       - app-network
 
-  # ---- Frontend SPA (React + Nginx) ----
+  # ---- Frontend SPA ----
   frontend:
     build:
       context: ./frontEnd
       dockerfile: Dockerfile
       args:
-        # Khi chạy trong Docker Compose, frontend gọi API qua nginx proxy /api
         VITE_API_BASE_URL: /api
     container_name: marlie-frontend
     ports:
-      - '80:80'
+      - '3000:80'
     depends_on:
       - backend
     restart: unless-stopped
     networks:
       - app-network
 
+  # ---- Nginx Proxy Manager ----
+  nginx-proxy:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    networks:
+      - app-network
+
 volumes:
   mysql_data:
-    driver: local
   uploads_data:
-    driver: local
+  npm_data:
+  npm_letsencrypt:
 
 networks:
   app-network:
