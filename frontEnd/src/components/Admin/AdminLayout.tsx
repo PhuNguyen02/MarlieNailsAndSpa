@@ -58,7 +58,7 @@ const AdminLayout: React.FC = () => {
   const dispatch = useDispatch();
 
   // Giả sử có thông tin admin từ store
-  const admin = useSelector((state: any) => state.auth.user);
+  const admin = useSelector((state: any) => state.auth.admin);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -129,7 +129,7 @@ const AdminLayout: React.FC = () => {
       path: '/admin/calendar',
       roles: ['admin', 'super_admin', 'staff'],
     },
-    { text: 'Nhân Viên', icon: <PeopleIcon />, path: '/admin/staff', roles: ['super_admin'] },
+    { text: 'Nhân Viên', icon: <PeopleIcon />, path: '/admin/staff', roles: ['super_admin', 'admin'] },
     {
       text: 'Xếp Lịch',
       icon: <TimeIcon />,
@@ -223,9 +223,10 @@ const AdminLayout: React.FC = () => {
         flexDirection: 'column',
         bgcolor: '#1e293b',
         color: '#f8fafc',
+        overflow: 'hidden',
       }}
     >
-      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
         <Box
           sx={{
             width: 40,
@@ -256,21 +257,37 @@ const AdminLayout: React.FC = () => {
         </Typography>
       </Box>
 
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', mb: 2 }} />
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', mb: 1, flexShrink: 0 }} />
 
-      <List sx={{ px: 2, flexGrow: 1 }}>
+      <List
+        sx={{
+          px: 1.5,
+          flexGrow: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          '&::-webkit-scrollbar': { width: 4 },
+          '&::-webkit-scrollbar-track': { background: 'transparent' },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgba(255,255,255,0.1)',
+            borderRadius: 2,
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: 'rgba(255,255,255,0.2)',
+          },
+        }}
+      >
         {filteredMenuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 onClick={() => {
                   navigate(item.path);
                   setMobileOpen(false);
                 }}
                 sx={{
-                  borderRadius: '12px',
-                  py: 1.5,
+                  borderRadius: '10px',
+                  py: 1,
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   backgroundColor: isActive ? alpha('#10b981', 0.1) : 'transparent',
                   color: isActive ? '#34d399' : '#94a3b8',
@@ -281,12 +298,12 @@ const AdminLayout: React.FC = () => {
                   },
                 }}
               >
-                <ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>{item.icon}</ListItemIcon>
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>{item.icon}</ListItemIcon>
                 <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{
                     fontWeight: isActive ? 600 : 500,
-                    fontSize: '0.95rem',
+                    fontSize: '0.88rem',
                   }}
                 />
                 {isActive && (
@@ -305,17 +322,17 @@ const AdminLayout: React.FC = () => {
           );
         })}
 
-        <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', my: 2 }} />
+        <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)', my: 1.5 }} />
         <Typography
           variant="caption"
           sx={{
-            px: 2,
+            px: 1,
             color: '#64748b',
             fontWeight: 700,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             display: 'block',
-            mb: 1,
+            mb: 0.5,
           }}
         >
           Blog
@@ -330,8 +347,8 @@ const AdminLayout: React.FC = () => {
                   setMobileOpen(false);
                 }}
                 sx={{
-                  borderRadius: '12px',
-                  py: 1.2,
+                  borderRadius: '10px',
+                  py: 0.8,
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   backgroundColor: isActive ? alpha('#6366f1', 0.1) : 'transparent',
                   color: isActive ? '#818cf8' : '#94a3b8',
@@ -342,12 +359,12 @@ const AdminLayout: React.FC = () => {
                   },
                 }}
               >
-                <ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>{item.icon}</ListItemIcon>
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>{item.icon}</ListItemIcon>
                 <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{
                     fontWeight: isActive ? 600 : 500,
-                    fontSize: '0.88rem',
+                    fontSize: '0.83rem',
                   }}
                 />
                 {isActive && (
@@ -367,7 +384,7 @@ const AdminLayout: React.FC = () => {
         })}
       </List>
 
-      <Box sx={{ p: 2, mt: 'auto' }}>
+      <Box sx={{ p: 1.5, flexShrink: 0 }}>
         <Paper
           elevation={0}
           sx={{
