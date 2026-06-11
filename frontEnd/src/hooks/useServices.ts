@@ -42,14 +42,14 @@ const transformService = (service: Service): ServiceItem => {
 
   // Map price based on priceType
   if (service.priceType === 'single' && service.singlePrice) {
-    item.price = service.singlePrice;
+    item.price = Number(service.singlePrice);
   } else if (service.priceType === 'range' && service.priceRangeMin && service.priceRangeMax) {
-    item.price_range = `${service.priceRangeMin.toLocaleString('vi-VN')} - ${service.priceRangeMax.toLocaleString('vi-VN')} VNĐ`;
-    item.price = service.priceRangeMin;
+    item.price_range = `${Number(service.priceRangeMin).toLocaleString('vi-VN')} - ${Number(service.priceRangeMax).toLocaleString('vi-VN')} VNĐ`;
+    item.price = Number(service.priceRangeMin);
   } else if (service.priceType === 'package') {
-    item.single_price = service.singlePrice;
-    item.package_10_sessions = service.packagePrice;
-    item.price = service.singlePrice || 0;
+    item.single_price = Number(service.singlePrice);
+    item.package_10_sessions = Number(service.packagePrice);
+    item.price = Number(service.singlePrice) || 0;
   }
 
   // Map optional fields

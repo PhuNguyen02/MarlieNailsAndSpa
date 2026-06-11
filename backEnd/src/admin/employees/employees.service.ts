@@ -2,6 +2,9 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Employee } from '../../entities/employee.entity';
+import { Booking } from '../../entities/booking.entity';
+import { BookingEmployee } from '../../entities/booking-employee.entity';
+import { EmployeeSchedule } from '../../entities/employee-schedule.entity';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
@@ -10,6 +13,12 @@ export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
     private employeeRepository: Repository<Employee>,
+    @InjectRepository(Booking)
+    private bookingRepository: Repository<Booking>,
+    @InjectRepository(BookingEmployee)
+    private bookingEmployeeRepository: Repository<BookingEmployee>,
+    @InjectRepository(EmployeeSchedule)
+    private scheduleRepository: Repository<EmployeeSchedule>,
   ) {}
 
   async create(createEmployeeDto: CreateEmployeeDto) {
@@ -113,6 +122,21 @@ export class EmployeesService {
 
   async remove(id: string) {
     const employee = await this.findOne(id);
+
+    // Nullify employeeId trong bookings (giữ lại lịch sử booking)
+    await this.bookingRepository
+      .createQueryBuilder()
+      .update()
+      .set({ employeeId: null } as any)
+      .where('employeeId = :id', { id })
+      .execute();
+
+    // Xóa booking_employees liên quan
+    await this.bookingEmployeeRepository.delete({ employeeId: id });
+
+    // Xóa lịch làm việc
+    await this.scheduleRepository.delete({ employeeId: id });
+
     await this.employeeRepository.remove(employee);
     return {
       status: 200,
