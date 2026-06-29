@@ -9,6 +9,8 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { ExpandMore, CalendarToday, AccessTime, Person } from '@mui/icons-material';
 import { useState, useMemo, useEffect } from 'react';
@@ -48,6 +50,13 @@ const BookingItemCard = ({
   const [allEmployees, setAllEmployees] = useState<any[]>([]);
   const [employeeSchedules, setEmployeeSchedules] = useState<any[]>([]);
   const { getActiveBookableEmployees, loading: employeesLoading } = useBookings();
+
+  const [requestSpecificStaff, setRequestSpecificStaff] = useState(!!item.staff);
+
+  // Sync state if item.staff is updated from outside
+  useEffect(() => {
+    setRequestSpecificStaff(!!item.staff);
+  }, [item.staff]);
 
   // Fetch all active employees on mount
   useEffect(() => {
@@ -164,6 +173,7 @@ const BookingItemCard = ({
     onUpdate(index, 'service', serviceId);
     // Reset following fields
     onUpdate(index, 'staff', '');
+    setRequestSpecificStaff(false);
     onUpdate(index, 'date', '');
     onUpdate(index, 'time', '');
     onUpdate(index, 'timeLabel', '');
@@ -191,7 +201,7 @@ const BookingItemCard = ({
     setTimeSlotPickerOpen(false);
   };
 
-  const isComplete = item.service && item.staff && item.date && item.time;
+  const isComplete = !!(item.service && item.date && item.time);
 
   return (
     <>
@@ -298,73 +308,97 @@ const BookingItemCard = ({
               ))}
             </TextField>
 
-            {/* 2. Staff Selection (Moved Up) */}
-            <TextField
-              select
-              label="Chọn Nhân Viên / Chuyên Viên"
-              fullWidth
-              required
-              value={item.staff}
-              onChange={(e) => handleStaffChange(e.target.value)}
-              error={!!errors.staff}
-              helperText={errors.staff}
-              variant="outlined"
-              disabled={!item.service}
-              InputProps={{
-                startAdornment: employeesLoading ? (
-                  <CircularProgress size={20} sx={{ mr: 1 }} />
-                ) : (
-                  <Person sx={{ mr: 1, color: 'text.secondary', fontSize: '1.2rem' }} />
-                ),
-              }}
-            >
-              {filteredEmployees.length > 0 ? (
-                filteredEmployees.map((staff) => {
-                  const isOff = item.date ? isEmployeeOffOnDate(staff.id, item.date) : false;
-                  const workTime = item.date ? getWorkTimeForDate(staff.id, item.date) : null;
+            {/* 2. Staff Selection Toggle & Dropdown */}
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={requestSpecificStaff}
+                  disabled={!item.service}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setRequestSpecificStaff(checked);
+                    if (!checked) {
+                      onUpdate(index, 'staff', '');
+                    }
+                  }}
+                />
+              }
+              label={
+                <Typography variant="body2" color="text.secondary">
+                  Yêu cầu nhân viên cụ thể
+                </Typography>
+              }
+              sx={{ alignSelf: 'flex-start', mb: 0.5 }}
+            />
 
-                  return (
-                    <MenuItem
-                      key={staff.id}
-                      value={staff.id}
-                      disabled={isOff}
-                      sx={{ opacity: isOff ? 0.5 : 1 }}
-                    >
-                      <Box>
-                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                          {staff.fullName}
-                          {isOff && (
-                            <Typography
-                              component="span"
-                              sx={{
-                                color: '#e65100',
-                                fontWeight: 'bold',
-                                ml: 1,
-                                fontSize: '0.8rem',
-                              }}
-                            >
-                              (Nghỉ)
-                            </Typography>
-                          )}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {staff.role} {staff.specialization ? `(${staff.specialization})` : ''}
-                          {workTime && !isOff && ` • ${workTime}`}
-                        </Typography>
-                      </Box>
-                    </MenuItem>
-                  );
-                })
-              ) : (
-                <MenuItem disabled value="">
-                  {item.service
-                    ? employeesLoading
-                      ? 'Đang tải...'
-                      : 'Không có nhân viên phù hợp'
-                    : 'Vui lòng chọn dịch vụ trước'}
-                </MenuItem>
-              )}
-            </TextField>
+            {requestSpecificStaff && (
+              <TextField
+                select
+                label="Chọn Nhân Viên / Chuyên Viên"
+                fullWidth
+                required
+                value={item.staff}
+                onChange={(e) => handleStaffChange(e.target.value)}
+                error={!!errors.staff}
+                helperText={errors.staff}
+                variant="outlined"
+                disabled={!item.service}
+                InputProps={{
+                  startAdornment: employeesLoading ? (
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                  ) : (
+                    <Person sx={{ mr: 1, color: 'text.secondary', fontSize: '1.2rem' }} />
+                  ),
+                }}
+              >
+                {filteredEmployees.length > 0 ? (
+                  filteredEmployees.map((staff) => {
+                    const isOff = item.date ? isEmployeeOffOnDate(staff.id, item.date) : false;
+                    const workTime = item.date ? getWorkTimeForDate(staff.id, item.date) : null;
+
+                    return (
+                      <MenuItem
+                        key={staff.id}
+                        value={staff.id}
+                        disabled={isOff}
+                        sx={{ opacity: isOff ? 0.5 : 1 }}
+                      >
+                        <Box>
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            {staff.fullName}
+                            {isOff && (
+                              <Typography
+                                component="span"
+                                sx={{
+                                  color: '#e65100',
+                                  fontWeight: 'bold',
+                                  ml: 1,
+                                  fontSize: '0.8rem',
+                                }}
+                              >
+                                (Nghỉ)
+                              </Typography>
+                            )}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {staff.role} {staff.specialization ? `(${staff.specialization})` : ''}
+                            {workTime && !isOff && ` • ${workTime}`}
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                    );
+                  })
+                ) : (
+                  <MenuItem disabled value="">
+                    {item.service
+                      ? employeesLoading
+                        ? 'Đang tải...'
+                        : 'Không có nhân viên phù hợp'
+                      : 'Vui lòng chọn dịch vụ trước'}
+                  </MenuItem>
+                )}
+              </TextField>
+            )}
 
             {/* 3. Date Selection */}
             <TextField
@@ -383,7 +417,7 @@ const BookingItemCard = ({
               inputProps={{
                 min: new Date().toISOString().split('T')[0],
               }}
-              disabled={!item.staff}
+              disabled={!item.service}
               InputProps={{
                 startAdornment: <CalendarToday sx={{ mr: 1, color: 'text.secondary' }} />,
               }}

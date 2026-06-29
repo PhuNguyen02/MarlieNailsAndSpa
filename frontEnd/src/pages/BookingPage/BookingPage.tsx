@@ -967,6 +967,7 @@ const BookingPage: React.FC = () => {
                 onClick={handleToday}
                 size="small"
                 variant="text"
+                disabled={currentDate.isSame(dayjs(), view)}
                 sx={{
                   mx: 0.5,
                   minWidth: 'auto',

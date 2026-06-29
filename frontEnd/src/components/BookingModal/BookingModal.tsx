@@ -189,10 +189,6 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
         itemErrors.service = 'Vui lòng chọn dịch vụ';
       }
 
-      if (!booking.staff) {
-        itemErrors.staff = 'Vui lòng chọn nhân viên';
-      }
-
       if (!booking.date) {
         itemErrors.date = 'Vui lòng chọn ngày đặt lịch';
       } else {
@@ -210,6 +206,7 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
         const hasConflict = formData.bookings.some(
           (otherBooking) =>
             otherBooking.guestNumber !== booking.guestNumber &&
+            otherBooking.staff &&
             otherBooking.staff === booking.staff &&
             otherBooking.date === booking.date &&
             otherBooking.time === booking.time,
@@ -219,6 +216,7 @@ const BookingModal = ({ open, onClose, initialService }: BookingModalProps) => {
           const conflictGuest = formData.bookings.find(
             (b) =>
               b.guestNumber !== booking.guestNumber &&
+              b.staff &&
               b.staff === booking.staff &&
               b.date === booking.date &&
               b.time === booking.time,

@@ -54,7 +54,7 @@ const TimeSlotPicker = ({
   useEffect(() => {
     if (open && selectedDate) {
       const fetchSlots = async () => {
-        const availableSlots = await getAvailableSlots(selectedDate, serviceId, employeeId);
+        const availableSlots = await getAvailableSlots(selectedDate, serviceId, employeeId || undefined);
         setSlots(availableSlots);
       };
       fetchSlots();

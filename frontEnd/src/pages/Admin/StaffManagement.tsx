@@ -25,13 +25,16 @@ import {
   InputLabel,
   Snackbar,
   Alert,
+  Checkbox,
+  ListItemText,
+  OutlinedInput,
 } from "@mui/material";
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
 } from "@mui/icons-material";
-import { apiClient } from "@/api";
+import { apiClient, servicesApi } from "@/api";
 
 interface Employee {
   id: string;
@@ -74,10 +77,40 @@ const StaffManagement: React.FC = () => {
     message: string;
     severity: "success" | "error";
   }>({ open: false, message: "", severity: "success" });
+  const [specializationOptions, setSpecializationOptions] = useState<string[]>([
+    "Gội đầu",
+    "Nails",
+    "Chăm sóc da",
+    "Triệt lông",
+    "Mi",
+    "Massage",
+    "Khác",
+  ]);
 
   useEffect(() => {
     fetchEmployees();
+    fetchSpecializationOptions();
   }, []);
+
+  const fetchSpecializationOptions = async () => {
+    try {
+      const res = await servicesApi.getAll();
+      const servicesData = Array.isArray(res) ? res : (res as any)?.data || [];
+      const uniqueCategories = Array.from(
+        new Set(
+          servicesData
+            .map((s: any) => s.category)
+            .filter((c: any) => typeof c === "string" && c.trim() !== "")
+        )
+      ) as string[];
+
+      if (uniqueCategories.length > 0) {
+        setSpecializationOptions(uniqueCategories);
+      }
+    } catch (err) {
+      console.error("Failed to fetch service categories for specializations", err);
+    }
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -106,21 +139,32 @@ const StaffManagement: React.FC = () => {
 
   const handleSave = async () => {
     try {
+      const payload = {
+        fullName: selectedEmployee?.fullName,
+        phone: selectedEmployee?.phone,
+        email: selectedEmployee?.email,
+        role: selectedEmployee?.role,
+        specialization: selectedEmployee?.specialization,
+        isActive: selectedEmployee?.isActive,
+        workSchedule: selectedEmployee?.workSchedule,
+        hireDate: selectedEmployee?.hireDate,
+      };
+
       if (selectedEmployee?.id) {
         await apiClient.patch(
           `/admin/employees/${selectedEmployee.id}`,
-          selectedEmployee,
+          payload,
         );
         showSnackbar("Cập nhật nhân viên thành công", "success");
       } else {
-        await apiClient.post("/admin/employees", selectedEmployee);
+        await apiClient.post("/admin/employees", payload);
         showSnackbar("Thêm nhân viên thành công", "success");
       }
       handleClose();
       fetchEmployees();
     } catch (err: any) {
-      const msg = err?.message || "Lỗi khi lưu thông tin nhân viên";
-      showSnackbar(msg, "error");
+      const msg = err?.response?.data?.message || err?.message || "Lỗi khi lưu thông tin nhân viên";
+      showSnackbar(Array.isArray(msg) ? msg.join(", ") : msg, "error");
     }
   };
 
@@ -276,17 +320,56 @@ const StaffManagement: React.FC = () => {
                 <MenuItem value="manager">Quản lý</MenuItem>
               </Select>
             </FormControl>
-            <TextField
-              label="Chuyên Môn"
-              fullWidth
-              value={selectedEmployee?.specialization || ""}
-              onChange={(e) =>
-                setSelectedEmployee({
-                  ...selectedEmployee,
-                  specialization: e.target.value,
-                })
-              }
-            />
+
+            <FormControl fullWidth>
+              <InputLabel id="specialization-label">Chuyên Môn</InputLabel>
+              <Select
+                labelId="specialization-label"
+                id="specialization-select"
+                multiple
+                value={
+                  selectedEmployee?.specialization
+                    ? selectedEmployee.specialization
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean)
+                    : []
+                }
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const specString = typeof val === "string" ? val : val.join(", ");
+                  setSelectedEmployee({
+                    ...selectedEmployee,
+                    specialization: specString,
+                  });
+                }}
+                input={<OutlinedInput label="Chuyên Môn" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {(selected as string[]).map((value) => (
+                      <Chip key={value} label={value} size="small" />
+                    ))}
+                  </Box>
+                )}
+              >
+                {specializationOptions.map((name) => (
+                  <MenuItem key={name} value={name}>
+                    <Checkbox
+                      checked={
+                        selectedEmployee?.specialization
+                          ? selectedEmployee.specialization
+                              .split(",")
+                              .map((s) => s.trim())
+                              .includes(name)
+                          : false
+                      }
+                    />
+                    <ListItemText primary={name} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <TextField
               label="Lịch Làm Việc"
               fullWidth

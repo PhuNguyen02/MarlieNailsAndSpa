@@ -302,63 +302,181 @@ export class BookingsService {
   }
 
   async update(id: string, updateBookingDto: UpdateBookingDto) {
-    const booking = await this.findOne(id);
+    const { employeeIds, ...rest } = updateBookingDto;
 
-    // If cancelling booking, free up the time slot
-    if (
-      updateBookingDto.status === BookingStatus.CANCELLED &&
-      booking.status !== BookingStatus.CANCELLED
-    ) {
-      // Decrement booking logic removed as we calculate dynamically now
-      // await this.timeSlotsService.decrementBookings(booking.timeSlotId, booking.numberOfGuests);
+    return this.dataSource.transaction(async (manager) => {
+      // Load booking inside transaction
+      const booking = await manager.findOne(Booking, {
+        where: { id },
+        relations: [
+          'customer',
+          'timeSlot',
+          'bookingEmployees',
+          'bookingEmployees.employee',
+        ],
+      });
 
-      booking.cancelledAt = new Date();
+      if (!booking) {
+        throw new NotFoundException(`Booking với ID ${id} không tồn tại`);
+      }
 
-      // Create cancellation notification
-      await this.createNotification(
-        booking.id,
-        NotificationType.BOOKING_CANCELLED,
-        'Đặt lịch đã bị hủy',
-        `Lịch đặt của bạn đã bị hủy. Lý do: ${updateBookingDto.cancellationReason || 'Không có'}`,
-      );
-    }
+      // If cancelling booking, free up the time slot
+      if (
+        rest.status === BookingStatus.CANCELLED &&
+        booking.status !== BookingStatus.CANCELLED
+      ) {
+        booking.cancelledAt = new Date();
 
-    // If confirming booking
-    if (
-      updateBookingDto.status === BookingStatus.CONFIRMED &&
-      booking.status === BookingStatus.PENDING
-    ) {
-      await this.createNotification(
-        booking.id,
-        NotificationType.BOOKING_CONFIRMED,
-        'Đặt lịch đã được xác nhận',
-        `Lịch đặt của bạn đã được xác nhận`,
-      );
-    }
+        // Create cancellation notification
+        const notification = manager.create(BookingNotification, {
+          bookingId: booking.id,
+          type: NotificationType.BOOKING_CANCELLED,
+          title: 'Đặt lịch đã bị hủy',
+          message: `Lịch đặt của bạn đã bị hủy. Lý do: ${rest.cancellationReason || 'Không có'}`,
+          recipientEmail: booking.customer.email,
+          status: NotificationStatus.PENDING,
+        });
+        await manager.save(BookingNotification, notification);
+      }
 
-    // If completing booking
-    if (
-      updateBookingDto.status === BookingStatus.COMPLETED &&
-      booking.status !== BookingStatus.COMPLETED
-    ) {
-      // Update customer stats
-      await this.customersService.updateStats(booking.customerId, booking.totalPrice);
+      // If confirming booking
+      if (
+        rest.status === BookingStatus.CONFIRMED &&
+        booking.status === BookingStatus.PENDING
+      ) {
+        const notification = manager.create(BookingNotification, {
+          bookingId: booking.id,
+          type: NotificationType.BOOKING_CONFIRMED,
+          title: 'Đặt lịch đã được xác nhận',
+          message: `Lịch đặt của bạn đã được xác nhận`,
+          recipientEmail: booking.customer.email,
+          status: NotificationStatus.PENDING,
+        });
+        await manager.save(BookingNotification, notification);
+      }
 
-      await this.createNotification(
-        booking.id,
-        NotificationType.BOOKING_COMPLETED,
-        'Dịch vụ hoàn thành',
-        `Dịch vụ của bạn đã hoàn thành. Cảm ơn bạn đã sử dụng dịch vụ!`,
-      );
-    }
+      // If completing booking
+      if (
+        rest.status === BookingStatus.COMPLETED &&
+        booking.status !== BookingStatus.COMPLETED
+      ) {
+        // Update customer stats
+        await this.customersService.updateStats(booking.customerId, booking.totalPrice);
 
-    Object.assign(booking, updateBookingDto);
-    const updated = await this.bookingRepository.save(booking);
-    return {
-      status: 200,
-      data: updated,
-      message: 'Cập nhật booking thành công',
-    };
+        const notification = manager.create(BookingNotification, {
+          bookingId: booking.id,
+          type: NotificationType.BOOKING_COMPLETED,
+          title: 'Dịch vụ hoàn thành',
+          message: `Dịch vụ của bạn đã hoàn thành. Cảm ơn bạn đã sử dụng dịch vụ!`,
+          recipientEmail: booking.customer.email,
+          status: NotificationStatus.PENDING,
+        });
+        await manager.save(BookingNotification, notification);
+      }
+
+      // If employeeIds is provided, update employee assignment
+      if (employeeIds !== undefined) {
+        const targetEmployeeIds = employeeIds || [];
+
+        if (targetEmployeeIds.length > 0) {
+          // Lock employees to prevent race conditions
+          await manager
+            .createQueryBuilder(Employee, 'employee')
+            .setLock('pessimistic_write')
+            .whereInIds(targetEmployeeIds)
+            .getMany();
+
+          // Validate constraints
+          if (targetEmployeeIds.length > booking.numberOfGuests) {
+            throw new BadRequestException(
+              `Số lượng nhân viên (${targetEmployeeIds.length}) không được vượt quá số lượng khách (${booking.numberOfGuests})`,
+            );
+          }
+
+          // Check for duplicate employee IDs
+          const uniqueEmpIds = [...new Set(targetEmployeeIds)];
+          if (uniqueEmpIds.length !== targetEmployeeIds.length) {
+            throw new BadRequestException('Danh sách nhân viên có ID trùng lặp');
+          }
+
+          // Validate employee schedules
+          const slotStartTime = booking.timeSlot.startTime;
+          const bookingDateVal: any = booking.bookingDate;
+          const dateString = bookingDateVal instanceof Date
+            ? bookingDateVal.toISOString().split('T')[0]
+            : typeof bookingDateVal === 'string'
+              ? bookingDateVal.split('T')[0]
+              : new Date(bookingDateVal).toISOString().split('T')[0];
+
+          const scheduleAvailable = await this.employeeSchedulesService.getAvailableEmployees(
+            dateString,
+            typeof slotStartTime === 'string' ? slotStartTime.substring(0, 5) : slotStartTime,
+          );
+          const availableEmpIds = scheduleAvailable.data.map((emp: any) => emp.id);
+
+          for (const empId of targetEmployeeIds) {
+            if (!availableEmpIds.includes(empId)) {
+              const emp = await manager.findOne(Employee, { where: { id: empId } });
+              throw new BadRequestException(
+                `Nhân viên ${emp?.fullName || empId} không làm việc vào ngày/giờ này`,
+              );
+            }
+          }
+
+          // Check employee availability (except this current booking)
+          const start = new Date(dateString);
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(dateString);
+          end.setHours(23, 59, 59, 999);
+
+          const conflictingBookings = await manager.find(BookingEmployee, {
+            where: {
+              employeeId: In(targetEmployeeIds),
+              bookingId: Not(booking.id), // Exclude current booking
+              booking: {
+                bookingDate: Between(start, end),
+                timeSlotId: booking.timeSlotId,
+                status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]),
+              },
+            },
+            relations: ['booking', 'employee'],
+          });
+
+          if (conflictingBookings.length > 0) {
+            const busyEmployeeName = conflictingBookings[0].employee.fullName;
+            throw new ConflictException(
+              `Nhân viên ${busyEmployeeName} bận thực hiện lịch đặt khác vào khung giờ này`,
+            );
+          }
+        }
+
+        // Delete old relations
+        await manager.delete(BookingEmployee, { bookingId: booking.id });
+
+        // Save new relations
+        if (targetEmployeeIds.length > 0) {
+          for (const empId of targetEmployeeIds) {
+            const bookingEmployee = manager.create(BookingEmployee, {
+              bookingId: booking.id,
+              employeeId: empId,
+            });
+            await manager.save(BookingEmployee, bookingEmployee);
+          }
+        }
+
+        // Set legacy relation
+        booking.employeeId = targetEmployeeIds.length > 0 ? targetEmployeeIds[0] : '';
+      }
+
+      Object.assign(booking, rest);
+      const updated = await manager.save(Booking, booking);
+
+      return {
+        status: 200,
+        data: updated,
+        message: 'Cập nhật booking thành công',
+      };
+    });
   }
 
   async remove(id: string) {

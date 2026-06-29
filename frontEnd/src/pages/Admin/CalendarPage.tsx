@@ -32,6 +32,7 @@ import {
   ViewWeek,
   ViewDay,
 } from '@mui/icons-material';
+import { Autocomplete, TextField } from '@mui/material';
 import dayjs from 'dayjs';
 import weekday from 'dayjs/plugin/weekday';
 import localeData from 'dayjs/plugin/localeData';
@@ -80,6 +81,8 @@ const CalendarPage: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const [dialogEmployees, setDialogEmployees] = useState<Employee[]>([]);
+  const [selectedEmpIds, setSelectedEmpIds] = useState<string[]>([]);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [presetSlotId, setPresetSlotId] = useState<string | undefined>();
   const [presetEmployeeId, setPresetEmployeeId] = useState<string | undefined>();
@@ -234,11 +237,35 @@ const CalendarPage: React.FC = () => {
     }
   };
 
-  const handleBookingClick = (booking: Booking, e: React.MouseEvent) => {
+  const handleBookingClick = async (booking: Booking, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedBooking(booking);
     setNewStatus(booking.status);
+    setSelectedEmpIds(booking.bookingEmployees?.map((be) => be.employee.id) || []);
     setOpenDialog(true);
+
+    // Fetch available employees for this slot dynamically
+    try {
+      const dateStr = dayjs(booking.bookingDate).format('YYYY-MM-DD');
+      const res: any = await apiClient.get('/bookings/available-employees', {
+        params: { date: dateStr, timeSlotId: booking.timeSlotId },
+      });
+      const available = res.data?.availableEmployees || [];
+      const current = booking.bookingEmployees?.map((be) => be.employee) || [];
+
+      // Combine current assigned employees with available ones
+      const combined = [...current];
+      available.forEach((emp: any) => {
+        if (!combined.some((e) => e.id === emp.id)) {
+          combined.push(emp);
+        }
+      });
+      setDialogEmployees(combined);
+    } catch (err) {
+      console.error('Failed to fetch available employees for dialog', err);
+      // Fallback: show current employees
+      setDialogEmployees(booking.bookingEmployees?.map((be) => be.employee) || []);
+    }
   };
 
   const handleUpdateStatus = async () => {
@@ -247,14 +274,16 @@ const CalendarPage: React.FC = () => {
     try {
       const result: any = await apiClient.patch(`/bookings/${selectedBooking.id}`, {
         status: newStatus,
+        employeeIds: selectedEmpIds,
       });
 
       if (result.status === 200) {
         setOpenDialog(false);
         fetchBookings(); // Refresh data
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update status', err);
+      alert(err.response?.data?.message || err.message || 'Lỗi khi cập nhật lịch hẹn');
     }
   };
 
@@ -400,6 +429,44 @@ const CalendarPage: React.FC = () => {
               Time
             </Typography>
           </Box>
+          {/* Cột tĩnh: Chờ phân công nhân viên */}
+          <Box
+            sx={{
+              width: 200,
+              minWidth: 200,
+              p: 1,
+              borderRight: '1px solid #ddd',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              bgcolor: '#ffebee',
+              borderBottom: '2px solid #ef5350',
+            }}
+          >
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: '#d32f2f',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+              }}
+            >
+              ?
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" fontWeight="bold" color="#d32f2f">
+                Chờ phân công
+              </Typography>
+              <Typography variant="caption" color="#e53935" fontWeight="bold">
+                Cần lưu ý
+              </Typography>
+            </Box>
+          </Box>
           {employees.map((emp) => {
             const schedule = getEmployeeScheduleForDay(emp.id);
             const isOff = !schedule || schedule.isDayOff;
@@ -488,6 +555,65 @@ const CalendarPage: React.FC = () => {
                     {hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
                   </Typography>
                 </Box>
+
+                {/* Ô hiển thị cột tĩnh: Chờ phân công */}
+                {(() => {
+                  const unassignedBookings = slotBookings.filter(
+                    (b) => !b.bookingEmployees || b.bookingEmployees.length === 0,
+                  );
+                  const slotTime = currentDate.hour(hour).minute(0).second(0);
+                  const isPast = slotTime.isBefore(dayjs());
+
+                  return (
+                    <Box
+                      key={`hour-unassigned-${hour}`}
+                      sx={{
+                        width: 200,
+                        minWidth: 200,
+                        p: 0.5,
+                        borderRight: '1px solid #f0f0f0',
+                        position: 'relative',
+                        cursor: !isPast ? 'pointer' : 'default',
+                        bgcolor: unassignedBookings.length > 0
+                          ? '#ffebee'
+                          : '#fffcfc',
+                        '&:hover': {
+                          backgroundColor: !isPast ? '#ffcdd2' : 'inherit',
+                        },
+                      }}
+                      onClick={() => {
+                        if (isPast) return;
+                        const hourStr = hour.toString().padStart(2, '0');
+                        const slotBooking = slotBookings[0];
+                        if (slotBooking) {
+                          setPresetSlotId(slotBooking.timeSlot.id);
+                        } else {
+                          setPresetSlotId(undefined);
+                        }
+                        setPresetStartTime(hourStr);
+                        setPresetEmployeeId(undefined);
+                        setOpenCreateDialog(true);
+                      }}
+                    >
+                      {unassignedBookings.map((b) => renderEventCard(b, true))}
+                      {unassignedBookings.length === 0 && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: '#cfd8dc',
+                            fontStyle: 'italic',
+                            fontSize: '0.65rem',
+                            display: 'block',
+                            textAlign: 'center',
+                            mt: 4,
+                          }}
+                        >
+                          Trống
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })()}
 
                 {/* Employee Columns */}
                 {employees.map((emp) => {
@@ -905,6 +1031,7 @@ const CalendarPage: React.FC = () => {
               onClick={handleToday}
               size="small"
               variant="text"
+              disabled={currentDate.isSame(dayjs(), view)}
               sx={{ mx: 1, minWidth: 'auto', fontWeight: 'bold' }}
             >
               Hôm nay
@@ -1091,23 +1218,43 @@ const CalendarPage: React.FC = () => {
                 >
                   NHÂN VIÊN THỰC HIỆN
                 </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {selectedBooking.bookingEmployees &&
-                  selectedBooking.bookingEmployees.length > 0 ? (
-                    selectedBooking.bookingEmployees.map((be) => (
-                      <Chip
-                        key={be.id}
-                        avatar={<Person />}
-                        label={be.employee.fullName}
-                        variant="outlined"
+                {selectedBooking.status !== 'cancelled' && selectedBooking.status !== 'completed' ? (
+                  <Autocomplete
+                    multiple
+                    options={dialogEmployees}
+                    getOptionLabel={(option) => option.fullName}
+                    value={dialogEmployees.filter((e) => selectedEmpIds.includes(e.id))}
+                    onChange={(_, newValue) => {
+                      setSelectedEmpIds(newValue.map((v) => v.id));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Chọn nhân viên"
+                        size="small"
+                        placeholder="Phân công"
                       />
-                    ))
-                  ) : (
-                    <Typography variant="body2" fontStyle="italic">
-                      Chưa chỉ định nhân viên
-                    </Typography>
-                  )}
-                </Stack>
+                    )}
+                  />
+                ) : (
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    {selectedBooking.bookingEmployees &&
+                    selectedBooking.bookingEmployees.length > 0 ? (
+                      selectedBooking.bookingEmployees.map((be) => (
+                        <Chip
+                          key={be.id}
+                          avatar={<Person />}
+                          label={be.employee.fullName}
+                          variant="outlined"
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2" fontStyle="italic">
+                        Chưa chỉ định nhân viên
+                      </Typography>
+                    )}
+                  </Stack>
+                )}
               </Box>
 
               {/* Notes */}
