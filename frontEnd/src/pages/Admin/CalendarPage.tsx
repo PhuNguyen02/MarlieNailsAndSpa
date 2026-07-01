@@ -81,7 +81,7 @@ const CalendarPage: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
-  const [dialogEmployees, setDialogEmployees] = useState<Employee[]>([]);
+  const [dialogEmployees, setDialogEmployees] = useState<Pick<Employee, 'id' | 'fullName' | 'role' | 'specialization'>[]>([]);
   const [selectedEmpIds, setSelectedEmpIds] = useState<string[]>([]);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [presetSlotId, setPresetSlotId] = useState<string | undefined>();
@@ -248,7 +248,7 @@ const CalendarPage: React.FC = () => {
     try {
       const dateStr = dayjs(booking.bookingDate).format('YYYY-MM-DD');
       const res: any = await apiClient.get('/bookings/available-employees', {
-        params: { date: dateStr, timeSlotId: booking.timeSlotId },
+        params: { date: dateStr, timeSlotId: booking.timeSlot.id },
       });
       const available = res.data?.availableEmployees || [];
       const current = booking.bookingEmployees?.map((be) => be.employee) || [];
