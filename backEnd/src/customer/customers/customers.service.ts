@@ -105,8 +105,8 @@ export class CustomersService {
 
   async updateStats(customerId: string, totalSpent: number) {
     const customer = await this.findOne(customerId);
-    customer.totalVisits += 1;
-    customer.totalSpent += totalSpent;
+    customer.totalVisits = Number(customer.totalVisits || 0) + 1;
+    customer.totalSpent = Number(customer.totalSpent || 0) + Number(totalSpent || 0);
     return this.customerRepository.save(customer);
   }
 }

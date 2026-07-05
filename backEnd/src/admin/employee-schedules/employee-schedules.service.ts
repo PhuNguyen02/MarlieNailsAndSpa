@@ -32,7 +32,12 @@ export class EmployeeSchedulesService {
 
     const scheduleData: any = {
       ...dto,
-      specificDate: dto.specificDate ? new Date(dto.specificDate) : null,
+      // FIX: Parse specificDate as local date to avoid UTC timezone offset issue
+      // new Date("YYYY-MM-DD") parses as UTC midnight, shifting the date by 1 day in UTC+7
+      specificDate: dto.specificDate ? (() => {
+        const [y, m, d] = dto.specificDate.split('-').map(Number);
+        return new Date(y, m - 1, d);
+      })() : null,
       breakStartTime: dto.breakStartTime || null,
       breakEndTime: dto.breakEndTime || null,
       note: dto.note || null,
@@ -238,9 +243,11 @@ export class EmployeeSchedulesService {
     });
 
     // Check nếu có specificDate override (ngày nghỉ riêng)
+    // FIX: parse local date to avoid UTC timezone offset (new Date("YYYY-MM-DD") parses as UTC midnight)
+    const [syear, smonth, sday] = date.split('-').map(Number);
     const specificDayOffs = await this.scheduleRepository.find({
       where: {
-        specificDate: new Date(date),
+        specificDate: new Date(syear, smonth - 1, sday),
         isDayOff: true,
       },
     });
@@ -268,7 +275,9 @@ export class EmployeeSchedulesService {
 
     Object.assign(schedule, dto);
     if (dto.specificDate) {
-      schedule.specificDate = new Date(dto.specificDate);
+      // FIX: Parse as local date to avoid UTC timezone offset issue
+      const [y, m, d] = dto.specificDate.split('-').map(Number);
+      schedule.specificDate = new Date(y, m - 1, d);
     }
 
     const updated = await this.scheduleRepository.save(schedule);
@@ -297,7 +306,11 @@ export class EmployeeSchedulesService {
 
   // Helper: chuyển date string thành DayOfWeek
   private getDayOfWeekFromDate(dateStr: string): DayOfWeek {
-    const date = new Date(dateStr);
+    // FIX: Parse as local date to avoid UTC timezone offset bug.
+    // new Date("YYYY-MM-DD") is treated as UTC midnight, which in UTC+7
+    // becomes the previous day (e.g., Monday becomes Sunday), causing wrong schedule lookup.
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // Local timezone
     const dayIndex = date.getDay(); // 0=Sunday, 1=Monday...
     const mapping: Record<number, DayOfWeek> = {
       0: DayOfWeek.SUNDAY,

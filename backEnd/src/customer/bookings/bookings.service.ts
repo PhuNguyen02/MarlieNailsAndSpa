@@ -246,14 +246,8 @@ export class BookingsService {
 
       query.andWhere('booking.bookingDate BETWEEN :start AND :end', { start, end });
     } else if (filters?.date) {
-      const date = new Date(filters.date);
-      // Create range for that specific day
-      const start = new Date(date);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(date);
-      end.setHours(23, 59, 59, 999);
-
-      query.andWhere('booking.bookingDate BETWEEN :start AND :end', { start, end });
+      // FIX: bookingDate is a DATE column (YYYY-MM-DD) — use string equality, not Between with Date objects
+      query.andWhere('booking.bookingDate = :date', { date: filters.date });
     }
 
     if (filters?.customerId) {
@@ -454,15 +448,17 @@ export class BookingsService {
         await manager.delete(BookingEmployee, { bookingId: booking.id });
 
         // Save new relations
+        const newBookingEmployees: BookingEmployee[] = [];
         if (targetEmployeeIds.length > 0) {
           for (const empId of targetEmployeeIds) {
             const bookingEmployee = manager.create(BookingEmployee, {
               bookingId: booking.id,
               employeeId: empId,
             });
-            await manager.save(BookingEmployee, bookingEmployee);
+            newBookingEmployees.push(bookingEmployee);
           }
         }
+        booking.bookingEmployees = newBookingEmployees;
 
         // Set legacy relation
         booking.employeeId = targetEmployeeIds.length > 0 ? targetEmployeeIds[0] : '';
@@ -510,16 +506,12 @@ export class BookingsService {
   async checkAvailability(date: string, timeSlotId: string) {
     const timeSlot = await this.timeSlotsService.findOne(timeSlotId);
 
-    // Create range for that specific day
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-
-    // Get bookings for this date and time slot
+    // FIX: bookingDate is a MySQL DATE column (YYYY-MM-DD).
+    // Use string equality instead of Between(DateObject, DateObject)
+    // which fails because TypeORM serializes Date to datetime strings.
     const bookings = await this.bookingRepository.find({
       where: {
-        bookingDate: Between(start, end),
+        bookingDate: date as any,
         timeSlotId,
         status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]),
       },
@@ -565,41 +557,24 @@ export class BookingsService {
       serviceCategory = service?.category?.toLowerCase();
     }
 
-    // Nếu có employeeId, lấy danh sách các slot mà nhân viên đó ĐÃ CÓ booking
-    let employeeBusySlots: string[] = [];
-    if (employeeId) {
-      const bookings = await this.bookingRepository.find({
-        where: {
-          bookingDate: new Date(date),
-          status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]),
-          bookingEmployees: {
-            employeeId: employeeId,
-          },
-        },
-        relations: ['bookingEmployees'], // Cần join để filter
-      });
-      // Đoạn trên query hơi sai vì TypeORM find relations lồng nhau.
-      // Dùng bookingEmployeeRepos sẽ chuẩn hơn.
-    }
+    // NOTE: Query below is superseded by the cleaner query using bookingEmployeeRepository below.
+    // Kept as dead code reference only. The bookingDate comparison here also has timezone risk
+    // but is not executed, so left as-is.
 
     // Query lại logic employeeBusySlots chuẩn hơn bằng bookingEmployeeRepository
+    let employeeBusySlots: string[] = [];
     if (employeeId) {
-      const start = new Date(date);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(date);
-      end.setHours(23, 59, 59, 999);
-
-      const busy = await this.bookingEmployeeRepository.find({
-        where: {
-          employeeId,
-          booking: {
-            bookingDate: Between(start, end),
-            status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING]),
-          },
-        },
-        relations: ['booking'],
-      });
-      employeeBusySlots = busy.map((b) => b.booking.timeSlotId);
+      // FIX: bookingDate is a DATE column — use QueryBuilder with string date
+      const busy = await this.bookingEmployeeRepository
+        .createQueryBuilder('be')
+        .innerJoinAndSelect('be.booking', 'booking')
+        .where('be.employeeId = :employeeId', { employeeId })
+        .andWhere('booking.bookingDate = :date', { date })
+        .andWhere('booking.status IN (:...statuses)', {
+          statuses: [BookingStatus.CONFIRMED, BookingStatus.PENDING],
+        })
+        .getMany();
+      employeeBusySlots = busy.map((be) => be.booking.timeSlotId);
     }
 
     const availability = await Promise.all(
@@ -610,27 +585,14 @@ export class BookingsService {
         if (employeeId) {
           if (employeeBusySlots.includes(slot.id)) {
             avail.data.isAvailable = false;
-            // Có thể thêm message "Nhân viên bận" nếu cần
           }
           // Vẫn phải check checkAvailability (global capacity) bên trên.
           // Nếu global full -> false.
           // Nếu global ok mà employee bận -> false.
-        } else if (avail.data.isAvailable && serviceCategory) {
-          // Logic cũ: Nếu không chọn Employee trước, kiểm tra có ÍT NHẤT 1 employee phù hợp rảnh k
-          const employeesRes = await this.getAvailableEmployees(date, slot.id);
-          const hasSpecialized = employeesRes.data.availableEmployees.some((emp) => {
-            if (!emp.specialization) return true;
-            const specs = emp.specialization
-              .toLowerCase()
-              .split(',')
-              .map((s: string) => s.trim());
-            return specs.some((spec: string) => serviceCategory.includes(spec));
-          });
-
-          if (!hasSpecialized) {
-            avail.data.isAvailable = false;
-          }
         }
+        // NOTE: Khi KHÔNG chọn nhân viên cụ thể, KHÔNG block slot theo chuyên ngành.
+        // Booking sẽ ở trạng thái "Chờ phân công" - admin assign nhân viên sau.
+        // Chỉ block khi hết capacity toàn cục (checkAvailability đã xử lý).
 
         return avail.data;
       }),
@@ -734,22 +696,21 @@ export class BookingsService {
     const workingEmployeeIds = workingEmployees.map((emp: any) => emp.id);
 
     // 3. Lấy nhân viên đã có booking trong khung giờ này
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-
+    // FIX: bookingDate is a DATE column — filter by date string after loading relations
     const bookedBookingEmployees = await this.bookingEmployeeRepository.find({
       where: {
         booking: {
-          bookingDate: Between(start, end),
           timeSlotId,
           status: BookingStatus.CONFIRMED,
         },
       },
       relations: ['booking', 'employee'],
     });
-    const bookedEmployeeIds = bookedBookingEmployees.map((be) => be.employeeId);
+    // Filter by date string since bookingDate is DATE type
+    const filteredBooked = bookedBookingEmployees.filter((be) =>
+      be.booking?.bookingDate?.toString().startsWith(date),
+    );
+    const bookedEmployeeIds = filteredBooked.map((be) => be.employeeId);
 
     // 4. Kết hợp: Nhân viên phải CÓ lịch làm việc VÀ chưa có booking
     const availableEmployees = workingEmployees.filter(

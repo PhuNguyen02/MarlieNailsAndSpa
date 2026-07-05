@@ -331,6 +331,29 @@ const BookingItemCard = ({
               sx={{ alignSelf: 'flex-start', mb: 0.5 }}
             />
 
+            {/* Notice: no staff selected = pending assignment */}
+            {!requestSpecificStaff && item.service && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: 1.5,
+                  backgroundColor: 'info.light',
+                  border: '1px solid',
+                  borderColor: 'info.main',
+                  opacity: 0.85,
+                }}
+              >
+                <Person sx={{ fontSize: '1rem', color: 'info.dark' }} />
+                <Typography variant="caption" color="info.dark">
+                  Nhân viên sẽ được <strong>phân công sau</strong> bởi salon
+                </Typography>
+              </Box>
+            )}
+
             {requestSpecificStaff && (
               <TextField
                 select
@@ -491,6 +514,7 @@ const BookingItemCard = ({
           .map((b) => ({
             date: b.date,
             time: b.time,
+            staff: b.staff || undefined,
             guestNumber: b.guestNumber,
           }))}
       />

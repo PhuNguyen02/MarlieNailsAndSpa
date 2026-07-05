@@ -50,7 +50,7 @@ const TimeSlotPicker = ({
   const [selectedTimeLabel, setSelectedTimeLabel] = useState<string | null>(null);
   const [slots, setSlots] = useState<AvailableSlot[]>([]);
   const { getAvailableSlots, loading, error } = useBookings();
-
+  console.log("slots", slots)
   useEffect(() => {
     if (open && selectedDate) {
       const fetchSlots = async () => {
@@ -66,23 +66,36 @@ const TimeSlotPicker = ({
       const timeLabel = slot.timeSlot.startTime.substring(0, 5);
 
       // Check if this slot conflicts with other bookings in the form
-      const hasConflict = existingBookings.some(
-        (booking) =>
-          booking.date === selectedDate &&
-          booking.time === slot.timeSlot.id &&
-          booking.guestNumber !== currentGuestNumber,
-      );
+      // Only flag as conflict when:
+      // - Same date + same timeSlot
+      // - AND either booking has no specific staff chosen (any-staff mode)
+      //   OR both chose the SAME staff (would actually conflict)
+      const hasConflict = existingBookings.some((booking) => {
+        if (booking.date !== selectedDate) return false;
+        if (booking.time !== slot.timeSlot.id) return false;
+        if (booking.guestNumber === currentGuestNumber) return false;
+        // If either side has no staff chosen → potential conflict (can't guarantee separate employees)
+        // If both have staff chosen → only conflict when same staff
+        const currentStaff = employeeId || null;
+        const otherStaff = booking.staff || null;
+        if (currentStaff && otherStaff && currentStaff !== otherStaff) return false; // different staff → no conflict
+        return true;
+      });
 
-      const conflictBooking = existingBookings.find(
-        (booking) =>
-          booking.date === selectedDate &&
-          booking.time === slot.timeSlot.id &&
-          booking.guestNumber !== currentGuestNumber,
-      );
+      const conflictBooking = existingBookings.find((booking) => {
+        if (booking.date !== selectedDate) return false;
+        if (booking.time !== slot.timeSlot.id) return false;
+        if (booking.guestNumber === currentGuestNumber) return false;
+        const currentStaff = employeeId || null;
+        const otherStaff = booking.staff || null;
+        if (currentStaff && otherStaff && currentStaff !== otherStaff) return false;
+        return true;
+      });
 
-      const isNotEnoughSpace = currentGuestNumber
-        ? slot.availableSlots < currentGuestNumber
-        : false;
+      // FIX: slot.availableSlots is global capacity, currentGuestNumber is a guest
+      // sequence number (1, 2, 3...) — NOT the number of seats to reserve.
+      // A slot should only be blocked when it has 0 available capacity.
+      const isNotEnoughSpace = slot.availableSlots < 1;
 
       return {
         id: slot.timeSlot.id,
@@ -292,22 +305,8 @@ const TimeSlotPicker = ({
                             }}
                           />
                         )}
-                        {slot.hasConflict && !slot.isBooked && (
-                          <Chip
-                            label={`Người ${slot.conflictGuestNumber}`}
-                            size="small"
-                            sx={{
-                              position: 'absolute',
-                              top: 4,
-                              right: 4,
-                              height: '20px',
-                              fontSize: '0.65rem',
-                              backgroundColor: 'warning.light',
-                              color: 'warning.dark',
-                            }}
-                          />
-                        )}
-                        {slot.isPast && !slot.isBooked && !slot.hasConflict && (
+                        {/* isPast takes priority over hasConflict for badge display */}
+                        {slot.isPast && !slot.isBooked && (
                           <Chip
                             label="Đã qua"
                             size="small"
@@ -319,6 +318,21 @@ const TimeSlotPicker = ({
                               fontSize: '0.65rem',
                               backgroundColor: 'grey.300',
                               color: 'grey.700',
+                            }}
+                          />
+                        )}
+                        {slot.hasConflict && !slot.isBooked && !slot.isPast && (
+                          <Chip
+                            label={`Người ${slot.conflictGuestNumber}`}
+                            size="small"
+                            sx={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              height: '20px',
+                              fontSize: '0.65rem',
+                              backgroundColor: 'warning.light',
+                              color: 'warning.dark',
                             }}
                           />
                         )}
