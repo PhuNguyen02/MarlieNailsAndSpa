@@ -50,7 +50,6 @@ const TimeSlotPicker = ({
   const [selectedTimeLabel, setSelectedTimeLabel] = useState<string | null>(null);
   const [slots, setSlots] = useState<AvailableSlot[]>([]);
   const { getAvailableSlots, loading, error } = useBookings();
-  console.log("slots", slots)
   useEffect(() => {
     if (open && selectedDate) {
       const fetchSlots = async () => {

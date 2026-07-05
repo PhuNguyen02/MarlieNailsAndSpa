@@ -154,14 +154,16 @@ export class BookingsService {
       }
 
       // Create booking using Transaction Manager
+      // If employeeIds are provided -> CONFIRMED, otherwise PENDING (waiting for staff assignment)
       const booking = manager.create(Booking, {
         ...rest,
         customerId,
         bookingDate: new Date(bookingDate),
         timeSlotId,
+        isActive: true,
         numberOfGuests,
         totalPrice,
-        status: BookingStatus.CONFIRMED,
+        status: (employeeIds && employeeIds.length > 0) ? BookingStatus.CONFIRMED : BookingStatus.PENDING,
       });
 
       const savedBooking = await manager.save(Booking, booking);

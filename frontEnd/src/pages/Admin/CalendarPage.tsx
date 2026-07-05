@@ -1150,7 +1150,7 @@ const CalendarPage: React.FC = () => {
                 </Box>
               </Box>
 
-              <Divider variant="inset" component="li" sx={{ listStyle: 'none' }} />
+              <Divider variant="inset" />
 
               {/* Time & Service Info */}
               <Box sx={{ display: 'flex', gap: 2 }}>
@@ -1207,7 +1207,7 @@ const CalendarPage: React.FC = () => {
                 </Box>
               </Box>
 
-              <Divider variant="inset" component="li" sx={{ listStyle: 'none' }} />
+              <Divider variant="inset" />
 
               {/* Employees */}
               <Box>
@@ -1305,7 +1305,15 @@ const CalendarPage: React.FC = () => {
             onClick={handleUpdateStatus}
             variant="contained"
             color="primary"
-            disabled={!selectedBooking || selectedBooking.status === newStatus}
+            disabled={
+              !selectedBooking ||
+              (selectedBooking.status === newStatus &&
+                JSON.stringify(
+                  (selectedBooking.bookingEmployees || [])
+                    .map((be) => be.employee.id)
+                    .sort(),
+                ) === JSON.stringify([...selectedEmpIds].sort()))
+            }
           >
             Cập nhật
           </Button>

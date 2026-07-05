@@ -13,6 +13,7 @@ import {
   Fade,
   Tabs,
   Tab,
+  Stack,
 } from '@mui/material';
 import {
   ChevronLeft,
@@ -1118,21 +1119,20 @@ const BookingPage: React.FC = () => {
           >
             Hướng dẫn đặt lịch
           </Typography>
-          <Box component="ul" sx={{ pl: 2, m: 0 }}>
-            <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Xem lịch trống/bận của từng nhân viên trên lịch
+          <Stack spacing={1} sx={{ pl: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              • Xem lịch trống/bận của từng nhân viên trên lịch
             </Typography>
-            <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Nhấn vào ô trống trên lịch hoặc nút <strong>"Đặt Lịch Ngay"</strong> để mở form đặt
-              lịch
+            <Typography variant="body2" color="text.secondary">
+              • Nhấn vào ô trống trên lịch hoặc nút <strong>"Đặt Lịch Ngay"</strong> để mở form đặt lịch
             </Typography>
-            <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Ở chế độ xem tuần, nhấn vào ngày để chuyển sang chế độ xem ngày
+            <Typography variant="body2" color="text.secondary">
+              • Ở chế độ xem tuần, nhấn vào ngày để chuyển sang chế độ xem ngày
             </Typography>
-            <Typography component="li" variant="body2" color="text.secondary">
-              Điền đầy đủ thông tin: chọn dịch vụ, nhân viên, ngày và giờ để hoàn tất đặt lịch
+            <Typography variant="body2" color="text.secondary">
+              • Điền đầy đủ thông tin: chọn dịch vụ, nhân viên, ngày và giờ để hoàn tất đặt lịch
             </Typography>
-          </Box>
+          </Stack>
         </Box>
       </Box>
 

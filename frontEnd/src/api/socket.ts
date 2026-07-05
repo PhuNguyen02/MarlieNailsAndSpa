@@ -1,8 +1,12 @@
 import { io, Socket } from 'socket.io-client';
 
-// Sử dụng relative path để tận dụng proxy của Vite trong development
-// hoặc domain chính trong production. Namespace là /notifications
-const SOCKET_URL = '/notifications';
+// Use server origin for WebSocket connection. Namespace is /notifications.
+// In dev we connect to current origin (handled by Vite proxy), in prod we use same host.
+const getSocketUrl = () => {
+  // If dev, proxy is configured on same port (http://localhost:5174/socket.io) -> target http://localhost:3000
+  // If prod, relative path to origin is used.
+  return '/notifications';
+};
 
 class SocketService {
   private socket: Socket | null = null;
@@ -16,8 +20,11 @@ class SocketService {
       return this.socket;
     }
 
-    this.socket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'], // Cho phép fallback polling nếu websocket bị chặn
+    // Connect to the base origin (e.g. http://localhost:5174) with namespace /notifications
+    // This allows Vite proxy for /socket.io to intercept it correctly.
+    const origin = window.location.origin;
+    this.socket = io(`${origin}/notifications`, {
+      transports: ['websocket', 'polling'],
       autoConnect: true,
     });
 
@@ -34,7 +41,7 @@ class SocketService {
 
     this.socket.on('connect_error', (error) => {
       console.error('Socket connection error:', error.message);
-      console.log('Current SOCKET_URL:', SOCKET_URL);
+      console.log('Current SOCKET_URL:', getSocketUrl());
     });
 
     this.socket.on('error', (error) => {

@@ -101,6 +101,11 @@ export const theme = createTheme({
         },
       },
     },
+    MuiDialog: {
+      defaultProps: {
+        disableScrollLock: true,
+      },
+    },
   },
   transitions: {
     duration: {
